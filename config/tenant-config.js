@@ -1,352 +1,355 @@
 /**
- * 企業（テナント）別設定
- * 複数企業に対応した設定管理
+ * 企業設定（建設業専用版）
+ * BRANU株式会社向け建設業特化システム
  */
 
-// 企業別設定
+// 建設業専用の企業設定
 const tenantConfig = {
-  // デモ建設会社
-  'demo-construction': {
-    id: 'demo-construction',
-    name: 'デモ建設',
-    displayName: 'デモ建設株式会社',
-    description: '建設業向けの評価システムデモ',
+  'construction-demo': {
+    // 企業基本情報
+    id: 'construction-demo',
+    name: 'ディーココンストラクション',
+    displayName: 'ディーココンストラクション株式会社',
+    description: '内装工事・リノベーション専門の建設会社',
+    domain: 'demo.construction',
     industry: 'construction',
     
-    // 外観設定
-    icon: 'fas fa-hard-hat',
-    logo: 'assets/images/construction-logo.png',
-    theme: 'construction',
-    primaryColor: '#001350',
-    
-    // 企業固有設定
+    // 設定
     settings: {
-      // 役職一覧
-      positions: [
+      // 評価カテゴリセット（建設業専用）
+      evaluationCategorySet: 'construction',
+      
+      // 利用可能な役職（建設業特化）
+      availablePositions: [
         '現場作業員',
         '管理者',
+        '営業',
         '代表'
       ],
       
-      // 評価カテゴリセット
-      evaluationCategorySet: 'construction',
+      // 利用可能な役割
+      availableRoles: [
+        'employee',    // 従業員
+        'evaluator',   // 評価者
+        'admin'        // 管理者
+      ],
       
-      // 評価期間の設定
+      // 評価期間設定
       evaluationPeriods: {
-        frequency: 'semiannual', // 半期ごと
-        customPeriods: [
-          {
-            name: '2024年上期',
-            startDate: '2024-04-01',
-            endDate: '2024-09-30'
-          },
-          {
-            name: '2024年下期',
-            startDate: '2024-10-01',
-            endDate: '2025-03-31'
-          }
-        ]
+        defaultLength: 6, // 6ヶ月
+        deadlineWarningDays: 7
       },
       
-      // 承認フロー設定
-      approvalFlow: {
-        enableEvaluatorApproval: true,
-        enableAdminApproval: true,
-        allowSelfEvaluation: true
+      // UI設定
+      theme: 'construction',
+      logo: 'assets/images/logo.png',
+      primaryColor: '#1e6fff',
+      
+      // 機能設定
+      features: {
+        selfEvaluation: true,
+        peerEvaluation: false,
+        360Evaluation: false,
+        goalSetting: true,
+        skillMatrixs: true
       },
       
       // 通知設定
       notifications: {
-        evaluationDeadline: true,
-        approvalReminder: true,
-        statusUpdate: true
+        email: false,
+        inApp: true,
+        deadlineReminder: true
       }
     },
     
-    // デモ用サンプルユーザー
+    // 建設業向けサンプルユーザー
     sampleUsers: [
       {
-        id: 'admin-construction',
+        id: 'admin',
         name: '建設 太郎',
-        email: 'admin@demo-construction.local',
+        email: 'admin@demo.com',
         role: 'admin',
         position: '代表',
+        department: '経営陣',
         password: 'demo123'
       },
       {
-        id: 'manager-construction',
+        id: 'manager',
         name: '現場 花子',
-        email: 'manager@demo-construction.local',
+        email: 'manager@demo.com',
         role: 'evaluator',
         position: '管理者',
+        department: '現場管理部',
         password: 'demo123'
       },
       {
-        id: 'employee-construction',
+        id: 'employee',
         name: '作業 次郎',
-        email: 'employee@demo-construction.local',
+        email: 'employee@demo.com',
         role: 'employee',
         position: '現場作業員',
-        password: 'demo123'
-      }
-    ]
-  },
-  
-  // デモIT会社
-  'demo-it': {
-    id: 'demo-it',
-    name: 'デモIT',
-    displayName: 'デモIT株式会社',
-    description: 'IT企業向けの評価システムデモ',
-    industry: 'it',
-    
-    // 外観設定
-    icon: 'fas fa-laptop-code',
-    logo: 'assets/images/it-logo.png',
-    theme: 'default',
-    primaryColor: '#007bff',
-    
-    // 企業固有設定
-    settings: {
-      // 役職一覧
-      positions: [
-        'エンジニア',
-        'マネージャー',
-        '経営者'
-      ],
-      
-      // 評価カテゴリセット
-      evaluationCategorySet: 'it',
-      
-      // 評価期間の設定
-      evaluationPeriods: {
-        frequency: 'quarterly', // 四半期ごと
-        customPeriods: [
-          {
-            name: '2024年Q1',
-            startDate: '2024-01-01',
-            endDate: '2024-03-31'
-          },
-          {
-            name: '2024年Q2',
-            startDate: '2024-04-01',
-            endDate: '2024-06-30'
-          }
-        ]
-      },
-      
-      // 承認フロー設定
-      approvalFlow: {
-        enableEvaluatorApproval: true,
-        enableAdminApproval: false, // IT企業は1段階承認
-        allowSelfEvaluation: true
-      },
-      
-      // 通知設定
-      notifications: {
-        evaluationDeadline: true,
-        approvalReminder: true,
-        statusUpdate: false
-      }
-    },
-    
-    // デモ用サンプルユーザー
-    sampleUsers: [
-      {
-        id: 'admin-it',
-        name: 'IT 代表',
-        email: 'admin@demo-it.local',
-        role: 'admin',
-        position: '経営者',
+        department: '工事部',
         password: 'demo123'
       },
       {
-        id: 'manager-it',
-        name: 'プロジェクト マネージャー',
-        email: 'manager@demo-it.local',
-        role: 'evaluator',
-        position: 'マネージャー',
-        password: 'demo123'
-      },
-      {
-        id: 'engineer-it',
-        name: 'システム エンジニア',
-        email: 'engineer@demo-it.local',
-        role: 'employee',
-        position: 'エンジニア',
-        password: 'demo123'
-      }
-    ]
-  },
-  
-  // デモ営業会社
-  'demo-sales': {
-    id: 'demo-sales',
-    name: 'デモ営業',
-    displayName: 'デモ営業株式会社',
-    description: '営業特化型の評価システムデモ',
-    industry: 'sales',
-    
-    // 外観設定
-    icon: 'fas fa-chart-line',
-    logo: 'assets/images/sales-logo.png',
-    theme: 'default',
-    primaryColor: '#28a745',
-    
-    // 企業固有設定
-    settings: {
-      // 役職一覧
-      positions: [
-        '営業',
-        '営業管理者',
-        '役員'
-      ],
-      
-      // 評価カテゴリセット
-      evaluationCategorySet: 'sales',
-      
-      // 評価期間の設定
-      evaluationPeriods: {
-        frequency: 'monthly', // 毎月
-        autoGenerate: true // 自動生成
-      },
-      
-      // 承認フロー設定
-      approvalFlow: {
-        enableEvaluatorApproval: true,
-        enableAdminApproval: true,
-        allowSelfEvaluation: true
-      },
-      
-      // 通知設定
-      notifications: {
-        evaluationDeadline: true,
-        approvalReminder: true,
-        statusUpdate: true
-      }
-    },
-    
-    // デモ用サンプルユーザー
-    sampleUsers: [
-      {
-        id: 'admin-sales',
-        name: '営業 役員',
-        email: 'admin@demo-sales.local',
-        role: 'admin',
-        position: '役員',
-        password: 'demo123'
-      },
-      {
-        id: 'manager-sales',
-        name: '営業 管理者',
-        email: 'manager@demo-sales.local',
-        role: 'evaluator',
-        position: '営業管理者',
-        password: 'demo123'
-      },
-      {
-        id: 'sales-rep',
-        name: '営業 担当',
-        email: 'sales@demo-sales.local',
+        id: 'sales1',
+        name: '営業 三郎',
+        email: 'sales1@demo.com',
         role: 'employee',
         position: '営業',
+        department: '営業部',
+        password: 'demo123'
+      },
+      {
+        id: 'worker1',
+        name: '職人 四郎',
+        email: 'worker1@demo.com',
+        role: 'employee',
+        position: '現場作業員',
+        department: '工事部',
         password: 'demo123'
       }
-    ]
+    ],
+    
+    // 部署構成
+    departments: [
+      {
+        id: 'management',
+        name: '経営陣',
+        description: '会社運営・経営戦略'
+      },
+      {
+        id: 'construction',
+        name: '工事部',
+        description: '現場作業・施工管理'
+      },
+      {
+        id: 'sales',
+        name: '営業部',
+        description: '営業・顧客対応'
+      },
+      {
+        id: 'admin',
+        name: '管理部',
+        description: '総務・経理・人事'
+      }
+    ],
+    
+    // カスタムフィールド（建設業向け）
+    customFields: {
+      user: [
+        {
+          id: 'license',
+          name: '資格・免許',
+          type: 'text',
+          options: [
+            '建設業経理検定',
+            '建築施工管理技術検定',
+            '内装仕上げ施工技能検定',
+            '建設業許可',
+            '安全管理者'
+          ]
+        },
+        {
+          id: 'experience_years',
+          name: '経験年数',
+          type: 'number',
+          unit: '年'
+        },
+        {
+          id: 'specialization',
+          name: '専門分野',
+          type: 'select',
+          options: [
+            'クロス工事',
+            '床工事',
+            'シート工事',
+            '施工管理',
+            '営業',
+            '積算・見積'
+          ]
+        }
+      ],
+      evaluation: [
+        {
+          id: 'safety_record',
+          name: '安全実績',
+          type: 'text',
+          description: '当期の安全記録・事故歴'
+        },
+        {
+          id: 'quality_awards',
+          name: '品質評価',
+          type: 'text',
+          description: '品質に関する社内外評価'
+        }
+      ]
+    },
+    
+    // 評価項目のカスタマイズ
+    evaluationCustomization: {
+      // 定量評価のウェイト調整
+      quantitativeWeights: {
+        'construction-cross-new': 20,
+        'construction-cross-replace': 15,
+        'construction-floor': 15,
+        'construction-sheet': 15,
+        'construction-misc': 10,
+        'construction-management': 25,
+        'sales-performance': 70,
+        'sales-activities': 30
+      },
+      
+      // 定性評価のデフォルト項目
+      defaultQualitativeGoals: {
+        '現場作業員': [
+          '安全意識の向上と事故防止',
+          '技術力向上と品質安定',
+          '作業効率化への取り組み',
+          'チームワークの向上',
+          '後輩指導・技術伝承'
+        ],
+        '管理者': [
+          '現場安全管理の徹底',
+          '施工品質管理の向上',
+          '工程管理と納期遵守',
+          'チームマネジメント',
+          'コストダウンの推進'
+        ],
+        '営業': [
+          '売上目標の達成',
+          '新規顧客開拓',
+          '提案力の向上',
+          '顧客満足度向上',
+          'アフターフォロー強化'
+        ],
+        '代表': [
+          '会社業績の向上',
+          '組織力強化',
+          '新事業展開',
+          '人材育成',
+          'ブランド価値向上'
+        ]
+      }
+    },
+    
+    // 建設業特有の設定
+    constructionSettings: {
+      // 安全管理関連
+      safety: {
+        enableDailyKY: true,  // 日々のKY活動記録
+        trackSafetyRecord: true,  // 安全実績追跡
+        mandatorySafetyTraining: true  // 安全講習必須
+      },
+      
+      // 品質管理関連
+      quality: {
+        enableQualityCheck: true,  // 品質チェック機能
+        trackDefectRate: true,  // 不具合率追跡
+        customerSatisfactionSurvey: true  // 顧客満足度調査
+      },
+      
+      // プロジェクト管理関連
+      project: {
+        trackProjectProfit: true,  // 現場利益管理
+        enableScheduleManagement: true,  // 工程管理
+        trackMaterialCost: true  // 資材コスト管理
+      }
+    },
+    
+    // 初期データ
+    initialData: {
+      createSampleEvaluations: true,
+      evaluationCount: 5,
+      includeHistoricalData: true
+    }
   }
 };
 
-// テナント取得ヘルパー関数
+// ヘルパー関数
 const getTenantConfig = (tenantId) => {
   return tenantConfig[tenantId] || null;
 };
 
-// テナント一覧取得
-const getAllTenants = () => {
-  return Object.values(tenantConfig);
-};
-
-// 現在のテナント取得
 const getCurrentTenant = () => {
-  const selectedTenant = localStorage.getItem('selectedTenant');
-  return selectedTenant ? getTenantConfig(selectedTenant) : null;
+  const selectedTenant = localStorage.getItem('selectedTenant') || 'construction-demo';
+  return getTenantConfig(selectedTenant);
 };
 
-// テナント設定更新
-const updateTenantConfig = (tenantId, updates) => {
-  if (tenantConfig[tenantId]) {
-    tenantConfig[tenantId] = { ...tenantConfig[tenantId], ...updates };
-    return true;
+const getAvailablePositions = (tenantId = null) => {
+  const tenant = tenantId ? getTenantConfig(tenantId) : getCurrentTenant();
+  return tenant ? tenant.settings.availablePositions : ['従業員', '管理者'];
+};
+
+const getAvailableRoles = (tenantId = null) => {
+  const tenant = tenantId ? getTenantConfig(tenantId) : getCurrentTenant();
+  return tenant ? tenant.settings.availableRoles : ['employee', 'evaluator', 'admin'];
+};
+
+const getDepartments = (tenantId = null) => {
+  const tenant = tenantId ? getTenantConfig(tenantId) : getCurrentTenant();
+  return tenant ? tenant.departments : [];
+};
+
+const getCustomFields = (type, tenantId = null) => {
+  const tenant = tenantId ? getTenantConfig(tenantId) : getCurrentTenant();
+  return tenant && tenant.customFields ? tenant.customFields[type] || [] : [];
+};
+
+const getDefaultQualitativeGoals = (position, tenantId = null) => {
+  const tenant = tenantId ? getTenantConfig(tenantId) : getCurrentTenant();
+  if (!tenant || !tenant.evaluationCustomization || !tenant.evaluationCustomization.defaultQualitativeGoals) {
+    return [];
   }
-  return false;
+  return tenant.evaluationCustomization.defaultQualitativeGoals[position] || [];
 };
 
-// カスタムテナント追加
-const addCustomTenant = (tenantData) => {
-  const tenantId = tenantData.id || `custom-${Date.now()}`;
+// 建設業特化の設定値取得
+const getConstructionSettings = (tenantId = null) => {
+  const tenant = tenantId ? getTenantConfig(tenantId) : getCurrentTenant();
+  return tenant ? tenant.constructionSettings : null;
+};
+
+// バリデーション関数
+const validateTenantConfig = (config) => {
+  const errors = [];
   
-  // デフォルト設定をマージ
-  const defaultTenant = {
-    id: tenantId,
-    name: tenantData.name || 'カスタム企業',
-    displayName: tenantData.displayName || tenantData.name,
-    description: tenantData.description || '',
-    industry: tenantData.industry || 'other',
-    icon: 'fas fa-building',
-    logo: '',
-    theme: 'default',
-    primaryColor: '#007bff',
-    settings: {
-      positions: ['従業員', '管理者', '代表'],
-      evaluationCategorySet: 'default',
-      evaluationPeriods: {
-        frequency: 'semiannual',
-        customPeriods: []
-      },
-      approvalFlow: {
-        enableEvaluatorApproval: true,
-        enableAdminApproval: true,
-        allowSelfEvaluation: true
-      },
-      notifications: {
-        evaluationDeadline: true,
-        approvalReminder: true,
-        statusUpdate: true
-      }
-    },
-    sampleUsers: [
-      {
-        id: `admin-${tenantId}`,
-        name: '管理者',
-        email: `admin@${tenantId}.local`,
-        role: 'admin',
-        position: '代表',
-        password: 'demo123'
-      }
-    ]
-  };
+  if (!config.id) errors.push('企業IDが設定されていません');
+  if (!config.name) errors.push('企業名が設定されていません');
+  if (!config.settings) errors.push('設定情報が不足しています');
   
-  tenantConfig[tenantId] = { ...defaultTenant, ...tenantData };
-  return tenantConfig[tenantId];
+  return errors;
 };
 
 // グローバルに公開
 window.tenantConfig = tenantConfig;
 window.getTenantConfig = getTenantConfig;
-window.getAllTenants = getAllTenants;
 window.getCurrentTenant = getCurrentTenant;
-window.updateTenantConfig = updateTenantConfig;
-window.addCustomTenant = addCustomTenant;
+window.getAvailablePositions = getAvailablePositions;
+window.getAvailableRoles = getAvailableRoles;
+window.getDepartments = getDepartments;
+window.getCustomFields = getCustomFields;
+window.getDefaultQualitativeGoals = getDefaultQualitativeGoals;
+window.getConstructionSettings = getConstructionSettings;
+window.validateTenantConfig = validateTenantConfig;
 
-// 業界別テーママッピング
-const industryThemeMap = {
-  'construction': 'construction',
-  'it': 'default',
-  'sales': 'default',
-  'manufacturing': 'default',
-  'retail': 'default',
-  'finance': 'default',
-  'other': 'default'
-};
+// デフォルトテナントの設定
+window.defaultTenant = 'construction-demo';
 
-window.industryThemeMap = industryThemeMap;
+// 初期化ログ
+console.log('建設業特化テナント設定が読み込まれました');
+
+// 初期化処理
+document.addEventListener('DOMContentLoaded', () => {
+  // デフォルトテナントの設定
+  if (!localStorage.getItem('selectedTenant')) {
+    localStorage.setItem('selectedTenant', 'construction-demo');
+  }
+  
+  // 建設業特化フラグの設定
+  const currentTenant = getCurrentTenant();
+  if (currentTenant && currentTenant.industry === 'construction') {
+    document.body.classList.add('construction-mode');
+    console.log(`建設業特化モードで初期化: ${currentTenant.displayName}`);
+  }
+});
