@@ -1,421 +1,804 @@
-/* 建設業テーマ - 建設会社向けのカラーとスタイル */
+/**
+ * 建設業特化テーマ CSS
+ * CAREECON 建設業向けスタイル
+ */
 
-/* ========================================
-   建設業向けカラーパレット
-======================================== */
-
+/* ==============================================
+   カスタム変数（建設業特化）
+   ============================================== */
 :root {
-  /* プライマリカラー - 安全性と信頼性をイメージした深い青 */
-  --bs-primary: #001350;
-  --bs-primary-rgb: 0, 19, 80;
-  --bs-primary-light: #1a2866;
-  --bs-primary-dark: #000a2e;
+  /* CAREECON ブランドカラー */
+  --primary-color: #1e6fff;
+  --primary-hover: #1557e0;
+  --primary-light: #e8f2ff;
   
-  /* セカンダリカラー - 建設現場をイメージしたオレンジ */
-  --bs-secondary: #ff6b1a;
-  --bs-secondary-rgb: 255, 107, 26;
-  --bs-secondary-light: #ff8547;
-  --bs-secondary-dark: #e55100;
+  /* 建設業テーマカラー */
+  --construction-orange: #ff6b35;
+  --construction-yellow: #ffc107;
+  --construction-green: #28a745;
+  --construction-red: #dc3545;
+  --construction-blue: #17a2b8;
   
-  /* 状態カラー */
-  --bs-success: #2e7d32;  /* 安全な緑 */
-  --bs-success-rgb: 46, 125, 50;
+  /* 安全色（建設業標準）*/
+  --safety-red: #e74c3c;
+  --safety-yellow: #f1c40f;
+  --safety-blue: #3498db;
+  --safety-green: #27ae60;
+  --safety-orange: #e67e22;
   
-  --bs-info: #1565c0;     /* 情報を示す青 */
-  --bs-info-rgb: 21, 101, 192;
+  /* グレープスケール */
+  --gray-50: #f8f9fa;
+  --gray-100: #e9ecef;
+  --gray-200: #dee2e6;
+  --gray-300: #ced4da;
+  --gray-400: #adb5bd;
+  --gray-500: #6c757d;
+  --gray-600: #495057;
+  --gray-700: #343a40;
+  --gray-800: #212529;
+  --gray-900: #000000;
   
-  --bs-warning: #ff9800;  /* 注意を促すオレンジ */
-  --bs-warning-rgb: 255, 152, 0;
+  /* 背景とボーダー */
+  --body-bg: #f5f6fa;
+  --surface-bg: #ffffff;
+  --border-color: var(--gray-200);
+  --border-radius: 8px;
   
-  --bs-danger: #d32f2f;   /* 危険を示す赤 */
-  --bs-danger-rgb: 211, 47, 47;
+  /* シャドウ */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
   
-  /* 建設業特有のカラー */
-  --construction-safety: #4caf50;      /* 安全色 */
-  --construction-caution: #ff9800;     /* 注意色 */
-  --construction-danger: #f44336;      /* 危険色 */
-  --construction-steel: #607d8b;       /* 鋼材色 */
-  --construction-concrete: #9e9e9e;    /* コンクリート色 */
+  /* フォント */
+  --font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
   
-  /* グラデーション */
-  --gradient-primary: linear-gradient(135deg, #001350 0%, #1a2866 100%);
-  --gradient-secondary: linear-gradient(135deg, #ff6b1a 0%, #e55100 100%);
-  
-  /* シャドウ - より強調されたもの */
-  --shadow-construction: 0 4px 8px rgba(0, 19, 80, 0.15);
-  --shadow-construction-lg: 0 8px 20px rgba(0, 19, 80, 0.2);
+  /* トランジション */
+  --transition: all 0.3s ease;
 }
 
-/* ========================================
-   建設業テーマの適用
-======================================== */
-
-/* ナビゲーション */
-.navbar-dark.bg-primary {
-  background: var(--gradient-primary) !important;
-  border-bottom: 3px solid var(--bs-secondary);
+/* ==============================================
+   ベーススタイル
+   ============================================== */
+body {
+  font-family: var(--font-family);
+  background-color: var(--body-bg);
+  color: var(--gray-700);
+  line-height: 1.6;
 }
 
-/* カードヘッダー */
-.card-header.bg-primary {
-  background: var(--gradient-primary) !important;
+/* ==============================================
+   ナビゲーションバー（CAREECON仕様）
+   ============================================== */
+.navbar-brand {
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xl);
   color: white !important;
-  position: relative;
 }
 
-.card-header.bg-primary::after {
+.navbar-logo {
+  height: 35px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+
+.navbar-nav .nav-link {
+  font-weight: var(--font-weight-medium);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  margin: 0 0.25rem;
+  transition: var(--transition);
+}
+
+.navbar-nav .nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.navbar-nav .nav-link.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ユーザードロップダウン */
+.navbar-nav .dropdown-menu {
+  border: none;
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--border-radius);
+}
+
+/* ==============================================
+   カード・コンテナ
+   ============================================== */
+.summary-card,
+.data-card {
+  background: var(--surface-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  overflow: hidden;
+}
+
+.summary-card:hover,
+.data-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.summary-card .card-header,
+.data-card .card-header {
+  background-color: var(--gray-50);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 1.25rem;
+}
+
+.summary-card .card-header h5,
+.data-card .card-header h5 {
+  margin: 0;
+  font-weight: var(--font-weight-semibold);
+  color: var(--gray-700);
+}
+
+.summary-card .card-body,
+.data-card .card-body {
+  padding: 1.25rem;
+}
+
+/* ==============================================
+   ページタイトル
+   ============================================== */
+.page-title {
+  color: var(--gray-800);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: 1.5rem;
+  position: relative;
+  padding-bottom: 0.75rem;
+}
+
+.page-title::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
-  right: 0;
+  width: 60px;
   height: 3px;
-  background-color: var(--bs-secondary);
+  background: linear-gradient(90deg, var(--primary-color), var(--construction-orange));
+  border-radius: 2px;
 }
 
-/* ボタン */
-.btn-primary {
-  background: var(--gradient-primary);
+/* ==============================================
+   テーブル
+   ============================================== */
+.table {
+  margin-bottom: 0;
+}
+
+.table thead th {
+  background-color: var(--gray-50);
+  border-bottom: 2px solid var(--border-color);
+  color: var(--gray-700);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  padding: 1rem 0.75rem;
+}
+
+.table tbody tr {
+  transition: var(--transition);
+}
+
+.table tbody tr:hover {
+  background-color: var(--primary-light);
+}
+
+.table tbody td {
+  padding: 0.875rem 0.75rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+/* ==============================================
+   ボタン（建設業仕様）
+   ============================================== */
+.btn {
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--border-radius);
+  padding: 0.5rem 1.25rem;
+  transition: var(--transition);
   border: none;
   position: relative;
   overflow: hidden;
 }
 
-.btn-primary::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  transition: width 0.6s, height 0.6s;
-  transform: translate(-50%, -50%);
-}
-
-.btn-primary:hover::before {
-  width: 300px;
-  height: 300px;
-}
-
-.btn-secondary {
-  background: var(--gradient-secondary);
-  border: none;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background: var(--bs-secondary-dark);
-  color: white;
-}
-
-/* 建設業特有のボタンスタイル */
-.btn-construction-safety {
-  background-color: var(--construction-safety);
-  border-color: var(--construction-safety);
-  color: white;
-}
-
-.btn-construction-caution {
-  background-color: var(--construction-caution);
-  border-color: var(--construction-caution);
-  color: white;
-}
-
-.btn-construction-danger {
-  background-color: var(--construction-danger);
-  border-color: var(--construction-danger);
-  color: white;
-}
-
-/* ========================================
-   建設現場をイメージしたスタイル
-======================================== */
-
-/* カード */
-.card {
-  position: relative;
-  border-left: 4px solid var(--bs-secondary);
-  box-shadow: var(--shadow-construction);
-}
-
-.card::before {
+.btn:before {
   content: '';
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, 
-    var(--bs-primary) 0%, 
-    var(--bs-secondary) 50%, 
-    var(--bs-primary) 100%);
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: var(--transition);
 }
 
-/* 安全性を強調するスタイル */
-.safety-emphasis {
-  border: 2px solid var(--construction-safety);
-  background-color: rgba(76, 175, 80, 0.05);
+.btn:hover:before {
+  left: 100%;
 }
 
-.caution-emphasis {
-  border: 2px solid var(--construction-caution);
-  background-color: rgba(255, 152, 0, 0.05);
-}
-
-.danger-emphasis {
-  border: 2px solid var(--construction-danger);
-  background-color: rgba(244, 67, 54, 0.05);
-}
-
-/* ========================================
-   評価項目固有のスタイル
-======================================== */
-
-/* カテゴリヘッダー - 工事種別を明確に */
-.category-header {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
-  border-left: 5px solid var(--bs-primary);
-  position: relative;
-}
-
-.category-header::after {
-  content: '';
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0;
-  height: 0;
-  border-left: 8px solid var(--bs-secondary);
-  border-top: 5px solid transparent;
-  border-bottom: 5px solid transparent;
-}
-
-/* 工事種別による色分け */
-.category-cross-work .category-header {
-  border-left-color: #2196f3;
-}
-
-.category-floor-work .category-header {
-  border-left-color: #4caf50;
-}
-
-.category-sheet-work .category-header {
-  border-left-color: #ff9800;
-}
-
-.category-misc-work .category-header {
-  border-left-color: #9c27b0;
-}
-
-.category-management .category-header {
-  border-left-color: var(--bs-primary);
-  background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
-}
-
-/* ========================================
-   安全管理要素
-======================================== */
-
-/* 安全スコア表示 */
-.safety-score {
-  position: relative;
-  padding: 1rem;
-  background: linear-gradient(135deg, 
-    rgba(76, 175, 80, 0.1) 0%, 
-    rgba(76, 175, 80, 0.05) 100%);
-  border-radius: 8px;
-  border: 1px solid var(--construction-safety);
-}
-
-.safety-score::before {
-  content: '🛡️';
-  position: absolute;
-  top: -10px;
-  right: 10px;
-  background-color: white;
-  padding: 5px;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* 技術レベル表示 */
-.skill-level {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0.75rem;
-  background-color: var(--bs-primary);
+.btn-primary {
+  background-color: var(--primary-color);
   color: white;
-  border-radius: 20px;
-  font-weight: 500;
-  box-shadow: var(--shadow-construction);
 }
 
-.skill-level::before {
-  content: '🔧';
-  font-size: 0.875rem;
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
-/* ========================================
-   プログレスバー - 建設業仕様
-======================================== */
+.btn-outline-primary {
+  color: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  background-color: transparent;
+}
 
+.btn-outline-primary:hover {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* 建設業特有のボタン色 */
+.btn-safety {
+  background-color: var(--safety-red);
+  color: white;
+}
+
+.btn-quality {
+  background-color: var(--safety-blue);
+  color: white;
+}
+
+.btn-construction {
+  background-color: var(--construction-orange);
+  color: white;
+}
+
+/* ==============================================
+   バッジ・ステータス
+   ============================================== */
+.badge {
+  font-weight: var(--font-weight-medium);
+  padding: 0.5em 0.75em;
+  border-radius: 6px;
+}
+
+/* 評価ステータス用バッジ */
+.badge-draft {
+  background-color: var(--gray-100);
+  color: var(--gray-600);
+}
+
+.badge-submitted {
+  background-color: var(--construction-yellow);
+  color: var(--gray-800);
+}
+
+.badge-approved-evaluator {
+  background-color: var(--safety-blue);
+  color: white;
+}
+
+.badge-approved-admin {
+  background-color: var(--safety-green);
+  color: white;
+}
+
+.badge-rejected {
+  background-color: var(--safety-red);
+  color: white;
+}
+
+/* ==============================================
+   プログレスバー
+   ============================================== */
 .progress {
-  background-color: #e0e0e0;
-  border-radius: 10px;
+  height: 8px;
+  border-radius: 4px;
+  background-color: var(--gray-100);
   overflow: hidden;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .progress-bar {
-  background: linear-gradient(90deg, 
-    var(--bs-primary) 0%, 
-    var(--bs-secondary) 50%, 
-    var(--bs-primary) 100%);
-  background-size: 200% 100%;
-  animation: progressShine 2s linear infinite;
-  position: relative;
+  background: linear-gradient(90deg, var(--primary-color), var(--construction-orange));
+  transition: width 0.6s ease;
 }
 
-.progress-bar::after {
-  content: '';
-  position: absolute;
+/* ==============================================
+   フォーム要素
+   ============================================== */
+.form-control,
+.form-select {
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 0.75rem;
+  font-size: var(--font-size-base);
+  transition: var(--transition);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(30, 111, 255, 0.1);
+}
+
+.form-label {
+  font-weight: var(--font-weight-medium);
+  color: var(--gray-700);
+  margin-bottom: 0.5rem;
+}
+
+/* ==============================================
+   モーダル
+   ============================================== */
+.modal-content {
+  border: none;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+  background-color: var(--gray-50);
+  border-bottom: 1px solid var(--border-color);
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+}
+
+.modal-title {
+  font-weight: var(--font-weight-semibold);
+  color: var(--gray-800);
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  background-color: var(--gray-50);
+  border-top: 1px solid var(--border-color);
+  border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+
+/* ==============================================
+   タブ
+   ============================================== */
+.nav-tabs {
+  border-bottom: 2px solid var(--border-color);
+}
+
+.nav-tabs .nav-link {
+  border: none;
+  color: var(--gray-600);
+  font-weight: var(--font-weight-medium);
+  padding: 1rem 1.5rem;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+  transition: var(--transition);
+}
+
+.nav-tabs .nav-link:hover {
+  background-color: var(--gray-50);
+  color: var(--primary-color);
+}
+
+.nav-tabs .nav-link.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+/* ==============================================
+   評価項目特有のスタイル
+   ============================================== */
+.evaluation-category {
+  background: var(--surface-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+}
+
+.evaluation-category-header {
+  background: linear-gradient(135deg, var(--primary-color), var(--construction-orange));
+  color: white;
+  padding: 1rem 1.25rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.evaluation-item {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--gray-100);
+  transition: var(--transition);
+}
+
+.evaluation-item:hover {
+  background-color: var(--gray-50);
+}
+
+.evaluation-item:last-child {
+  border-bottom: none;
+}
+
+.rating-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.rating-btn {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--border-color);
+  background-color: var(--surface-bg);
+  border-radius: 50%;
+  font-weight: var(--font-weight-semibold);
+  color: var(--gray-600);
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.rating-btn:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  transform: scale(1.1);
+}
+
+.rating-btn.active {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  transform: scale(1.05);
+}
+
+/* ==============================================
+   ローディング
+   ============================================== */
+.loading-overlay {
+  position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.2) 50%, 
-    transparent 100%);
-  animation: progressGloss 2s linear infinite;
-}
-
-@keyframes progressShine {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-@keyframes progressGloss {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-/* ========================================
-   建設業固有のアイコン
-======================================== */
-
-/* 職種別アイコン */
-.position-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
   justify-content: center;
-  margin-right: 0.5rem;
+  align-items: center;
+  z-index: 9999;
+  visibility: hidden;
+  opacity: 0;
+  transition: var(--transition);
 }
 
-.position-worker .position-icon {
-  background-color: var(--construction-safety);
-  color: white;
+.loading-overlay.show {
+  visibility: visible;
+  opacity: 1;
 }
 
-.position-manager .position-icon {
-  background-color: var(--bs-primary);
-  color: white;
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid var(--gray-100);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-.position-admin .position-icon {
-  background: var(--gradient-secondary);
-  color: white;
-}
-
-/* ========================================
-   レスポンシブ調整
-======================================== */
-
-@media (max-width: 768px) {
-  .navbar-dark.bg-primary {
-    border-bottom-width: 2px;
-  }
-  
-  .card::before {
-    height: 1px;
-  }
-  
-  .card {
-    border-left-width: 3px;
-  }
-  
-  .category-header::after {
-    display: none;
-  }
-  
-  .skill-level {
-    font-size: 0.875rem;
-    padding: 0.175rem 0.5rem;
-  }
-}
-
-/* ========================================
-   アニメーション効果
-======================================== */
-
-/* 建設機械風のローディング */
-@keyframes constructionLoader {
+@keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-.construction-loader {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid var(--bs-primary);
-  border-right: 4px solid var(--bs-secondary);
+/* ==============================================
+   テナントバッジ
+   ============================================== */
+.tenant-badge {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  background: var(--construction-orange);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  z-index: 1030;
+  box-shadow: var(--shadow-md);
+}
+
+/* ==============================================
+   アラート・通知
+   ============================================== */
+.alert {
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 1rem 1.25rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.alert-info {
+  background-color: rgba(23, 162, 184, 0.1);
+  color: #0c5460;
+  border-left: 4px solid var(--construction-blue);
+}
+
+.alert-warning {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: #856404;
+  border-left: 4px solid var(--construction-yellow);
+}
+
+.alert-danger {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #721c24;
+  border-left: 4px solid var(--safety-red);
+}
+
+.alert-success {
+  background-color: rgba(40, 167, 69, 0.1);
+  color: #155724;
+  border-left: 4px solid var(--safety-green);
+}
+
+/* ==============================================
+   トースト通知
+   ============================================== */
+.toast {
+  box-shadow: var(--shadow-lg);
+  border: none;
+  border-radius: var(--border-radius);
+}
+
+.toast-header {
+  background-color: var(--gray-50);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* ==============================================
+   権限別表示
+   ============================================== */
+.admin-only {
+  display: none;
+}
+
+.evaluator-only {
+  display: none;
+}
+
+.employee-only {
+  display: none;
+}
+
+/* 役割に応じた表示 */
+body[data-user-role="admin"] .admin-only,
+body[data-user-role="evaluator"] .evaluator-only,
+body[data-user-role="evaluator"] .admin-only,
+body[data-user-role="employee"] .employee-only {
+  display: block !important;
+}
+
+body[data-user-role="admin"] .nav-item.admin-only,
+body[data-user-role="evaluator"] .nav-item.evaluator-only,
+body[data-user-role="evaluator"] .nav-item.admin-only,
+body[data-user-role="employee"] .nav-item.employee-only {
+  display: list-item !important;
+}
+
+/* ==============================================
+   建設業特化要素
+   ============================================== */
+.construction-mode body {
+  --accent-color: var(--construction-orange);
+}
+
+.safety-indicator {
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: constructionLoader 1s linear infinite;
+  display: inline-block;
+  margin-right: 0.5rem;
 }
 
-/* 安全確認アニメーション */
-@keyframes safetyCheck {
-  0% { background-color: rgba(76, 175, 80, 0.1); }
-  50% { background-color: rgba(76, 175, 80, 0.2); }
-  100% { background-color: rgba(76, 175, 80, 0.1); }
+.safety-indicator.safe {
+  background-color: var(--safety-green);
 }
 
-.safety-check {
-  animation: safetyCheck 2s ease-in-out infinite;
+.safety-indicator.warning {
+  background-color: var(--safety-yellow);
 }
 
-/* ========================================
-   印刷時の調整
-======================================== */
+.safety-indicator.danger {
+  background-color: var(--safety-red);
+}
 
+/* 技能レベル表示 */
+.skill-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.skill-level-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--gray-300);
+}
+
+.skill-level-dot.filled {
+  background-color: var(--primary-color);
+}
+
+/* プロジェクト利益率表示 */
+.profit-indicator {
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.profit-indicator.high {
+  background-color: rgba(40, 167, 69, 0.1);
+  color: var(--safety-green);
+}
+
+.profit-indicator.medium {
+  background-color: rgba(255, 193, 7, 0.1);
+  color: #856404;
+}
+
+.profit-indicator.low {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: var(--safety-red);
+}
+
+/* ==============================================
+   レスポンシブデザイン
+   ============================================== */
+@media (max-width: 768px) {
+  .navbar-logo {
+    height: 30px;
+  }
+  
+  .page-title {
+    font-size: 1.75rem;
+  }
+  
+  .summary-card,
+  .data-card {
+    margin-bottom: 1rem;
+  }
+  
+  .table-responsive {
+    border-radius: var(--border-radius);
+  }
+  
+  .rating-buttons {
+    justify-content: center;
+  }
+  
+  .rating-btn {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+@media (max-width: 576px) {
+  .navbar-brand {
+    font-size: 1rem;
+  }
+  
+  .btn {
+    padding: 0.375rem 1rem;
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* ==============================================
+   プリント用スタイル
+   ============================================== */
 @media print {
-  .category-header::after,
-  .safety-score::before {
-    display: none;
+  .navbar,
+  .tenant-badge,
+  .btn,
+  .modal,
+  .loading-overlay {
+    display: none !important;
   }
   
-  .progress-bar::after {
-    display: none;
+  .summary-card,
+  .data-card {
+    box-shadow: none;
+    border: 1px solid var(--gray-300);
   }
   
-  .skill-level::before {
-    content: '[技能]';
-    font-size: inherit;
+  body {
+    background-color: white;
   }
-  
-  .card::before {
-    display: none;
+}
+
+/* ==============================================
+   アニメーション
+   ============================================== */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  
-  .card {
-    border-left: 2px solid #000;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* スムーズスクロール */
+html {
+  scroll-behavior: smooth;
+}
+
+/* ==============================================
+   アクセシビリティ
+   ============================================== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* フォーカス表示の改善 */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* ==============================================
+   カスタムスクロールバー
+   ============================================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--gray-100);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gray-400);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gray-500);
 }
