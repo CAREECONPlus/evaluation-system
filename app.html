@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="評価システム - 人事評価管理アプリケーション">
+    <title>評価システム</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/themes/default.css">
+</head>
+<body>
+    <!-- ローディングオーバーレイ -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <p class="mt-3 text-muted">読み込み中...</p>
+        </div>
+    </div>
+
+    <!-- テナント情報バッジ -->
+    <div class="tenant-badge" id="tenantBadge" style="display: none;">
+        <i class="fas fa-building"></i>
+        <span id="tenantName">企業名</span>
+    </div>
+
+    <!-- メインナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary" id="mainNavbar" style="display: none;">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" onclick="app.router.navigate('dashboard')">
+                <i class="fas fa-chart-line me-2"></i>
+                評価システム
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="dashboard">
+                            <i class="fas fa-home me-1"></i>ダッシュボード
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-page="evaluations">
+                            <i class="fas fa-tasks me-1"></i>評価一覧
+                        </a>
+                    </li>
+                    <li class="nav-item evaluator-only" style="display: none;">
+                        <a class="nav-link" href="#" data-page="subordinates">
+                            <i class="fas fa-users me-1"></i>評価対象者
+                        </a>
+                    </li>
+                    <li class="nav-item admin-only" style="display: none;">
+                        <a class="nav-link" href="#" data-page="users">
+                            <i class="fas fa-user-cog me-1"></i>ユーザー管理
+                        </a>
+                    </li>
+                    <li class="nav-item admin-only" style="display: none;">
+                        <a class="nav-link" href="#" data-page="settings">
+                            <i class="fas fa-cog me-1"></i>設定
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>
+                            <span id="currentUserName">ユーザー</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#" onclick="app.auth.logout()">
+                                <i class="fas fa-sign-out-alt me-1"></i>ログアウト
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- メインコンテンツエリア -->
+    <div class="container-fluid mt-4" id="mainContent" style="display: none;">
+        <!-- ダッシュボードページ -->
+        <div id="dashboard-page" class="page">
+            <h2 class="page-title">ダッシュボード</h2>
+            
+            <div class="row">
+                <!-- 現在の評価期間 -->
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="summary-card" id="currentPeriodCard">
+                        <div class="card-header">
+                            <h5><i class="fas fa-calendar-alt me-2"></i>現在の評価期間</h5>
+                        </div>
+                        <div class="card-body">
+                            <h6 id="currentPeriodName">-</h6>
+                            <p class="text-muted" id="currentPeriodDates">-</p>
+                            <button class="btn btn-outline-primary btn-sm" onclick="app.router.navigate('evaluations')">
+                                評価一覧を見る
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 自己評価状況 -->
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="summary-card" id="selfEvaluationCard">
+                        <div class="card-header">
+                            <h5><i class="fas fa-user-check me-2"></i>自己評価状況</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="selfEvaluationStatus">未提出</div>
+                            <div class="progress mt-3">
+                                <div class="progress-bar" id="selfEvaluationProgress" style="width: 0%"></div>
+                            </div>
+                            <button class="btn btn-outline-info btn-sm mt-3" id="createEvaluationBtn" onclick="app.components.evaluation.showEvaluationModal()">
+                                評価を入力する
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 評価対象者（評価者のみ） -->
+                <div class="col-lg-4 col-md-6 mb-4 evaluator-only" style="display: none;">
+                    <div class="summary-card" id="subordinatesCard">
+                        <div class="card-header">
+                            <h5><i class="fas fa-users me-2"></i>評価対象者</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="subordinatesCount">評価対象者: 0名</div>
+                            <div id="pendingEvaluations">審査待ち: 0件</div>
+                            <button class="btn btn-outline-success btn-sm mt-3" onclick="app.router.navigate('subordinates')">
+                                評価対象者一覧
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 最近の評価 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="data-card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-clock me-2"></i>最近の評価</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>期間</th>
+                                            <th>自己評価</th>
+                                            <th>評価者評価</th>
+                                            <th>状態</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentEvaluationsTable">
+                                        <tr>
+                                            <td colspan="5" class="text-center">データを読み込み中...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 評価一覧ページ -->
+        <div id="evaluations-page" class="page" style="display: none;">
+            <h2 class="page-title">評価一覧</h2>
+            
+            <div class="data-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">評価リスト</h5>
+                        <div class="header-actions">
+                            <select class="form-select form-select-sm" id="evaluationPeriodFilter">
+                                <option value="">全期間</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>期間</th>
+                                    <th class="evaluator-only" style="display: none;">対象者</th>
+                                    <th>自己評価</th>
+                                    <th>評価者評価</th>
+                                    <th>状態</th>
+                                    <th>最終更新</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="evaluationsTable">
+                                <tr>
+                                    <td colspan="7" class="text-center">データを読み込み中...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 評価対象者一覧ページ -->
+        <div id="subordinates-page" class="page evaluator-only" style="display: none;">
+            <h2 class="page-title">評価対象者一覧</h2>
+            
+            <div class="data-card">
+                <div class="card-header">
+                    <h5 class="mb-0">評価対象者</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>氏名</th>
+                                    <th>役職</th>
+                                    <th>現在の評価</th>
+                                    <th>評価状態</th>
+                                    <th>最終更新</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subordinatesTable">
+                                <tr>
+                                    <td colspan="6" class="text-center">データを読み込み中...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ユーザー管理ページ -->
+        <div id="users-page" class="page admin-only" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="page-title">ユーザー管理</h2>
+                <button type="button" class="btn btn-primary" onclick="app.components.userManagement.showUserModal()">
+                    <i class="fas fa-plus me-1"></i>ユーザー追加
+                </button>
+            </div>
+            
+            <div class="data-card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>氏名</th>
+                                    <th>メール</th>
+                                    <th>役割</th>
+                                    <th>役職</th>
+                                    <th>評価者</th>
+                                    <th>ステータス</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable">
+                                <tr>
+                                    <td colspan="7" class="text-center">データを読み込み中...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 設定ページ -->
+        <div id="settings-page" class="page admin-only" style="display: none;">
+            <h2 class="page-title">設定</h2>
+            
+            <div class="row">
+                <!-- 評価期間管理 -->
+                <div class="col-lg-6 mb-4">
+                    <div class="data-card">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">評価期間管理</h5>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="app.components.settings.showPeriodModal()">
+                                    <i class="fas fa-plus me-1"></i>期間追加
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>名称</th>
+                                            <th>期間</th>
+                                            <th>状態</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="periodsTable">
+                                        <tr>
+                                            <td colspan="4" class="text-center">データを読み込み中...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 評価項目管理 -->
+                <div class="col-lg-6 mb-4">
+                    <div class="data-card">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">評価項目管理</h5>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="app.components.settings.showCategoriesModal()">
+                                    <i class="fas fa-cog me-1"></i>項目管理
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="categoriesSummary">
+                                <p class="text-muted">評価カテゴリの管理：</p>
+                                <ul id="categoriesList" class="list-unstyled">
+                                    <li class="text-muted">データを読み込み中...</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- システム設定 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="data-card">
+                        <div class="card-header">
+                            <h5 class="mb-0">システム設定</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="systemSettingsForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="systemTheme" class="form-label">テーマ</label>
+                                            <select class="form-select" id="systemTheme" onchange="app.themeManager.switchTheme(this.value)">
+                                                <option value="default">デフォルト</option>
+                                                <option value="dark">ダーク</option>
+                                                <option value="construction">建設業</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="systemLanguage" class="form-label">言語</label>
+                                            <select class="form-select" id="systemLanguage">
+                                                <option value="ja">日本語</option>
+                                                <option value="en" disabled>English (未対応)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <button type="button" class="btn btn-primary" onclick="app.components.settings.saveSystemSettings()">
+                                            設定を保存
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 評価入力モーダル -->
+    <div class="modal fade" id="evaluationModal" tabindex="-1" aria-labelledby="evaluationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="evaluationModalLabel">評価入力</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="evaluation-info mb-4">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>評価対象者:</strong> <span id="evalTargetUser">-</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>評価期間:</strong> <span id="evalPeriod">-</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>役職:</strong> <span id="evalPosition">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 評価タブ -->
+                    <ul class="nav nav-tabs" id="evaluationTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="quantitative-tab" data-bs-toggle="tab" data-bs-target="#quantitative-content" type="button" role="tab">
+                                定量評価
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="qualitative-tab" data-bs-toggle="tab" data-bs-target="#qualitative-content" type="button" role="tab">
+                                定性評価
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content mt-3" id="evaluationTabContent">
+                        <!-- 定量評価タブ -->
+                        <div class="tab-pane fade show active" id="quantitative-content" role="tabpanel">
+                            <div id="quantitativeCategoriesContainer">
+                                <div class="text-center p-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">読み込み中...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 定性評価タブ -->
+                        <div class="tab-pane fade" id="qualitative-content" role="tabpanel">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                定性目標を設定し、達成状況を評価してください。ウェイトの合計が100%になるようにしてください。
+                            </div>
+                            <div id="qualitativeItemsContainer">
+                                <div class="text-center p-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">読み込み中...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="total-weight-display mt-3" id="totalWeightDisplay">
+                                合計ウェイト: 0%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" id="saveDraftBtn" onclick="app.components.evaluation.saveEvaluation('draft')">
+                        下書き保存
+                    </button>
+                    <button type="button" class="btn btn-success" id="submitEvaluationBtn" onclick="app.components.evaluation.saveEvaluation('submitted')">
+                        提出
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ユーザー編集モーダル -->
+    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userModalLabel">ユーザー追加</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="userForm">
+                        <input type="hidden" id="userId">
+                        <div class="mb-3">
+                            <label for="userName" class="form-label">氏名 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="userName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userEmail" class="form-label">メールアドレス <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="userEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userRole" class="form-label">役割 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="userRole" required>
+                                <option value="employee">従業員</option>
+                                <option value="evaluator">評価者</option>
+                                <option value="admin">管理者</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userPosition" class="form-label">役職</label>
+                            <select class="form-select" id="userPosition">
+                                <option value="現場作業員">現場作業員</option>
+                                <option value="営業">営業</option>
+                                <option value="管理者">管理者</option>
+                                <option value="代表">代表</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userEvaluator" class="form-label">評価者</label>
+                            <select class="form-select" id="userEvaluator">
+                                <option value="">なし</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" onclick="app.components.userManagement.saveUser()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 評価期間編集モーダル -->
+    <div class="modal fade" id="periodModal" tabindex="-1" aria-labelledby="periodModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="periodModalLabel">評価期間追加</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="periodForm">
+                        <input type="hidden" id="periodId">
+                        <div class="mb-3">
+                            <label for="periodName" class="form-label">期間名 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="periodName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="periodStartDate" class="form-label">開始日 <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="periodStartDate" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="periodEndDate" class="form-label">終了日 <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="periodEndDate" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="periodIsActive">
+                            <label class="form-check-label" for="periodIsActive">
+                                アクティブな期間として設定
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" onclick="app.components.settings.savePeriod()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 評価カテゴリ管理モーダル -->
+    <div class="modal fade" id="categoriesModal" tabindex="-1" aria-labelledby="categoriesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="categoriesModalLabel">評価カテゴリ管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h6>評価カテゴリ一覧</h6>
+                        <button type="button" class="btn btn-sm btn-primary" onclick="app.components.settings.showCategoryEditModal()">
+                            <i class="fas fa-plus me-1"></i>カテゴリ追加
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>カテゴリ名</th>
+                                    <th>対象役職</th>
+                                    <th>評価項目数</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoriesTableBody">
+                                <tr>
+                                    <td colspan="4" class="text-center">データを読み込み中...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知トースト -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050">
+        <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">通知</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                メッセージ
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 設定ファイル -->
+    <script src="config/app-config.js"></script>
+    <script src="config/tenant-config.js"></script>
+    <script src="config/evaluation-config.js"></script>
+    
+    <!-- ユーティリティ -->
+    <script src="assets/js/utils/validation.js"></script>
+    <script src="assets/js/utils/date.js"></script>
+    
+    <!-- コア機能 -->
+    <script src="assets/js/core/database.js"></script>
+    <script src="assets/js/core/auth.js"></script>
+    <script src="assets/js/core/router.js"></script>
+    
+    <!-- コンポーネント -->
+    <script src="assets/js/components/dashboard.js"></script>
+    <script src="assets/js/components/evaluation.js"></script>
+    <script src="assets/js/components/user-management.js"></script>
+    <script src="assets/js/components/settings.js"></script>
+    
+    <!-- メインアプリケーション -->
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
