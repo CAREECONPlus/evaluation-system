@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="評価システム - 人事評価管理アプリケーション">
-    <title>評価システム</title>
+    <meta name="description" content="CAREECON評価システム - 建設業向け人事評価管理システム">
+    <title>CAREECON評価システム</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -40,8 +40,8 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary" id="mainNavbar" style="display: none;">
         <div class="container-fluid">
             <a class="navbar-brand" href="#" onclick="app.router.navigate('dashboard')">
-                <img src="assets/images/logo.png" alt="CAREECON" class="navbar-logo me-2">
-                評価システム
+                <img src="assets/images/logo.png" alt="CAREECON" class="navbar-logo me-2" style="height: 35px;">
+                CAREECON
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -84,7 +84,7 @@
                             <span id="currentUserName">ユーザー</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#" onclick="app.auth.logout()">
+                            <li><a class="dropdown-item" href="#" onclick="if(window.app && window.app.auth) window.app.auth.logout()">
                                 <i class="fas fa-sign-out-alt me-1"></i>ログアウト
                             </a></li>
                         </ul>
@@ -110,7 +110,7 @@
                         <div class="card-body">
                             <h6 id="currentPeriodName">-</h6>
                             <p class="text-muted" id="currentPeriodDates">-</p>
-                            <button class="btn btn-outline-primary btn-sm" onclick="app.router.navigate('evaluations')">
+                            <button class="btn btn-outline-primary btn-sm" onclick="if(window.app && window.app.router) window.app.router.navigate('evaluations')">
                                 評価一覧を見る
                             </button>
                         </div>
@@ -128,7 +128,7 @@
                             <div class="progress mt-3">
                                 <div class="progress-bar" id="selfEvaluationProgress" style="width: 0%"></div>
                             </div>
-                            <button class="btn btn-outline-info btn-sm mt-3" id="createEvaluationBtn" onclick="app.components.evaluation.showEvaluationModal()">
+                            <button class="btn btn-outline-info btn-sm mt-3" id="createEvaluationBtn" onclick="if(window.app && window.app.components && window.app.components.evaluation) window.app.components.evaluation.showEvaluationModal()">
                                 評価を入力する
                             </button>
                         </div>
@@ -144,7 +144,7 @@
                         <div class="card-body">
                             <div id="subordinatesCount">評価対象者: 0名</div>
                             <div id="pendingEvaluations">審査待ち: 0件</div>
-                            <button class="btn btn-outline-success btn-sm mt-3" onclick="app.router.navigate('subordinates')">
+                            <button class="btn btn-outline-success btn-sm mt-3" onclick="if(window.app && window.app.router) window.app.router.navigate('subordinates')">
                                 評価対象者一覧
                             </button>
                         </div>
@@ -260,7 +260,7 @@
         <div id="users-page" class="page admin-only" style="display: none;">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="page-title">ユーザー管理</h2>
-                <button type="button" class="btn btn-primary" onclick="app.components.userManagement.showUserModal()">
+                <button type="button" class="btn btn-primary" onclick="if(window.app && window.app.components && window.app.components.userManagement) window.app.components.userManagement.showUserModal()">
                     <i class="fas fa-plus me-1"></i>ユーザー追加
                 </button>
             </div>
@@ -302,7 +302,7 @@
                         <div class="card-header">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">評価期間管理</h5>
-                                <button type="button" class="btn btn-sm btn-primary" onclick="app.components.settings.showPeriodModal()">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="if(window.app && window.app.components && window.app.components.settings) window.app.components.settings.showPeriodModal()">
                                     <i class="fas fa-plus me-1"></i>期間追加
                                 </button>
                             </div>
@@ -335,7 +335,7 @@
                         <div class="card-header">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">評価項目管理</h5>
-                                <button type="button" class="btn btn-sm btn-primary" onclick="app.components.settings.showCategoriesModal()">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="if(window.app && window.app.components && window.app.components.settings) window.app.components.settings.showCategoriesModal()">
                                     <i class="fas fa-cog me-1"></i>項目管理
                                 </button>
                             </div>
@@ -365,7 +365,7 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="systemTheme" class="form-label">テーマ</label>
-                                            <select class="form-select" id="systemTheme" onchange="app.themeManager.switchTheme(this.value)">
+                                            <select class="form-select" id="systemTheme" onchange="if(window.app && window.app.themeManager) window.app.themeManager.switchTheme(this.value)">
                                                 <option value="default">デフォルト</option>
                                                 <option value="dark">ダーク</option>
                                                 <option value="construction">建設業</option>
@@ -384,7 +384,7 @@
                                 </div>
                                 <div class="row">
                                     <div class="col-12">
-                                        <button type="button" class="btn btn-primary" onclick="app.components.settings.saveSystemSettings()">
+                                        <button type="button" class="btn btn-primary" onclick="if(window.app && window.app.components && window.app.components.settings) window.app.components.settings.saveSystemSettings()">
                                             設定を保存
                                         </button>
                                     </div>
@@ -467,10 +467,10 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                    <button type="button" class="btn btn-primary" id="saveDraftBtn" onclick="app.components.evaluation.saveEvaluation('draft')">
+                    <button type="button" class="btn btn-primary" id="saveDraftBtn" onclick="if(window.app && window.app.components && window.app.components.evaluation) window.app.components.evaluation.saveEvaluation('draft')">
                         下書き保存
                     </button>
-                    <button type="button" class="btn btn-success" id="submitEvaluationBtn" onclick="app.components.evaluation.saveEvaluation('submitted')">
+                    <button type="button" class="btn btn-success" id="submitEvaluationBtn" onclick="if(window.app && window.app.components && window.app.components.evaluation) window.app.components.evaluation.saveEvaluation('submitted')">
                         提出
                     </button>
                 </div>
@@ -524,7 +524,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                    <button type="button" class="btn btn-primary" onclick="app.components.userManagement.saveUser()">保存</button>
+                    <button type="button" class="btn btn-primary" onclick="if(window.app && window.app.components && window.app.components.userManagement) window.app.components.userManagement.saveUser()">保存</button>
                 </div>
             </div>
         </div>
@@ -563,7 +563,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                    <button type="button" class="btn btn-primary" onclick="app.components.settings.savePeriod()">保存</button>
+                    <button type="button" class="btn btn-primary" onclick="if(window.app && window.app.components && window.app.components.settings) window.app.components.settings.savePeriod()">保存</button>
                 </div>
             </div>
         </div>
@@ -580,7 +580,7 @@
                 <div class="modal-body">
                     <div class="d-flex justify-content-between mb-3">
                         <h6>評価カテゴリ一覧</h6>
-                        <button type="button" class="btn btn-sm btn-primary" onclick="app.components.settings.showCategoryEditModal()">
+                        <button type="button" class="btn btn-sm btn-primary" onclick="if(window.app && window.app.components && window.app.components.settings) window.app.components.settings.showCategoryEditModal()">
                             <i class="fas fa-plus me-1"></i>カテゴリ追加
                         </button>
                     </div>
@@ -622,30 +622,82 @@
         </div>
     </div>
 
+    <!-- スクリプトの読み込み順序を修正 -->
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- 設定ファイル -->
+    <!-- 設定ファイル（最優先で読み込み） -->
     <script src="config/app-config.js"></script>
     <script src="config/tenant-config.js"></script>
     <script src="config/evaluation-config.js"></script>
     
-    <!-- ユーティリティ -->
+    <!-- ユーティリティ（設定後に読み込み） -->
     <script src="assets/js/utils/validation.js"></script>
     <script src="assets/js/utils/date.js"></script>
     
-    <!-- コア機能 -->
+    <!-- コア機能（ユーティリティ後に読み込み） -->
     <script src="assets/js/core/database.js"></script>
     <script src="assets/js/core/auth.js"></script>
     <script src="assets/js/core/router.js"></script>
     
-    <!-- コンポーネント -->
+    <!-- コンポーネント（コア機能後に読み込み） -->
     <script src="assets/js/components/dashboard.js"></script>
     <script src="assets/js/components/evaluation.js"></script>
     <script src="assets/js/components/user-management.js"></script>
     <script src="assets/js/components/settings.js"></script>
     
-    <!-- メインアプリケーション -->
+    <!-- メインアプリケーション（すべての後に読み込み） -->
     <script src="assets/js/app.js"></script>
+
+    <!-- 初期化チェックと実行 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // スクリプトの読み込み完了を待機
+            let initAttempts = 0;
+            const maxAttempts = 10;
+            
+            function checkAndInitialize() {
+                initAttempts++;
+                
+                // 必要なオブジェクトが存在するかチェック
+                if (window.app && 
+                    window.appConfig && 
+                    window.tenantConfig && 
+                    window.evaluationConfig) {
+                    
+                    // アプリケーションの初期化
+                    if (typeof window.app.init === 'function') {
+                        console.log('アプリケーションを初期化中...');
+                        window.app.init();
+                    } else {
+                        console.warn('app.init関数が見つかりません');
+                    }
+                } else if (initAttempts < maxAttempts) {
+                    // 設定の読み込みを待機してリトライ
+                    console.log(`設定の読み込みを待機中... (${initAttempts}/${maxAttempts})`);
+                    setTimeout(checkAndInitialize, 100);
+                } else {
+                    console.error('アプリケーションの初期化に失敗しました。設定ファイルが読み込まれていません。');
+                    
+                    // エラー表示
+                    const loadingOverlay = document.getElementById('loadingOverlay');
+                    if (loadingOverlay) {
+                        loadingOverlay.innerHTML = `
+                            <div class="text-center">
+                                <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                                <h5 class="mt-3">読み込みエラー</h5>
+                                <p class="text-muted">設定ファイルの読み込みに失敗しました。<br>ページを再読み込みしてください。</p>
+                                <button class="btn btn-primary" onclick="window.location.reload()">
+                                    <i class="fas fa-redo me-2"></i>再読み込み
+                                </button>
+                            </div>
+                        `;
+                    }
+                }
+            }
+            
+            checkAndInitialize();
+        });
+    </script>
 </body>
 </html>
