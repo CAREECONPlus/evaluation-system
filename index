@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="評価システム - 企業向け人事評価管理システム">
+    <title>評価システム</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #001350;
+            --primary-hover: #00092e;
+            --secondary-color: #6c757d;
+            --accent-color: #17a2b8;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0, 19, 80, 0.1) 0%, rgba(99, 125, 242, 0.1) 100%);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .brand-logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 50%;
+            box-shadow: var(--box-shadow);
+        }
+
+        .brand-logo i {
+            font-size: 3rem;
+            color: var(--primary-color);
+        }
+
+        .hero-title {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .hero-subtitle {
+            color: var(--secondary-color);
+            font-size: 1.5rem;
+            font-weight: 400;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .company-selector {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 40px;
+            margin-top: 40px;
+        }
+
+        .company-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .company-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: var(--transition);
+        }
+
+        .company-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 19, 80, 0.15);
+        }
+
+        .company-card:hover::before {
+            left: 100%;
+        }
+
+        .company-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--light-bg);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .company-card:hover .company-icon {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .company-icon i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            transition: var(--transition);
+        }
+
+        .company-card:hover .company-icon i {
+            color: white;
+        }
+
+        .company-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .company-description {
+            color: var(--secondary-color);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .features-section {
+            background: white;
+            padding: 80px 0;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--box-shadow);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            border-radius: 50%;
+            color: white;
+        }
+
+        .feature-icon i {
+            font-size: 2rem;
+        }
+
+        .feature-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .feature-description {
+            color: var(--secondary-color);
+            line-height: 1.6;
+        }
+
+        .footer {
+            background: var(--primary-color);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .custom-company-btn {
+            background: var(--light-bg);
+            border: 2px dashed var(--secondary-color);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .custom-company-btn:hover {
+            border-color: var(--primary-color);
+            background: rgba(0, 19, 80, 0.05);
+        }
+
+        .demo-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--warning-color);
+            color: var(--primary-color);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            z-index: 1000;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .company-selector {
+                padding: 25px;
+            }
+            
+            .company-card {
+                margin-bottom: 20px;
+            }
+        }
+
+        /* アニメーション */
+        .fade-in {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ローディング */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            visibility: hidden;
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .loading-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- デモバッジ -->
+    <div class="demo-badge">
+        <i class="fas fa-flask"></i> デモ版
+    </div>
+
+    <!-- ローディングオーバーレイ -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="text-center">
+            <div class="loading-spinner"></div>
+            <p class="mt-3 text-muted">読み込み中...</p>
+        </div>
+    </div>
+
+    <!-- ヒーローセクション -->
+    <section class="hero-section">
+        <div class="hero-bg"></div>
+        <div class="container hero-content">
+            <div class="row justify-content-center">
+                <div class="col-lg-10 col-xl-8">
+                    <!-- ブランドロゴ -->
+                    <div class="brand-logo fade-in">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    
+                    <!-- ヒーロータイトル -->
+                    <h1 class="hero-title fade-in">評価システム</h1>
+                    <p class="hero-subtitle fade-in">効率的で透明性の高い人事評価を実現</p>
+                    
+                    <!-- 企業選択セクション -->
+                    <div class="company-selector fade-in">
+                        <h3 class="text-center mb-4">ご利用の企業を選択してください</h3>
+                        
+                        <div class="row" id="companyList">
+                            <!-- 企業カードは JavaScript で動的に生成 -->
+                        </div>
+                        
+                        <!-- カスタム企業設定 -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="custom-company-btn" onclick="showCustomCompanyForm()">
+                                    <div class="company-icon mx-auto mb-3">
+                                        <i class="fas fa-plus"></i>
+                                    </div>
+                                    <h5 class="company-name">新しい企業を追加</h5>
+                                    <p class="company-description mb-0">独自の設定で評価システムを利用する</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 機能紹介セクション -->
+    <section class="features-section">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-12">
+                    <h2 class="mb-3">主な機能</h2>
+                    <p class="text-muted">現代的で使いやすい評価システムの特徴</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <h4 class="feature-title">多角的評価</h4>
+                        <p class="feature-description">定量評価と定性評価を組み合わせた総合的な人事評価システム</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h4 class="feature-title">役割別管理</h4>
+                        <p class="feature-description">管理者、評価者、従業員それぞれの役割に応じた権限管理</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <h4 class="feature-title">詳細レポート</h4>
+                        <p class="feature-description">グラフィカルな分析と期間比較による成長の可視化</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h4 class="feature-title">レスポンシブ対応</h4>
+                        <p class="feature-description">PC、タブレット、スマートフォンに最適化されたデザイン</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h4 class="feature-title">カスタマイズ可能</h4>
+                        <p class="feature-description">業界・企業に合わせた評価項目の柔軟な設定</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h4 class="feature-title">セキュア</h4>
+                        <p class="feature-description">ローカル保存による安全なデータ管理</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- カスタム企業フォームモーダル -->
+    <div class="modal fade" id="customCompanyModal" tabindex="-1" aria-labelledby="customCompanyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="customCompanyModalLabel">新しい企業の追加</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="customCompanyForm">
+                        <div class="mb-3">
+                            <label for="companyName" class="form-label">企業名 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="companyName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="companyId" class="form-label">企業ID <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="companyId" pattern="[a-z0-9-]+" placeholder="例: my-company" required>
+                            <div class="form-text">英小文字、数字、ハイフンのみ使用可能</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="companyIndustry" class="form-label">業界</label>
+                            <select class="form-select" id="companyIndustry">
+                                <option value="">選択してください</option>
+                                <option value="construction">建設業</option>
+                                <option value="it">IT・ソフトウェア</option>
+                                <option value="manufacturing">製造業</option>
+                                <option value="retail">小売業</option>
+                                <option value="finance">金融業</option>
+                                <option value="other">その他</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="companyDescription" class="form-label">説明</label>
+                            <textarea class="form-control" id="companyDescription" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" onclick="createCustomCompany()">作成</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- フッター -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <p class="mb-0">&copy; 2024 評価システム. ローカル版デモ</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- アプリケーション設定読み込み -->
+    <script src="config/tenant-config.js"></script>
+    
+    <!-- メインスクリプト -->
+    <script>
+        // DOM読み込み完了時の初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // フェードインアニメーションのトリガー
+            setTimeout(() => {
+                document.querySelectorAll('.fade-in').forEach((element, index) => {
+                    setTimeout(() => {
+                        element.style.animation = `fadeInUp 0.8s ease-out ${index * 0.1}s both`;
+                    }, index * 100);
+                });
+            }, 100);
+            
+            // 企業リストの読み込み
+            loadCompanyList();
+        });
+
+        /**
+         * 企業リストの読み込みと表示
+         */
+        function loadCompanyList() {
+            const companyListElement = document.getElementById('companyList');
+            companyListElement.innerHTML = '';
+
+            // tenant-config.js から企業リストを取得
+            if (typeof tenantConfig !== 'undefined') {
+                Object.entries(tenantConfig).forEach(([id, company]) => {
+                    const col = document.createElement('div');
+                    col.className = 'col-lg-4 col-md-6 mb-4';
+                    
+                    col.innerHTML = `
+                        <div class="company-card" onclick="selectCompany('${id}')">
+                            <div class="company-icon">
+                                <i class="${company.icon || 'fas fa-building'}"></i>
+                            </div>
+                            <h5 class="company-name">${company.name}</h5>
+                            <p class="company-description">${company.description || ''}</p>
+                        </div>
+                    `;
+                    
+                    companyListElement.appendChild(col);
+                });
+            } else {
+                // 設定ファイルが読み込まれていない場合のデフォルト表示
+                showDefaultCompanies();
+            }
+        }
+
+        /**
+         * デフォルト企業の表示（設定ファイルがない場合）
+         */
+        function showDefaultCompanies() {
+            const companyListElement = document.getElementById('companyList');
+            const defaultCompanies = [
+                {
+                    id: 'demo-construction',
+                    name: 'デモ建設',
+                    description: '建設業向けの評価システム',
+                    icon: 'fas fa-hard-hat'
+                },
+                {
+                    id: 'demo-it',
+                    name: 'デモIT',
+                    description: 'IT企業向けの評価システム',
+                    icon: 'fas fa-laptop-code'
+                }
+            ];
+
+            defaultCompanies.forEach(company => {
+                const col = document.createElement('div');
+                col.className = 'col-lg-4 col-md-6 mb-4';
+                
+                col.innerHTML = `
+                    <div class="company-card" onclick="selectCompany('${company.id}')">
+                        <div class="company-icon">
+                            <i class="${company.icon}"></i>
+                        </div>
+                        <h5 class="company-name">${company.name}</h5>
+                        <p class="company-description">${company.description}</p>
+                    </div>
+                `;
+                
+                companyListElement.appendChild(col);
+            });
+        }
+
+        /**
+         * 企業の選択処理
+         */
+        function selectCompany(companyId) {
+            showLoading();
+            
+            // ローカルストレージに選択した企業を保存
+            localStorage.setItem('selectedTenant', companyId);
+            
+            // アプリケーションページへリダイレクト
+            setTimeout(() => {
+                window.location.href = 'app.html';
+            }, 500);
+        }
+
+        /**
+         * カスタム企業フォームの表示
+         */
+        function showCustomCompanyForm() {
+            const modal = new bootstrap.Modal(document.getElementById('customCompanyModal'));
+            modal.show();
+        }
+
+        /**
+         * カスタム企業の作成
+         */
+        function createCustomCompany() {
+            const form = document.getElementById('customCompanyForm');
+            const formData = new FormData(form);
+            
+            const companyData = {
+                name: formData.get('companyName'),
+                id: formData.get('companyId'),
+                industry: formData.get('companyIndustry'),
+                description: formData.get('companyDescription'),
+                icon: getIndustryIcon(formData.get('companyIndustry')),
+                isCustom: true,
+                createdAt: new Date().toISOString()
+            };
+
+            // バリデーション
+            if (!companyData.name || !companyData.id) {
+                alert('企業名と企業IDは必須です。');
+                return;
+            }
+
+            // 既存の企業IDと重複チェック
+            const existingTenants = JSON.parse(localStorage.getItem('customTenants') || '{}');
+            if (existingTenants[companyData.id]) {
+                alert('この企業IDは既に使用されています。');
+                return;
+            }
+
+            // カスタム企業をローカルストレージに保存
+            existingTenants[companyData.id] = companyData;
+            localStorage.setItem('customTenants', JSON.stringify(existingTenants));
+
+            // モーダルを閉じて企業リストを更新
+            const modal = bootstrap.Modal.getInstance(document.getElementById('customCompanyModal'));
+            modal.hide();
+            
+            // 作成した企業を選択
+            selectCompany(companyData.id);
+        }
+
+        /**
+         * 業界に応じたアイコンを取得
+         */
+        function getIndustryIcon(industry) {
+            const iconMap = {
+                'construction': 'fas fa-hard-hat',
+                'it': 'fas fa-laptop-code',
+                'manufacturing': 'fas fa-industry',
+                'retail': 'fas fa-store',
+                'finance': 'fas fa-chart-line',
+                'other': 'fas fa-building'
+            };
+            return iconMap[industry] || 'fas fa-building';
+        }
+
+        /**
+         * ローディングの表示
+         */
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('show');
+        }
+
+        /**
+         * ローディングの非表示
+         */
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        // カスタム企業のローカルストレージからの読み込み
+        document.addEventListener('DOMContentLoaded', function() {
+            // カスタム企業もリストに追加
+            const customTenants = JSON.parse(localStorage.getItem('customTenants') || '{}');
+            if (Object.keys(customTenants).length > 0) {
+                // tenant-config に追加（一時的）
+                if (typeof tenantConfig === 'undefined') {
+                    window.tenantConfig = {};
+                }
+                Object.assign(tenantConfig, customTenants);
+            }
+        });
+    </script>
+</body>
+</html>
