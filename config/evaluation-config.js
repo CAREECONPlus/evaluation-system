@@ -1,12 +1,12 @@
 /**
- * 評価項目設定とモックデータ
- * 業界・企業別の評価カテゴリとサンプルデータを定義
+ * 評価項目設定とモックデータ（建設業特化版）
+ * BRANU株式会社向け建設業特化システム
  */
 
 // 評価基準の定義
 const evaluationCriteria = {
-  // 作業員/管理者用（技術系）
-  technical: [
+  // 建設技術系（現場作業員・管理者用）
+  construction: [
     { value: 0, label: 'レベル0', description: '作業できない/該当しない' },
     { value: 1, label: 'レベル1', description: '補助することができる' },
     { value: 2, label: 'レベル2', description: '指導を受けながらであればできる' },
@@ -24,15 +24,6 @@ const evaluationCriteria = {
     { value: 5, label: 'レベル5', description: '110%' }
   ],
   
-  // IT系（技術評価）
-  it: [
-    { value: 1, label: 'レベル1', description: '基礎的な知識がある' },
-    { value: 2, label: 'レベル2', description: '指導の下で実装できる' },
-    { value: 3, label: 'レベル3', description: '独立して実装できる' },
-    { value: 4, label: 'レベル4', description: '設計・指導ができる' },
-    { value: 5, label: 'レベル5', description: '技術リーダーとして牽引できる' }
-  ],
-  
   // 定性評価基準（全職種共通）
   qualitative: [
     { value: 1, label: 'レベル1', description: '全く実行できなかった' },
@@ -43,9 +34,9 @@ const evaluationCriteria = {
   ]
 };
 
-// 評価カテゴリセット
+// 評価カテゴリセット（建設業特化）
 const evaluationCategorySets = {
-  // 建設業用カテゴリ
+  // 建設業用カテゴリ（メイン）
   construction: [
     {
       id: 'construction-cross-new',
@@ -144,112 +135,36 @@ const evaluationCategorySets = {
     }
   ],
   
-  // 営業用カテゴリ
+  // 営業用カテゴリ（建設業の営業職）
   sales: [
     {
       id: 'sales-performance',
       name: '営業成績',
       positionTypes: ['営業'],
-      weight: 100,
+      weight: 70,
       items: [
-        { id: 'sales-revenue', name: '利益額', type: 'target', target: 5000000 },
-        { id: 'sales-count', name: '受注件数', type: 'target', target: 20 },
-        { id: 'sales-average', name: '平均単価', type: 'calculated' }
-      ]
-    }
-  ],
-  
-  // IT業界用カテゴリ
-  it: [
-    {
-      id: 'it-technical',
-      name: '技術スキル',
-      positionTypes: ['エンジニア', 'マネージャー'],
-      weight: 40,
-      items: [
-        { id: 'tech-programming', name: 'プログラミング能力' },
-        { id: 'tech-architecture', name: 'システム設計能力' },
-        { id: 'tech-debug', name: 'デバッグ・問題解決能力' },
-        { id: 'tech-learning', name: '新技術の習得' },
-        { id: 'tech-documentation', name: 'ドキュメント作成' }
+        { id: 'sales-revenue', name: '利益額', type: 'target', target: 5000000, unit: '円' },
+        { id: 'sales-count', name: '受注件数', type: 'target', target: 20, unit: '件' },
+        { id: 'sales-average', name: '平均単価', type: 'calculated', unit: '円' }
       ]
     },
     {
-      id: 'it-project',
-      name: 'プロジェクト管理',
-      positionTypes: ['マネージャー'],
+      id: 'sales-activities',
+      name: '営業活動',
+      positionTypes: ['営業'],
       weight: 30,
       items: [
-        { id: 'proj-planning', name: 'プロジェクト計画立案' },
-        { id: 'proj-execution', name: 'プロジェクト実行管理' },
-        { id: 'proj-risk', name: 'リスク管理' },
-        { id: 'proj-communication', name: 'ステークホルダー対応' }
-      ]
-    },
-    {
-      id: 'it-quality',
-      name: '品質管理',
-      positionTypes: ['エンジニア', 'マネージャー'],
-      weight: 30,
-      items: [
-        { id: 'quality-testing', name: 'テスト設計・実行' },
-        { id: 'quality-review', name: 'コードレビュー' },
-        { id: 'quality-improvement', name: '品質改善活動' }
-      ]
-    }
-  ],
-  
-  // デフォルト（汎用）カテゴリ
-  default: [
-    {
-      id: 'default-work-quality',
-      name: '業務品質',
-      positionTypes: ['従業員', '管理者'],
-      weight: 30,
-      items: [
-        { id: 'work-accuracy', name: '正確性' },
-        { id: 'work-efficiency', name: '効率性' },
-        { id: 'work-deadline', name: '期限遵守' },
-        { id: 'work-innovation', name: '改善提案' }
-      ]
-    },
-    {
-      id: 'default-communication',
-      name: 'コミュニケーション',
-      positionTypes: ['従業員', '管理者'],
-      weight: 25,
-      items: [
-        { id: 'comm-reporting', name: '報告・連絡・相談' },
-        { id: 'comm-teamwork', name: 'チームワーク' },
-        { id: 'comm-customer', name: '顧客対応' }
-      ]
-    },
-    {
-      id: 'default-leadership',
-      name: 'リーダーシップ',
-      positionTypes: ['管理者'],
-      weight: 25,
-      items: [
-        { id: 'lead-guidance', name: '部下指導' },
-        { id: 'lead-decision', name: '意思決定' },
-        { id: 'lead-motivation', name: 'チーム活性化' }
-      ]
-    },
-    {
-      id: 'default-growth',
-      name: '自己成長',
-      positionTypes: ['従業員', '管理者'],
-      weight: 20,
-      items: [
-        { id: 'growth-learning', name: '自己研鑽' },
-        { id: 'growth-challenge', name: '積極性' },
-        { id: 'growth-adaptation', name: '適応力' }
+        { id: 'sales-prospecting', name: '新規開拓活動' },
+        { id: 'sales-proposal', name: '提案力・プレゼン力' },
+        { id: 'sales-negotiation', name: '価格交渉力' },
+        { id: 'sales-relationship', name: '顧客関係維持' },
+        { id: 'sales-follow-up', name: 'アフターフォロー' }
       ]
     }
   ]
 };
 
-// モックデータ（サンプル）
+// モックデータ（建設業特化）
 const mockData = {
   // 評価期間
   periods: [
@@ -282,111 +197,179 @@ const mockData = {
     }
   ],
   
-  // サンプル評価データ（企業選択後に動的生成）
+  // 建設業向けサンプルユーザー
+  users: [
+    {
+      id: 1,
+      username: 'admin',
+      full_name: '建設 太郎',
+      email: 'admin@demo.com',
+      role: 'admin',
+      position: '代表',
+      evaluator_id: null,
+      evaluator_name: null,
+      password: 'demo123'
+    },
+    {
+      id: 2,
+      username: 'manager',
+      full_name: '現場 花子',
+      email: 'manager@demo.com',
+      role: 'evaluator',
+      position: '管理者',
+      evaluator_id: 1,
+      evaluator_name: '建設 太郎',
+      password: 'demo123'
+    },
+    {
+      id: 3,
+      username: 'employee',
+      full_name: '作業 次郎',
+      email: 'employee@demo.com',
+      role: 'employee',
+      position: '現場作業員',
+      evaluator_id: 2,
+      evaluator_name: '現場 花子',
+      password: 'demo123'
+    },
+    {
+      id: 4,
+      username: 'sales1',
+      full_name: '営業 三郎',
+      email: 'sales1@demo.com',
+      role: 'employee',
+      position: '営業',
+      evaluator_id: 1,
+      evaluator_name: '建設 太郎',
+      password: 'demo123'
+    },
+    {
+      id: 5,
+      username: 'worker1',
+      full_name: '職人 四郎',
+      email: 'worker1@demo.com',
+      role: 'employee',
+      position: '現場作業員',
+      evaluator_id: 2,
+      evaluator_name: '現場 花子',
+      password: 'demo123'
+    }
+  ],
+  
+  // サンプル評価データ
   evaluations: [],
   
-  // サンプルユーザーデータ（企業選択後に動的生成）
-  users: [],
-  
-  // 定性評価のテンプレート
+  // 定性評価テンプレート（建設業特化）
   qualitativeTemplates: [
     {
-      id: 'template-communication',
-      content: 'チーム内コミュニケーションの改善と情報共有の促進',
-      defaultWeight: 30,
-      applicablePositions: ['all']
+      id: 'template-safety',
+      content: '安全意識の向上と事故防止活動の推進',
+      defaultWeight: 25,
+      applicablePositions: ['現場作業員', '管理者']
     },
     {
       id: 'template-quality',
-      content: '業務品質の向上と効率化の推進',
+      content: '施工品質の向上と技術力強化',
       defaultWeight: 25,
-      applicablePositions: ['all']
+      applicablePositions: ['現場作業員', '管理者']
     },
     {
-      id: 'template-customer',
-      content: '顧客満足度の向上に向けた取り組み',
+      id: 'template-efficiency',
+      content: '工期短縮と作業効率化の実現',
       defaultWeight: 20,
+      applicablePositions: ['現場作業員', '管理者']
+    },
+    {
+      id: 'template-communication',
+      content: '現場コミュニケーション改善と連携強化',
+      defaultWeight: 15,
+      applicablePositions: ['現場作業員', '管理者', '営業']
+    },
+    {
+      id: 'template-customer-satisfaction',
+      content: '顧客満足度向上への取り組み',
+      defaultWeight: 15,
       applicablePositions: ['営業', '管理者']
     },
     {
       id: 'template-leadership',
-      content: '部下の指導・育成とチーム力向上',
-      defaultWeight: 15,
+      content: '部下指導・安全管理・現場統率力',
+      defaultWeight: 20,
       applicablePositions: ['管理者']
     },
     {
-      id: 'template-safety',
-      content: '安全意識の向上と事故防止活動',
-      defaultWeight: 10,
-      applicablePositions: ['現場作業員', '管理者']
+      id: 'template-sales-expansion',
+      content: '新規顧客開拓と売上向上',
+      defaultWeight: 30,
+      applicablePositions: ['営業']
     },
     {
-      id: 'template-innovation',
-      content: '業務改善・効率化の提案と実行',
+      id: 'template-cost-management',
+      content: '原価管理と利益率向上',
       defaultWeight: 15,
-      applicablePositions: ['all']
-    },
-    {
-      id: 'template-skill',
-      content: '専門スキル向上と新技術の習得',
-      defaultWeight: 20,
-      applicablePositions: ['エンジニア', '現場作業員']
+      applicablePositions: ['営業', '管理者']
     }
   ],
 
-  // サンプル定性評価アイテム
+  // 建設業に特化したサンプル定性評価項目
   sampleQualitativeItems: [
     {
-      id: 'qual-1',
-      content: 'チーム内コミュニケーションの改善と情報共有の促進',
-      weight: 30,
+      id: 'qual-safety',
+      content: '現場での安全意識向上と事故防止活動',
+      weight: 25,
       selfRating: 4,
-      selfComment: '定期的なミーティングを実施し、情報共有を徹底した',
+      selfComment: '毎日の安全確認とKY活動を徹底し、無事故で現場を運営',
       evaluatorRating: 4,
-      evaluatorComment: 'チーム内の連携が良好になっている'
+      evaluatorComment: '安全管理が徹底されており、他の作業員への指導も良好'
     },
     {
-      id: 'qual-2',
-      content: '顧客満足度の向上に向けた提案力の強化',
+      id: 'qual-quality',
+      content: '施工品質の向上と技術力強化',
+      weight: 25,
+      selfComment: 'クロス張りの技術を向上させ、仕上がり品質を高めた',
+      evaluatorRating: 4,
+      evaluatorComment: '技術力が着実に向上している'
+    },
+    {
+      id: 'qual-efficiency',
+      content: '作業効率化と工期短縮への貢献',
       weight: 20,
       selfRating: 3,
-      selfComment: '顧客ニーズに合わせた提案を心がけた',
-      evaluatorRating: 3,
-      evaluatorComment: '提案内容の質をさらに高める余地あり'
+      selfComment: '段取り改善により作業時間を10%短縮',
+      evaluatorRating: 4,
+      evaluatorComment: '効率化への取り組みが素晴らしい'
     },
     {
-      id: 'qual-3',
-      content: '業務効率化のための改善提案',
-      weight: 20,
+      id: 'qual-teamwork',
+      content: '現場チームワーク向上と情報共有',
+      weight: 15,
       selfRating: 4,
-      selfComment: '工程管理表のテンプレート化を実施',
-      evaluatorRating: 5,
-      evaluatorComment: '効率化に大きく貢献している'
+      selfComment: '職人さんとの連携を密にし、円滑な現場運営に貢献',
+      evaluatorRating: 4,
+      evaluatorComment: 'コミュニケーション能力が高く、現場の雰囲気も良好'
     },
     {
-      id: 'qual-4',
-      content: '後輩指導とスキル伝達',
+      id: 'qual-improvement',
+      content: '業務改善提案と実行',
       weight: 15,
       selfRating: 3,
-      selfComment: '指導の機会を作り、技術伝達に努めた',
+      selfComment: '材料の効率的な配置方法を提案し実施',
       evaluatorRating: 3,
-      evaluatorComment: 'より体系的な指導を期待'
-    },
-    {
-      id: 'qual-5',
-      content: '安全意識の向上と事故防止',
-      weight: 15,
-      selfRating: 4,
-      selfComment: '安全チェックリストを作成し実施',
-      evaluatorRating: 4,
-      evaluatorComment: '安全意識が高く、他のスタッフへの良い影響がある'
+      evaluatorComment: '改善意識があり、今後より積極的な提案を期待'
     }
   ]
 };
 
 // 評価項目取得ヘルパー関数
-const getEvaluationCategories = (categorySet = 'default', positionType = null) => {
-  let categories = evaluationCategorySets[categorySet] || evaluationCategorySets.default;
+const getEvaluationCategories = (positionType = null) => {
+  let categories = [];
+  
+  // 役職に応じてカテゴリを選択
+  if (positionType === '営業') {
+    categories = evaluationCategorySets.sales;
+  } else {
+    categories = evaluationCategorySets.construction;
+  }
   
   // 役職タイプによるフィルタリング
   if (positionType) {
@@ -400,8 +383,11 @@ const getEvaluationCategories = (categorySet = 'default', positionType = null) =
 };
 
 // 評価基準取得
-const getEvaluationCriteria = (criteriaType = 'technical') => {
-  return evaluationCriteria[criteriaType] || evaluationCriteria.technical;
+const getEvaluationCriteria = (positionType = '現場作業員') => {
+  if (positionType === '営業') {
+    return evaluationCriteria.sales;
+  }
+  return evaluationCriteria.construction;
 };
 
 // 定性評価テンプレート取得
@@ -428,28 +414,29 @@ const getPeriodById = (periodId) => {
   return mockData.periods.find(period => period.id === periodId);
 };
 
-// 評価データ生成（デモ用）
-const generateSampleEvaluations = (tenantConfig) => {
+// 評価データ生成（建設業向け）
+const generateSampleEvaluations = (users) => {
   const sampleEvaluations = [];
   const activePeriod = getActivePeriod();
   
-  if (!activePeriod || !tenantConfig.sampleUsers) {
+  if (!activePeriod || !users) {
     return sampleEvaluations;
   }
   
-  tenantConfig.sampleUsers.forEach((user, index) => {
+  users.forEach((user, index) => {
     const evaluation = {
       id: `eval-${user.id}-${activePeriod.id}`,
       userId: user.id,
-      userName: user.name,
+      userName: user.full_name,
       periodId: activePeriod.id,
       periodName: activePeriod.name,
+      position: user.position,
       status: ['draft', 'submitted', 'approved_by_evaluator'][index % 3],
       selfRating: 3.5 + (Math.random() * 1.5), // 3.5-5.0
       evaluatorRating: user.role === 'employee' ? (3.0 + Math.random() * 1.5) : null,
       submittedAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // 過去一週間
       updatedAt: new Date(),
-      qualitativeGoal: `${user.position}としての専門スキル向上と組織貢献`
+      qualitativeGoal: getDefaultQualitativeGoal(user.position)
     };
     
     sampleEvaluations.push(evaluation);
@@ -458,123 +445,16 @@ const generateSampleEvaluations = (tenantConfig) => {
   return sampleEvaluations;
 };
 
-// サンプルユーザー生成
-const generateSampleUsers = (tenantConfig) => {
-  if (!tenantConfig || !tenantConfig.sampleUsers) {
-    return [];
-  }
-
-  return tenantConfig.sampleUsers.map((user, index) => ({
-    id: index + 1,
-    username: user.id,
-    full_name: user.name,
-    email: user.email,
-    role: user.role,
-    position: user.position,
-    evaluator_id: user.role === 'employee' ? 
-      findEvaluatorForUser(tenantConfig.sampleUsers, user) : null,
-    evaluator_name: user.role === 'employee' ? 
-      findEvaluatorNameForUser(tenantConfig.sampleUsers, user) : null,
-    password: user.password,
-    customFields: {}
-  }));
-};
-
-// ユーザーの評価者を探す
-const findEvaluatorForUser = (users, user) => {
-  // まず同じ部署のマネージャーを探す
-  const managers = users.filter(u => 
-    u.role === 'evaluator' || u.role === 'admin'
-  );
+// 役職に応じたデフォルト定性目標を取得
+const getDefaultQualitativeGoal = (position) => {
+  const goals = {
+    '現場作業員': '安全意識の向上と技術力強化による品質向上',
+    '管理者': '現場管理力の向上と部下指導・安全統括責任',
+    '営業': '顧客満足度向上と売上目標達成への貢献',
+    '代表': '会社全体の業績向上と組織力強化'
+  };
   
-  if (managers.length > 0) {
-    // 最初のマネージャーのインデックスを返す（本来はより複雑なロジック）
-    return users.indexOf(managers[0]) + 1;
-  }
-  
-  return null;
-};
-
-// 評価者名を取得
-const findEvaluatorNameForUser = (users, user) => {
-  const evaluatorIndex = findEvaluatorForUser(users, user);
-  if (evaluatorIndex) {
-    const evaluator = users[evaluatorIndex - 1];
-    return evaluator ? evaluator.name : null;
-  }
-  return null;
-};
-
-// ランダムな評価履歴データ生成
-const generateEvaluationHistory = (evaluationId) => {
-  return [
-    {
-      timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10日前
-      action: '自己評価提出',
-      user: '田中一郎',
-      details: '初回提出'
-    },
-    {
-      timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7日前
-      action: '評価者閲覧',
-      user: '山田太郎',
-      details: '初回閲覧'
-    },
-    {
-      timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5日前
-      action: '評価入力',
-      user: '山田太郎',
-      details: '評価者評価入力'
-    },
-    {
-      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3日前
-      action: '一次承認',
-      user: '山田太郎',
-      details: '評価者承認'
-    }
-  ];
-};
-
-// 初期化関数（企業選択時に呼び出される）
-const initializeEvaluationData = (tenantConfig) => {
-  // 選択された企業に基づいてモックデータを初期化
-  if (tenantConfig) {
-    mockData.users = generateSampleUsers(tenantConfig);
-    mockData.evaluations = generateSampleEvaluations(tenantConfig);
-  }
-};
-
-// カテゴリ別サンプル定量評価データ生成
-const generateSampleQuantitativeData = (categoryId, positionType) => {
-  const ratings = [];
-  
-  // カテゴリに基づいて適切な評価データを生成
-  const categories = getEvaluationCategories(getCurrentCategorySet(), positionType);
-  const category = categories.find(cat => cat.id === categoryId);
-  
-  if (!category) return [];
-  
-  category.items.forEach(item => {
-    const rating = {
-      itemId: item.id,
-      itemName: item.name,
-      selfRating: Math.floor(Math.random() * 4) + 2, // 2-5
-      evaluatorRating: Math.floor(Math.random() * 4) + 2, // 2-5
-      selfComment: `${item.name}について適切に対応できました`,
-      evaluatorComment: `${item.name}のスキルが向上しています`,
-      lastUpdated: new Date()
-    };
-    
-    ratings.push(rating);
-  });
-  
-  return ratings;
-};
-
-// 現在の企業のカテゴリセットを取得
-const getCurrentCategorySet = () => {
-  const currentTenant = window.getCurrentTenant ? window.getCurrentTenant() : null;
-  return currentTenant ? currentTenant.settings.evaluationCategorySet : 'default';
+  return goals[position] || '業務品質の向上と組織貢献';
 };
 
 // 営業職用のサンプルデータ生成
@@ -584,20 +464,85 @@ const generateSalesQuantitativeData = () => {
       target: 5000000,
       actual: 5250000,
       rating: 4.2,
-      comment: '目標を105%達成できた'
+      comment: '目標を105%達成し、高単価案件を多く受注',
+      achievement: 105.0
     },
     count: {
       target: 20,
       actual: 19,
       rating: 3.8,
-      comment: '目標の95%を達成'
+      comment: '目標の95%を達成、質重視で営業活動',
+      achievement: 95.0
     },
     average: {
       calculated: 276316, // actual revenue / actual count
       rating: 4.0,
-      comment: '高単価案件の受注に注力した'
+      comment: '高単価案件の受注に成功'
     }
   };
+};
+
+// 建設技術者用のサンプルデータ生成
+const generateConstructionQuantitativeData = (categoryId, position) => {
+  const ratings = [];
+  const categories = getEvaluationCategories(position);
+  const category = categories.find(cat => cat.id === categoryId);
+  
+  if (!category) return [];
+  
+  category.items.forEach(item => {
+    let baseRating = Math.floor(Math.random() * 3) + 2; // 2-4のベース
+    
+    // 役職に応じて評価レベルを調整
+    if (position === '管理者' && item.name.includes('管理')) {
+      baseRating = Math.max(baseRating, 4); // 管理者は管理系で最低4
+    }
+    
+    const rating = {
+      itemId: item.id,
+      itemName: item.name,
+      selfRating: baseRating,
+      evaluatorRating: Math.min(baseRating + (Math.random() > 0.5 ? 1 : 0), 5),
+      selfComment: generateConstructionComment(item.name, 'self'),
+      evaluatorComment: generateConstructionComment(item.name, 'evaluator'),
+      lastUpdated: new Date()
+    };
+    
+    ratings.push(rating);
+  });
+  
+  return ratings;
+};
+
+// 建設業向けのコメント生成
+const generateConstructionComment = (itemName, type) => {
+  const selfComments = {
+    'クロス張り': 'クロス張りの技術が向上し、仕上がり品質が安定',
+    '下地処理': '下地処理を丁寧に行い、仕上がりの美しさを重視',
+    '安全管理': '安全第一を心がけ、KY活動を徹底実施',
+    '施工管理': '工程管理を徹底し、品質・安全・工期を両立',
+    '材料発注': '適切な材料選定と効率的な発注で工程短縮に貢献'
+  };
+  
+  const evaluatorComments = {
+    'クロス張り': '技術力が着実に向上している。継続的な成長が見られる',
+    '下地処理': '丁寧な作業で高品質な仕上がりを実現',
+    '安全管理': '安全意識が高く、他の作業員への指導も良好',
+    '施工管理': '管理能力が向上し、現場をよくまとめている',
+    '材料発注': '計画的な発注で材料ロスを最小限に抑えている'
+  };
+  
+  // キーワードマッチングで適切なコメントを選択
+  for (const keyword in selfComments) {
+    if (itemName.includes(keyword)) {
+      return type === 'self' ? selfComments[keyword] : evaluatorComments[keyword];
+    }
+  }
+  
+  // デフォルトコメント
+  return type === 'self' ? 
+    `${itemName}について適切に対応し、品質向上に努めた` :
+    `${itemName}のスキルが向上しており、今後の成長が期待される`;
 };
 
 // データエクスポート用関数
@@ -607,6 +552,7 @@ const exportEvaluationData = (format = 'json') => {
     users: mockData.users,
     evaluations: mockData.evaluations,
     qualitativeTemplates: mockData.qualitativeTemplates,
+    categorySet: 'construction', // 建設業特化を明示
     exportedAt: new Date().toISOString()
   };
   
@@ -648,7 +594,14 @@ const validateEvaluationData = (evaluationData) => {
   return errors;
 };
 
-// グローバルに公開
+// 初期化関数
+const initializeEvaluationData = () => {
+  // 建設業特化版の初期化
+  mockData.evaluations = generateSampleEvaluations(mockData.users);
+  console.log('建設業特化評価データを初期化しました');
+};
+
+// グローバルに公開（建設業特化版）
 window.evaluationConfig = {
   criteria: evaluationCriteria,
   categorySets: evaluationCategorySets,
@@ -659,28 +612,22 @@ window.evaluationConfig = {
   getActivePeriod,
   getPeriodById,
   generateSampleEvaluations,
-  generateSampleUsers,
-  generateEvaluationHistory,
-  generateSampleQuantitativeData,
   generateSalesQuantitativeData,
+  generateConstructionQuantitativeData,
+  generateConstructionComment,
   initializeEvaluationData,
   exportEvaluationData,
   validateEvaluationData,
-  getCurrentCategorySet
+  getCurrentCategorySet: () => 'construction' // 常に建設業を返す
 };
 
 // 初期化ログ
-console.log('評価設定が読み込まれました');
+console.log('建設業特化評価設定が読み込まれました');
 
-// 企業選択時の初期化処理
+// DOMContentLoaded時の初期化
 document.addEventListener('DOMContentLoaded', () => {
-  // 企業が選択された際の処理
-  const selectedTenant = localStorage.getItem('selectedTenant');
-  if (selectedTenant && window.getTenantConfig) {
-    const tenantConfig = window.getTenantConfig(selectedTenant);
-    if (tenantConfig) {
-      initializeEvaluationData(tenantConfig);
-      console.log(`${tenantConfig.displayName}の評価データを初期化しました`);
-    }
-  }
+  initializeEvaluationData();
 });
+
+// 建設業特化のデフォルト設定
+window.isConstructionSpecialized = true;
