@@ -1,0 +1,421 @@
+/* 建設業テーマ - 建設会社向けのカラーとスタイル */
+
+/* ========================================
+   建設業向けカラーパレット
+======================================== */
+
+:root {
+  /* プライマリカラー - 安全性と信頼性をイメージした深い青 */
+  --bs-primary: #001350;
+  --bs-primary-rgb: 0, 19, 80;
+  --bs-primary-light: #1a2866;
+  --bs-primary-dark: #000a2e;
+  
+  /* セカンダリカラー - 建設現場をイメージしたオレンジ */
+  --bs-secondary: #ff6b1a;
+  --bs-secondary-rgb: 255, 107, 26;
+  --bs-secondary-light: #ff8547;
+  --bs-secondary-dark: #e55100;
+  
+  /* 状態カラー */
+  --bs-success: #2e7d32;  /* 安全な緑 */
+  --bs-success-rgb: 46, 125, 50;
+  
+  --bs-info: #1565c0;     /* 情報を示す青 */
+  --bs-info-rgb: 21, 101, 192;
+  
+  --bs-warning: #ff9800;  /* 注意を促すオレンジ */
+  --bs-warning-rgb: 255, 152, 0;
+  
+  --bs-danger: #d32f2f;   /* 危険を示す赤 */
+  --bs-danger-rgb: 211, 47, 47;
+  
+  /* 建設業特有のカラー */
+  --construction-safety: #4caf50;      /* 安全色 */
+  --construction-caution: #ff9800;     /* 注意色 */
+  --construction-danger: #f44336;      /* 危険色 */
+  --construction-steel: #607d8b;       /* 鋼材色 */
+  --construction-concrete: #9e9e9e;    /* コンクリート色 */
+  
+  /* グラデーション */
+  --gradient-primary: linear-gradient(135deg, #001350 0%, #1a2866 100%);
+  --gradient-secondary: linear-gradient(135deg, #ff6b1a 0%, #e55100 100%);
+  
+  /* シャドウ - より強調されたもの */
+  --shadow-construction: 0 4px 8px rgba(0, 19, 80, 0.15);
+  --shadow-construction-lg: 0 8px 20px rgba(0, 19, 80, 0.2);
+}
+
+/* ========================================
+   建設業テーマの適用
+======================================== */
+
+/* ナビゲーション */
+.navbar-dark.bg-primary {
+  background: var(--gradient-primary) !important;
+  border-bottom: 3px solid var(--bs-secondary);
+}
+
+/* カードヘッダー */
+.card-header.bg-primary {
+  background: var(--gradient-primary) !important;
+  color: white !important;
+  position: relative;
+}
+
+.card-header.bg-primary::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--bs-secondary);
+}
+
+/* ボタン */
+.btn-primary {
+  background: var(--gradient-primary);
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transition: width 0.6s, height 0.6s;
+  transform: translate(-50%, -50%);
+}
+
+.btn-primary:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-secondary {
+  background: var(--gradient-secondary);
+  border: none;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: var(--bs-secondary-dark);
+  color: white;
+}
+
+/* 建設業特有のボタンスタイル */
+.btn-construction-safety {
+  background-color: var(--construction-safety);
+  border-color: var(--construction-safety);
+  color: white;
+}
+
+.btn-construction-caution {
+  background-color: var(--construction-caution);
+  border-color: var(--construction-caution);
+  color: white;
+}
+
+.btn-construction-danger {
+  background-color: var(--construction-danger);
+  border-color: var(--construction-danger);
+  color: white;
+}
+
+/* ========================================
+   建設現場をイメージしたスタイル
+======================================== */
+
+/* カード */
+.card {
+  position: relative;
+  border-left: 4px solid var(--bs-secondary);
+  box-shadow: var(--shadow-construction);
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    var(--bs-primary) 0%, 
+    var(--bs-secondary) 50%, 
+    var(--bs-primary) 100%);
+}
+
+/* 安全性を強調するスタイル */
+.safety-emphasis {
+  border: 2px solid var(--construction-safety);
+  background-color: rgba(76, 175, 80, 0.05);
+}
+
+.caution-emphasis {
+  border: 2px solid var(--construction-caution);
+  background-color: rgba(255, 152, 0, 0.05);
+}
+
+.danger-emphasis {
+  border: 2px solid var(--construction-danger);
+  background-color: rgba(244, 67, 54, 0.05);
+}
+
+/* ========================================
+   評価項目固有のスタイル
+======================================== */
+
+/* カテゴリヘッダー - 工事種別を明確に */
+.category-header {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e3f2fd 100%);
+  border-left: 5px solid var(--bs-primary);
+  position: relative;
+}
+
+.category-header::after {
+  content: '';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid var(--bs-secondary);
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+
+/* 工事種別による色分け */
+.category-cross-work .category-header {
+  border-left-color: #2196f3;
+}
+
+.category-floor-work .category-header {
+  border-left-color: #4caf50;
+}
+
+.category-sheet-work .category-header {
+  border-left-color: #ff9800;
+}
+
+.category-misc-work .category-header {
+  border-left-color: #9c27b0;
+}
+
+.category-management .category-header {
+  border-left-color: var(--bs-primary);
+  background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+}
+
+/* ========================================
+   安全管理要素
+======================================== */
+
+/* 安全スコア表示 */
+.safety-score {
+  position: relative;
+  padding: 1rem;
+  background: linear-gradient(135deg, 
+    rgba(76, 175, 80, 0.1) 0%, 
+    rgba(76, 175, 80, 0.05) 100%);
+  border-radius: 8px;
+  border: 1px solid var(--construction-safety);
+}
+
+.safety-score::before {
+  content: '🛡️';
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  background-color: white;
+  padding: 5px;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* 技術レベル表示 */
+.skill-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--bs-primary);
+  color: white;
+  border-radius: 20px;
+  font-weight: 500;
+  box-shadow: var(--shadow-construction);
+}
+
+.skill-level::before {
+  content: '🔧';
+  font-size: 0.875rem;
+}
+
+/* ========================================
+   プログレスバー - 建設業仕様
+======================================== */
+
+.progress {
+  background-color: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, 
+    var(--bs-primary) 0%, 
+    var(--bs-secondary) 50%, 
+    var(--bs-primary) 100%);
+  background-size: 200% 100%;
+  animation: progressShine 2s linear infinite;
+  position: relative;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.2) 50%, 
+    transparent 100%);
+  animation: progressGloss 2s linear infinite;
+}
+
+@keyframes progressShine {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes progressGloss {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* ========================================
+   建設業固有のアイコン
+======================================== */
+
+/* 職種別アイコン */
+.position-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.5rem;
+}
+
+.position-worker .position-icon {
+  background-color: var(--construction-safety);
+  color: white;
+}
+
+.position-manager .position-icon {
+  background-color: var(--bs-primary);
+  color: white;
+}
+
+.position-admin .position-icon {
+  background: var(--gradient-secondary);
+  color: white;
+}
+
+/* ========================================
+   レスポンシブ調整
+======================================== */
+
+@media (max-width: 768px) {
+  .navbar-dark.bg-primary {
+    border-bottom-width: 2px;
+  }
+  
+  .card::before {
+    height: 1px;
+  }
+  
+  .card {
+    border-left-width: 3px;
+  }
+  
+  .category-header::after {
+    display: none;
+  }
+  
+  .skill-level {
+    font-size: 0.875rem;
+    padding: 0.175rem 0.5rem;
+  }
+}
+
+/* ========================================
+   アニメーション効果
+======================================== */
+
+/* 建設機械風のローディング */
+@keyframes constructionLoader {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.construction-loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--bs-primary);
+  border-right: 4px solid var(--bs-secondary);
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: constructionLoader 1s linear infinite;
+}
+
+/* 安全確認アニメーション */
+@keyframes safetyCheck {
+  0% { background-color: rgba(76, 175, 80, 0.1); }
+  50% { background-color: rgba(76, 175, 80, 0.2); }
+  100% { background-color: rgba(76, 175, 80, 0.1); }
+}
+
+.safety-check {
+  animation: safetyCheck 2s ease-in-out infinite;
+}
+
+/* ========================================
+   印刷時の調整
+======================================== */
+
+@media print {
+  .category-header::after,
+  .safety-score::before {
+    display: none;
+  }
+  
+  .progress-bar::after {
+    display: none;
+  }
+  
+  .skill-level::before {
+    content: '[技能]';
+    font-size: inherit;
+  }
+  
+  .card::before {
+    display: none;
+  }
+  
+  .card {
+    border-left: 2px solid #000;
+  }
+}
