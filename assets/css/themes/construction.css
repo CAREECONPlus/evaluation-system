@@ -4,20 +4,25 @@
  */
 
 /* ==============================================
-   カスタム変数（建設業特化）
+   カスタム変数（BRANU/CAREECON）
    ============================================== */
 :root {
-  /* CAREECON ブランドカラー */
-  --primary-color: #1e6fff;
-  --primary-hover: #1557e0;
-  --primary-light: #e8f2ff;
+  /* BRANU ブランドカラー */
+  --primary-color: #244EFF;
+  --primary-hover: #0133D8;
+  --primary-light: #f1f4ff;
+  --primary-dark: #001350;
   
-  /* 建設業テーマカラー */
-  --construction-orange: #ff6b35;
-  --construction-yellow: #ffc107;
-  --construction-green: #28a745;
-  --construction-red: #dc3545;
-  --construction-blue: #17a2b8;
+  /* BRANU カラーパレット */
+  --branu-blue: #244EFF;
+  --branu-navy: #001350;
+  --branu-dark-blue: #0133D8;
+  --branu-gray: #82889D;
+  --branu-back-blue: #f1f4ff;
+  --branu-gray-blue: #F9FAFC;
+  --branu-green: #1DCE85;
+  --branu-pink: #FF2C5D;
+  --branu-yellow: #FFCE2C;
   
   /* 安全色（建設業標準）*/
   --safety-red: #e74c3c;
@@ -26,20 +31,20 @@
   --safety-green: #27ae60;
   --safety-orange: #e67e22;
   
-  /* グレープスケール */
-  --gray-50: #f8f9fa;
-  --gray-100: #e9ecef;
+  /* グレープスケール（BRANU調整版） */
+  --gray-50: var(--branu-gray-blue);     /* #F9FAFC */
+  --gray-100: var(--branu-back-blue);    /* #f1f4ff */
   --gray-200: #dee2e6;
   --gray-300: #ced4da;
   --gray-400: #adb5bd;
-  --gray-500: #6c757d;
+  --gray-500: var(--branu-gray);         /* #82889D */
   --gray-600: #495057;
   --gray-700: #343a40;
-  --gray-800: #212529;
+  --gray-800: var(--branu-navy);         /* #001350 */
   --gray-900: #000000;
   
-  /* 背景とボーダー */
-  --body-bg: #f5f6fa;
+  /* 背景とボーダー（BRANU調整版） */
+  --body-bg: var(--branu-gray-blue);     /* #F9FAFC */
   --surface-bg: #ffffff;
   --border-color: var(--gray-200);
   --border-radius: 8px;
@@ -171,7 +176,7 @@ body {
   left: 0;
   width: 60px;
   height: 3px;
-  background: linear-gradient(90deg, var(--primary-color), var(--construction-orange));
+  background: linear-gradient(90deg, var(--branu-blue), var(--branu-green));
   border-radius: 2px;
 }
 
@@ -258,20 +263,30 @@ body {
   transform: translateY(-1px);
 }
 
-/* 建設業特有のボタン色 */
+/* 建設業特有のボタン色（BRANU調整版） */
 .btn-safety {
   background-color: var(--safety-red);
   color: white;
 }
 
 .btn-quality {
-  background-color: var(--safety-blue);
+  background-color: var(--branu-blue);
   color: white;
 }
 
 .btn-construction {
-  background-color: var(--construction-orange);
+  background-color: var(--branu-pink);
   color: white;
+}
+
+.btn-success-custom {
+  background-color: var(--branu-green);
+  color: white;
+}
+
+.btn-warning-custom {
+  background-color: var(--branu-yellow);
+  color: black;
 }
 
 /* ==============================================
@@ -295,18 +310,23 @@ body {
 }
 
 .badge-approved-evaluator {
-  background-color: var(--safety-blue);
+  background-color: var(--branu-blue);
   color: white;
 }
 
 .badge-approved-admin {
-  background-color: var(--safety-green);
+  background-color: var(--branu-green);
   color: white;
 }
 
 .badge-rejected {
   background-color: var(--safety-red);
   color: white;
+}
+
+.badge-submitted {
+  background-color: var(--branu-yellow);
+  color: var(--branu-navy);
 }
 
 /* ==============================================
@@ -320,7 +340,7 @@ body {
 }
 
 .progress-bar {
-  background: linear-gradient(90deg, var(--primary-color), var(--construction-orange));
+  background: linear-gradient(90deg, var(--branu-blue), var(--branu-green));
   transition: width 0.6s ease;
 }
 
@@ -417,7 +437,7 @@ body {
 }
 
 .evaluation-category-header {
-  background: linear-gradient(135deg, var(--primary-color), var(--construction-orange));
+  background: linear-gradient(135deg, var(--branu-blue), var(--branu-dark-blue));
   color: white;
   padding: 1rem 1.25rem;
   font-weight: var(--font-weight-semibold);
@@ -513,7 +533,7 @@ body {
   position: fixed;
   top: 15px;
   left: 15px;
-  background: var(--construction-orange);
+  background: var(--branu-pink);
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 20px;
@@ -534,15 +554,15 @@ body {
 }
 
 .alert-info {
-  background-color: rgba(23, 162, 184, 0.1);
-  color: #0c5460;
-  border-left: 4px solid var(--construction-blue);
+  background-color: rgba(36, 78, 255, 0.1);
+  color: var(--branu-navy);
+  border-left: 4px solid var(--branu-blue);
 }
 
 .alert-warning {
-  background-color: rgba(255, 193, 7, 0.1);
-  color: #856404;
-  border-left: 4px solid var(--construction-yellow);
+  background-color: rgba(255, 206, 44, 0.1);
+  color: #8b6914;
+  border-left: 4px solid var(--branu-yellow);
 }
 
 .alert-danger {
@@ -552,9 +572,9 @@ body {
 }
 
 .alert-success {
-  background-color: rgba(40, 167, 69, 0.1);
-  color: #155724;
-  border-left: 4px solid var(--safety-green);
+  background-color: rgba(29, 206, 133, 0.1);
+  color: #0d5429;
+  border-left: 4px solid var(--branu-green);
 }
 
 /* ==============================================
