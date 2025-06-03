@@ -1,494 +1,599 @@
 /**
- * ルーティング管理 - SPA用シンプルルーター
- * ページ遷移とナビゲーション状態の管理
- */
-
-/**
- * ルーターマネージャークラス
+ * SPA用ルーター
+ * ページ遷移とブラウザ履歴を管理
  */
 class Router {
     constructor() {
-        this.currentPage = 'dashboard';
-        this.pages = new Map();
-        this.onPageChange = null;
-        this.history = [];
-        this.maxHistoryLength = 10;
+        this.routes = new Map();
+        this.currentRoute = null;
+        this.params = {};
+        this.query = {};
+        this.middlewares = [];
+        this.guards = [];
         
-        // ページの定義
-        this.definePages();
-        
-        // ブラウザの戻る/進むボタン対応
-        this.setupBrowserNavigation();
-        
-        console.log('ルーターが初期化されました');
+        this.initializeRoutes();
+        this.bindEvents();
+        this.handleInitialRoute();
     }
 
-    /**
-     * ページの定義
-     */
-    definePages() {
-        this.pages.set('dashboard', {
-            name: 'dashboard',
+    initializeRoutes() {
+        // ルート定義
+        this.addRoute('/', {
+            component: 'dashboard',
             title: 'ダッシュボード',
-            element: '#dashboard-page',
-            requiredRole: 'employee',
-            icon: 'fas fa-tachometer-alt'
+            requireAuth: true
         });
 
-        this.pages.set('evaluations', {
-            name: 'evaluations',
+        this.addRoute('/dashboard', {
+            component: 'dashboard',
+            title: 'ダッシュボード',
+            requireAuth: true
+        });
+
+        this.addRoute('/evaluations', {
+            component: 'evaluations',
             title: '評価一覧',
-            element: '#evaluations-page',
-            requiredRole: 'employee',
-            icon: 'fas fa-list-alt'
+            requireAuth: true
         });
 
-        this.pages.set('subordinates', {
-            name: 'subordinates',
-            title: '評価対象者',
-            element: '#subordinates-page',
-            requiredRole: 'evaluator',
-            icon: 'fas fa-users'
+        this.addRoute('/evaluations/new', {
+            component: 'evaluation-form',
+            title: '新規評価',
+            requireAuth: true,
+            action: 'new'
         });
 
-        this.pages.set('users', {
-            name: 'users',
+        this.addRoute('/evaluations/:id/edit', {
+            component: 'evaluation-form',
+            title: '評価編集',
+            requireAuth: true,
+            action: 'edit'
+        });
+
+        this.addRoute('/evaluations/:id', {
+            component: 'evaluation-detail',
+            title: '評価詳細',
+            requireAuth: true
+        });
+
+        this.addRoute('/subordinates', {
+            component: 'subordinates',
+            title: '評価対象者管理',
+            requireAuth: true
+        });
+
+        this.addRoute('/users', {
+            component: 'users',
             title: 'ユーザー管理',
-            element: '#users-page',
-            requiredRole: 'admin',
-            icon: 'fas fa-user-cog'
+            requireAuth: true,
+            requireRole: ['admin', 'manager']
         });
 
-        this.pages.set('settings', {
-            name: 'settings',
+        this.addRoute('/settings', {
+            component: 'settings',
             title: '設定',
-            element: '#settings-page',
-            requiredRole: 'admin',
-            icon: 'fas fa-cog'
+            requireAuth: true
         });
 
-        this.pages.set('report', {
-            name: 'report',
-            title: '評価レポート',
-            element: '#report-page',
-            requiredRole: 'employee',
-            icon: 'fas fa-chart-bar'
+        this.addRoute('/reports', {
+            component: 'reports',
+            title: 'レポート',
+            requireAuth: true
         });
 
-        console.log(`${this.pages.size}個のページが定義されました`);
-    }
+        this.addRoute('/login', {
+            component: 'login',
+            title: 'ログイン',
+            layout: 'auth'
+        });
 
-    /**
-     * ブラウザナビゲーションの設定
-     */
-    setupBrowserNavigation() {
-        window.addEventListener('popstate', (event) => {
-            if (event.state && event.state.page) {
-                this.navigateTo(event.state.page, { skipHistory: true });
-            }
+        this.addRoute('/404', {
+            component: '404',
+            title: 'ページが見つかりません'
         });
     }
 
-    /**
-     * ページ遷移
-     */
-    navigateTo(pageName, options = {}) {
-        const { skipHistory = false, data = null } = options;
-
-        // ページの存在確認
-        if (!this.pages.has(pageName)) {
-            console.error(`ページが見つかりません: ${pageName}`);
-            return false;
-        }
-
-        const pageInfo = this.pages.get(pageName);
-
-        // 権限チェック
-        if (!this.checkPermission(pageInfo.requiredRole)) {
-            console.warn(`ページ '${pageName}' へのアクセス権限がありません`);
-            this.showPermissionDeniedMessage(pageInfo.title);
-            return false;
-        }
-
-        // 現在のページと同じ場合は何もしない
-        if (this.currentPage === pageName && !data) {
-            return true;
-        }
-
-        // ページ遷移の実行
-        const success = this.performPageTransition(pageName, pageInfo, data);
-
-        if (success) {
-            // 履歴に追加
-            if (!skipHistory) {
-                this.addToHistory(pageName, data);
-                this.updateBrowserHistory(pageName);
-            }
-
-            // ページ変更イベントの発火
-            if (this.onPageChange) {
-                this.onPageChange(pageName, data);
-            }
-
-            console.log(`ページ遷移完了: ${this.currentPage} -> ${pageName}`);
-        }
-
-        return success;
-    }
-
-    /**
-     * ページ遷移の実行
-     */
-    performPageTransition(pageName, pageInfo, data = null) {
-        try {
-            // 全てのページを非表示
-            this.hideAllPages();
-
-            // ターゲットページを表示
-            const targetElement = document.querySelector(pageInfo.element);
-            if (!targetElement) {
-                console.error(`ページ要素が見つかりません: ${pageInfo.element}`);
-                return false;
-            }
-
-            targetElement.classList.remove('d-none');
-
-            // アクティブなナビゲーションリンクを更新
-            this.updateActiveNavigation(pageName);
-
-            // ページタイトルを更新
-            this.updatePageTitle(pageInfo.title);
-
-            // 現在のページを更新
-            this.currentPage = pageName;
-
-            // ページ固有のデータを渡す
-            if (data) {
-                this.passDataToPage(pageName, data);
-            }
-
-            return true;
-        } catch (error) {
-            console.error('ページ遷移エラー:', error);
-            return false;
-        }
-    }
-
-    /**
-     * 全ページを非表示
-     */
-    hideAllPages() {
-        document.querySelectorAll('.page').forEach(page => {
-            page.classList.add('d-none');
+    addRoute(path, config) {
+        const pattern = this.pathToRegexp(path);
+        this.routes.set(pattern.regex, {
+            path,
+            pattern,
+            ...config
         });
     }
 
-    /**
-     * アクティブナビゲーションの更新
-     */
-    updateActiveNavigation(pageName) {
-        // 全てのnavリンクから'active'クラスを削除
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.classList.remove('active');
-        });
-
-        // 対象のnavリンクに'active'クラスを追加
-        const activeLink = document.querySelector(`[data-page="${pageName}"]`);
-        if (activeLink) {
-            activeLink.classList.add('active');
-        }
-    }
-
-    /**
-     * ページタイトルの更新
-     */
-    updatePageTitle(title) {
-        // ブラウザのタイトルを更新
-        document.title = `${title} - 評価システム`;
-
-        // ページ内のタイトル要素も更新（もしあれば）
-        const pageTitleElement = document.querySelector('.page-title');
-        if (pageTitleElement) {
-            pageTitleElement.textContent = title;
-        }
-    }
-
-    /**
-     * 権限チェック
-     */
-    checkPermission(requiredRole) {
-        // グローバルなauth オブジェクトが存在する場合のみチェック
-        if (typeof window.app !== 'undefined' && window.app.auth) {
-            return window.app.auth.hasRole(requiredRole);
-        }
-
-        // auth が利用できない場合はアクセスを許可（初期化中など）
-        return true;
-    }
-
-    /**
-     * 権限不足メッセージの表示
-     */
-    showPermissionDeniedMessage(pageName) {
-        // 通知システムが利用可能な場合
-        if (typeof window.app !== 'undefined' && window.app.showWarningNotification) {
-            window.app.showWarningNotification(
-                'アクセス権限がありません',
-                `「${pageName}」ページへのアクセス権限がありません。`
-            );
-        } else {
-            alert(`「${pageName}」ページへのアクセス権限がありません。`);
-        }
-    }
-
-    /**
-     * 履歴への追加
-     */
-    addToHistory(pageName, data = null) {
-        const historyEntry = {
-            page: pageName,
-            data: data,
-            timestamp: Date.now()
-        };
-
-        this.history.push(historyEntry);
-
-        // 履歴の長さを制限
-        if (this.history.length > this.maxHistoryLength) {
-            this.history.shift();
-        }
-    }
-
-    /**
-     * ブラウザ履歴の更新
-     */
-    updateBrowserHistory(pageName) {
-        const url = new URL(window.location);
-        url.searchParams.set('page', pageName);
-        
-        window.history.pushState(
-            { page: pageName },
-            ``,
-            url.toString()
+    pathToRegexp(path) {
+        const keys = [];
+        const regex = new RegExp(
+            '^' + path
+                .replace(/\/:([^/]+)/g, (match, key) => {
+                    keys.push(key);
+                    return '/([^/]+)';
+                })
+                .replace(/\*/g, '.*') + '$'
         );
-    }
-
-    /**
-     * ページにデータを渡す
-     */
-    passDataToPage(pageName, data) {
-        // ページ固有のデータハンドリング
-        switch (pageName) {
-            case 'report':
-                if (data && data.evaluationId) {
-                    // 評価レポートページに評価IDを渡す
-                    window.currentEvaluationId = data.evaluationId;
-                }
-                break;
-                
-            case 'evaluations':
-                if (data && data.filter) {
-                    // 評価一覧ページにフィルター情報を渡す
-                    window.evaluationFilter = data.filter;
-                }
-                break;
-                
-            default:
-                // その他のページのデータハンドリング
-                if (data) {
-                    window.pageData = data;
-                }
-                break;
-        }
-    }
-
-    /**
-     * 現在のページを取得
-     */
-    getCurrentPage() {
-        return this.currentPage;
-    }
-
-    /**
-     * ページ情報を取得
-     */
-    getPageInfo(pageName) {
-        return this.pages.get(pageName) || null;
-    }
-
-    /**
-     * 利用可能なページ一覧を取得
-     */
-    getAvailablePages() {
-        const availablePages = [];
         
-        for (const [pageName, pageInfo] of this.pages) {
-            if (this.checkPermission(pageInfo.requiredRole)) {
-                availablePages.push({
-                    name: pageName,
-                    title: pageInfo.title,
-                    icon: pageInfo.icon
-                });
+        return { regex, keys };
+    }
+
+    bindEvents() {
+        // ブラウザの戻る/進むボタン
+        window.addEventListener('popstate', (e) => {
+            this.handleRoute(window.location.pathname + window.location.search, false);
+        });
+
+        // リンククリック
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('a[href]');
+            if (link && this.isInternalLink(link)) {
+                e.preventDefault();
+                this.navigate(link.getAttribute('href'));
             }
-        }
-        
-        return availablePages;
-    }
-
-    /**
-     * 戻る
-     */
-    goBack() {
-        if (this.history.length < 2) {
-            console.log('戻れる履歴がありません');
-            return false;
-        }
-
-        // 現在のページを履歴から削除
-        this.history.pop();
-        
-        // 前のページを取得
-        const previousEntry = this.history[this.history.length - 1];
-        
-        // 前のページに移動
-        return this.navigateTo(previousEntry.page, {
-            skipHistory: true,
-            data: previousEntry.data
         });
     }
 
-    /**
-     * 履歴をクリア
-     */
-    clearHistory() {
-        this.history = [];
-        console.log('ナビゲーション履歴がクリアされました');
-    }
-
-    /**
-     * 履歴の取得
-     */
-    getHistory() {
-        return [...this.history];
-    }
-
-    /**
-     * URLからページを復元
-     */
-    restoreFromUrl() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const pageName = urlParams.get('page');
+    isInternalLink(link) {
+        const href = link.getAttribute('href');
         
-        if (pageName && this.pages.has(pageName)) {
-            this.navigateTo(pageName, { skipHistory: true });
-        } else {
-            // URLにページ指定がない場合はデフォルトページ
-            this.navigateTo('dashboard');
+        // 外部リンクやメールリンクは除外
+        if (href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+            return false;
         }
-    }
-
-    /**
-     * ページのプリロード
-     */
-    preloadPage(pageName) {
-        const pageInfo = this.pages.get(pageName);
-        if (!pageInfo) return false;
-
-        const element = document.querySelector(pageInfo.element);
-        if (element) {
-            // ページ要素が既に存在する場合はプリロード完了
-            return true;
+        
+        // target="_blank" は除外
+        if (link.getAttribute('target') === '_blank') {
+            return false;
         }
-
-        // 動的にページをロードする場合の処理
-        // （現在のシステムでは全ページが既にHTMLに含まれているため不要）
         
         return true;
     }
 
-    /**
-     * ページ間のメッセージ送信
-     */
-    sendMessage(fromPage, toPage, message) {
-        console.log(`ページ間メッセージ: ${fromPage} -> ${toPage}`, message);
+    handleInitialRoute() {
+        const path = window.location.pathname + window.location.search;
+        this.handleRoute(path, false);
+    }
+
+    async navigate(path, addToHistory = true) {
+        await this.handleRoute(path, addToHistory);
+    }
+
+    async handleRoute(fullPath, addToHistory = true) {
+        const [path, queryString] = fullPath.split('?');
+        this.query = this.parseQuery(queryString || '');
+
+        // ルートマッチング
+        const matchedRoute = this.matchRoute(path);
         
-        // カスタムイベントを発火
-        const event = new CustomEvent('pageMessage', {
-            detail: {
-                from: fromPage,
-                to: toPage,
-                message: message
+        if (!matchedRoute) {
+            return this.navigate('/404', addToHistory);
+        }
+
+        // ガード実行
+        const guardResult = await this.executeGuards(matchedRoute, path);
+        if (!guardResult.allowed) {
+            if (guardResult.redirect) {
+                return this.navigate(guardResult.redirect, addToHistory);
             }
-        });
-        
-        document.dispatchEvent(event);
-    }
-
-    /**
-     * ページ間メッセージの監視
-     */
-    onMessage(callback) {
-        document.addEventListener('pageMessage', (event) => {
-            if (event.detail.to === this.currentPage || event.detail.to === '*') {
-                callback(event.detail);
-            }
-        });
-    }
-
-    /**
-     * ルーターの状態を取得
-     */
-    getState() {
-        return {
-            currentPage: this.currentPage,
-            history: this.getHistory(),
-            availablePages: this.getAvailablePages()
-        };
-    }
-
-    /**
-     * ページ遷移のミドルウェア
-     */
-    addMiddleware(middleware) {
-        if (typeof middleware !== 'function') {
-            console.error('ミドルウェアは関数である必要があります');
             return;
         }
 
-        // ミドルウェアのチェーン実装
-        const originalNavigateTo = this.navigateTo.bind(this);
-        
-        this.navigateTo = (pageName, options = {}) => {
-            // ミドルウェアの実行
-            const shouldContinue = middleware({
-                from: this.currentPage,
-                to: pageName,
-                options: options
-            });
+        // ミドルウェア実行
+        for (const middleware of this.middlewares) {
+            await middleware(matchedRoute, this.params, this.query);
+        }
 
-            if (shouldContinue !== false) {
-                return originalNavigateTo(pageName, options);
-            }
+        // ブラウザ履歴更新
+        if (addToHistory) {
+            window.history.pushState({}, '', fullPath);
+        }
 
-            return false;
-        };
+        // ページタイトル更新
+        document.title = `${matchedRoute.title} - 建設業評価システム`;
+
+        // ルート情報保存
+        this.currentRoute = matchedRoute;
+
+        // ページ表示
+        await this.renderPage(matchedRoute);
     }
 
-    /**
-     * デバッグ情報の取得
-     */
-    getDebugInfo() {
+    matchRoute(path) {
+        for (const [regex, route] of this.routes) {
+            const match = path.match(regex);
+            if (match) {
+                this.params = {};
+                
+                // パラメータ抽出
+                route.pattern.keys.forEach((key, index) => {
+                    this.params[key] = match[index + 1];
+                });
+
+                return route;
+            }
+        }
+        return null;
+    }
+
+    parseQuery(queryString) {
+        const query = {};
+        if (queryString) {
+            queryString.split('&').forEach(param => {
+                const [key, value] = param.split('=');
+                if (key) {
+                    query[decodeURIComponent(key)] = decodeURIComponent(value || '');
+                }
+            });
+        }
+        return query;
+    }
+
+    async executeGuards(route, path) {
+        // 認証チェック
+        if (route.requireAuth && !window.auth.isAuthenticated()) {
+            return {
+                allowed: false,
+                redirect: `/login?redirect=${encodeURIComponent(path)}`
+            };
+        }
+
+        // ロールチェック
+        if (route.requireRole) {
+            const user = window.auth.getCurrentUser();
+            if (!user || !route.requireRole.includes(user.role)) {
+                window.notification.show('アクセス権限がありません', 'error');
+                return {
+                    allowed: false,
+                    redirect: '/dashboard'
+                };
+            }
+        }
+
+        // カスタムガード実行
+        for (const guard of this.guards) {
+            const result = await guard(route, this.params, this.query);
+            if (!result.allowed) {
+                return result;
+            }
+        }
+
+        return { allowed: true };
+    }
+
+    async renderPage(route) {
+        try {
+            // ローディング表示
+            this.showLoading();
+
+            // レイアウト適用
+            await this.applyLayout(route.layout || 'default');
+
+            // コンポーネント読み込み
+            await this.loadComponent(route.component, route.action);
+
+            // ナビゲーション更新
+            this.updateNavigation(route);
+
+        } catch (error) {
+            console.error('ページの描画に失敗:', error);
+            this.showError('ページの読み込みに失敗しました');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    async applyLayout(layoutType) {
+        const appContainer = document.getElementById('app');
+        if (!appContainer) return;
+
+        switch (layoutType) {
+            case 'auth':
+                appContainer.className = 'app-container auth-layout';
+                break;
+            case 'minimal':
+                appContainer.className = 'app-container minimal-layout';
+                break;
+            default:
+                appContainer.className = 'app-container default-layout';
+        }
+    }
+
+    async loadComponent(componentName, action = null) {
+        const mainContent = document.getElementById('main-content');
+        if (!mainContent) return;
+
+        // コンポーネント初期化
+        switch (componentName) {
+            case 'dashboard':
+                if (window.dashboard) {
+                    await window.dashboard.render();
+                }
+                break;
+
+            case 'evaluations':
+                if (window.evaluations) {
+                    await window.evaluations.render();
+                }
+                break;
+
+            case 'evaluation-form':
+                if (window.evaluationForm) {
+                    if (action === 'new') {
+                        const subordinateId = this.query.subordinate;
+                        const periodId = this.query.period;
+                        await window.evaluationForm.openNewEvaluation(subordinateId, periodId);
+                    } else if (action === 'edit' && this.params.id) {
+                        await window.evaluationForm.openEditEvaluation(this.params.id);
+                    }
+                }
+                break;
+
+            case 'evaluation-detail':
+                if (window.evaluationDetail && this.params.id) {
+                    await window.evaluationDetail.render(this.params.id);
+                }
+                break;
+
+            case 'subordinates':
+                if (window.subordinates) {
+                    await window.subordinates.render();
+                }
+                break;
+
+            case 'users':
+                if (window.users) {
+                    await window.users.render();
+                }
+                break;
+
+            case 'settings':
+                if (window.settings) {
+                    await window.settings.render();
+                }
+                break;
+
+            case 'reports':
+                if (window.reports) {
+                    await window.reports.render();
+                }
+                break;
+
+            case 'login':
+                if (window.login) {
+                    const redirectPath = this.query.redirect || '/dashboard';
+                    await window.login.render(redirectPath);
+                }
+                break;
+
+            case '404':
+                this.render404Page();
+                break;
+
+            default:
+                throw new Error(`Unknown component: ${componentName}`);
+        }
+    }
+
+    updateNavigation(route) {
+        // アクティブなナビゲーション項目を更新
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.classList.remove('active');
+            
+            const href = item.getAttribute('href') || item.querySelector('a')?.getAttribute('href');
+            if (href && this.isCurrentRoute(href, route.path)) {
+                item.classList.add('active');
+            }
+        });
+    }
+
+    isCurrentRoute(href, currentPath) {
+        // 完全一致
+        if (href === currentPath) return true;
+        
+        // ダッシュボードの特別処理
+        if ((href === '/' || href === '/dashboard') && 
+            (currentPath === '/' || currentPath === '/dashboard')) {
+            return true;
+        }
+        
+        // 親パス一致（評価関連ページ）
+        if (href === '/evaluations' && currentPath.startsWith('/evaluations')) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    render404Page() {
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.innerHTML = `
+                <div class="error-page">
+                    <div class="error-content">
+                        <h1>404</h1>
+                        <h2>ページが見つかりません</h2>
+                        <p>お探しのページは存在しないか、移動した可能性があります。</p>
+                        <div class="error-actions">
+                            <a href="/dashboard" class="btn-primary">ダッシュボードに戻る</a>
+                            <button onclick="history.back()" class="btn-secondary">前のページに戻る</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    showLoading() {
+        const loadingElement = document.getElementById('loading-indicator');
+        if (loadingElement) {
+            loadingElement.style.display = 'flex';
+        }
+    }
+
+    hideLoading() {
+        const loadingElement = document.getElementById('loading-indicator');
+        if (loadingElement) {
+            loadingElement.style.display = 'none';
+        }
+    }
+
+    showError(message) {
+        window.notification?.show(message, 'error');
+    }
+
+    // ミドルウェア登録
+    use(middleware) {
+        this.middlewares.push(middleware);
+    }
+
+    // ガード登録
+    addGuard(guard) {
+        this.guards.push(guard);
+    }
+
+    // 現在のルート情報取得
+    getCurrentRoute() {
+        return this.currentRoute;
+    }
+
+    // パラメータ取得
+    getParams() {
+        return { ...this.params };
+    }
+
+    // クエリパラメータ取得
+    getQuery() {
+        return { ...this.query };
+    }
+
+    // パラメータ付きURLの生成
+    buildUrl(path, params = {}, query = {}) {
+        let url = path;
+        
+        // パラメータ置換
+        Object.keys(params).forEach(key => {
+            url = url.replace(`:${key}`, params[key]);
+        });
+        
+        // クエリパラメータ追加
+        const queryString = Object.keys(query)
+            .filter(key => query[key] !== null && query[key] !== undefined)
+            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(query[key])}`)
+            .join('&');
+        
+        if (queryString) {
+            url += `?${queryString}`;
+        }
+        
+        return url;
+    }
+
+    // リダイレクト
+    redirect(path) {
+        return this.navigate(path, true);
+    }
+
+    // 置換（履歴に残さない）
+    replace(path) {
+        window.history.replaceState({}, '', path);
+        return this.handleRoute(path, false);
+    }
+
+    // 戻る
+    back() {
+        window.history.back();
+    }
+
+    // 進む
+    forward() {
+        window.history.forward();
+    }
+
+    // 特定回数戻る
+    go(delta) {
+        window.history.go(delta);
+    }
+
+    // ブレッドクラム生成
+    generateBreadcrumbs() {
+        const breadcrumbs = [];
+        const currentPath = this.currentRoute?.path;
+        
+        if (!currentPath || currentPath === '/' || currentPath === '/dashboard') {
+            return breadcrumbs;
+        }
+
+        // ダッシュボードを常に最初に追加
+        breadcrumbs.push({
+            title: 'ダッシュボード',
+            path: '/dashboard'
+        });
+
+        // パスベースでブレッドクラムを生成
+        if (currentPath.startsWith('/evaluations')) {
+            breadcrumbs.push({
+                title: '評価一覧',
+                path: '/evaluations'
+            });
+            
+            if (currentPath.includes('/new')) {
+                breadcrumbs.push({
+                    title: '新規評価',
+                    path: currentPath,
+                    current: true
+                });
+            } else if (currentPath.includes('/edit')) {
+                breadcrumbs.push({
+                    title: '評価編集',
+                    path: currentPath,
+                    current: true
+                });
+            } else if (this.params.id) {
+                breadcrumbs.push({
+                    title: '評価詳細',
+                    path: currentPath,
+                    current: true
+                });
+            }
+        } else {
+            // その他のページ
+            breadcrumbs.push({
+                title: this.currentRoute.title,
+                path: currentPath,
+                current: true
+            });
+        }
+
+        return breadcrumbs;
+    }
+
+    // ブレッドクラムHTML生成
+    renderBreadcrumbs() {
+        const breadcrumbs = this.generateBreadcrumbs();
+        const container = document.getElementById('breadcrumbs');
+        
+        if (!container || breadcrumbs.length === 0) return;
+
+        container.innerHTML = breadcrumbs.map((crumb, index) => {
+            if (crumb.current) {
+                return `<span class="breadcrumb-current">${crumb.title}</span>`;
+            } else {
+                return `<a href="${crumb.path}" class="breadcrumb-link">${crumb.title}</a>`;
+            }
+        }).join('<span class="breadcrumb-separator">›</span>');
+    }
+
+    // 開発者向けデバッグ情報
+    debug() {
         return {
-            currentPage: this.currentPage,
-            totalPages: this.pages.size,
-            historyLength: this.history.length,
-            lastNavigation: this.history[this.history.length - 1],
-            availablePages: this.getAvailablePages().map(p => p.name)
+            currentRoute: this.currentRoute,
+            params: this.params,
+            query: this.query,
+            path: window.location.pathname,
+            routes: Array.from(this.routes.values()).map(r => r.path)
         };
     }
 }
 
-// グローバルに公開
-window.Router = Router;
-
-console.log('Router が読み込まれました');
+// グローバルインスタンス
+window.router = new Router();
