@@ -1,519 +1,356 @@
 /**
- * Authentication System - 評価ツール
- * ユーザー認証とセッション管理を行うクラス
+ * 認証管理システム
+ * ユーザーのログイン・ログアウト・権限管理を行う
  */
+class AuthManager {
+    constructor() {
+        this.currentUser = null;
+        this.isAuthenticated = false;
+        this.sessionTimeout = 30 * 60 * 1000; // 30分
+        this.sessionTimer = null;
+        
+        this.initializeAuth();
+    }
 
-EvaluationApp = EvaluationApp || {};
+    initializeAuth() {
+        // セッションストレージから認証情報を復元
+        this.restoreSession();
+        
+        // セッションタイムアウトの設定
+        this.setupSessionTimeout();
+        
+        // ページ可視性の監視（タブ切り替え検知）
+        this.setupVisibilityHandling();
+    }
 
-/**
- * 認証管理クラス
- */
-EvaluationApp.Auth = class {
-  constructor(apiClient = null) {
-    this.api = apiClient;
-    this.currentUser = null;
-    this.isAuthenticated = false;
-    this.sessionTimeout = null;
-    this.debug = EvaluationApp.Constants.APP.DEBUG;
-    this.isDemo = EvaluationApp.Constants.APP.DEMO_MODE;
-    
-    // セッション設定
-    this.sessionDuration = 8 * 60 * 60 * 1000; // 8時間
-    this.warningTime = 15 * 60 * 1000; // 15分前に警告
-    
-    // イベントリスナー
-    this.eventListeners = new Map();
-    
-    this.log('Auth manager initialized');
-  }
-
-  /**
-   * 認証システムの初期化
-   */
-  async initialize() {
-    try {
-      // デモモードの場合は自動ログイン
-      if (this.isDemo) {
-        await this.handleDemoLogin();
-        return;
-      }
-
-      // 保存されたトークンの確認
-      const savedToken = localStorage.getItem(EvaluationApp.Constants.STORAGE_KEYS.AUTH_TOKEN);
-      const savedUser = localStorage.getItem(EvaluationApp.Constants.STORAGE_KEYS.USER_DATA);
-      
-      if (savedToken && savedUser) {
+    async login(credentials) {
         try {
-          // トークンの有効性を確認
-          if (this.api) {
-            this.api.setAuthToken(savedToken);
-            const userProfile = await this.api.getProfile();
-            await this.setCurrentUser(userProfile);
-            this.startSessionTimer();
-            this.log('Auto-login successful');
-          }
+            const { email, password } = credentials;
+            
+            // デモモードの認証
+            if (this.isDemoMode()) {
+                return this.handleDemoLogin(email, password);
+            }
+            
+            // 本番環境での認証
+            const response = await window.api?.authenticate(credentials);
+            
+            if (response && response.user) {
+                this.setCurrentUser(response.user, response.token);
+                this.startSession();
+                return { success: true, user: response.user };
+            } else {
+                throw new Error('認証に失敗しました');
+            }
+            
         } catch (error) {
-          this.log('Auto-login failed:', error);
-          this.clearAuthData();
+            console.error('Login failed:', error);
+            return { 
+                success: false, 
+                error: error.message || 'ログインに失敗しました' 
+            };
         }
-      }
-
-    } catch (error) {
-      this.log('Auth initialization error:', error);
-      this.clearAuthData();
     }
-  }
 
-  /**
-   * デモモード用自動ログイン
-   */
-  async handleDemoLogin() {
-    try {
-      this.log('Demo mode auto-login');
-      
-      // モックユーザーでログイン
-      const demoUser = EvaluationApp.MockData.currentUser;
-      await this.setCurrentUser(demoUser);
-      
-      // デモ用トークンを設定
-      if (this.api) {
-        this.api.setAuthToken('demo_token_' + Date.now());
-      }
-      
-      this.emit('auth:login:success', { user: demoUser });
-      
-    } catch (error) {
-      this.log('Demo login error:', error);
-      throw error;
+    handleDemoLogin(email, password) {
+        // デモアカウント
+        const demoAccounts = [
+            {
+                id: 'demo-admin',
+                email: 'admin@company.com',
+                password: 'password123',
+                name: '田中 太郎',
+                role: 'admin',
+                department: 'admin',
+                position: '管理者',
+                permissions: ['all']
+            },
+            {
+                id: 'demo-manager',
+                email: 'manager@company.com', 
+                password: 'password123',
+                name: '佐藤 花子',
+                role: 'manager',
+                department: 'construction',
+                position: 'マネージャー',
+                permissions: ['evaluate', 'manage_subordinates', 'view_reports']
+            },
+            {
+                id: 'demo-supervisor',
+                email: 'supervisor@company.com',
+                password: 'password123', 
+                name: '鈴木 一郎',
+                role: 'supervisor',
+                department: 'construction',
+                position: '主任',
+                permissions: ['evaluate', 'manage_subordinates']
+            }
+        ];
+
+        const user = demoAccounts.find(account => 
+            account.email === email && account.password === password
+        );
+
+        if (user) {
+            const userWithoutPassword = { ...user };
+            delete userWithoutPassword.password;
+            
+            this.setCurrentUser(userWithoutPassword, 'demo-token');
+            this.startSession();
+            
+            return { success: true, user: userWithoutPassword };
+        } else {
+            return { 
+                success: false, 
+                error: 'メールアドレスまたはパスワードが正しくありません' 
+            };
+        }
     }
-  }
 
-  /**
-   * ログイン処理
-   */
-  async login(username, password) {
-    try {
-      this.log('Login attempt for:', username);
-
-      // デモモードの場合
-      if (this.isDemo) {
-        return await this.handleDemoLogin();
-      }
-
-      // 実際のログイン処理
-      if (!this.api) {
-        throw new Error('API client not available');
-      }
-
-      const response = await this.api.login(username, password);
-      
-      if (response.user) {
-        await this.setCurrentUser(response.user);
-        this.startSessionTimer();
-        this.emit('auth:login:success', { user: response.user });
-        this.log('Login successful');
-        return response;
-      } else {
-        throw new Error('Invalid login response');
-      }
-
-    } catch (error) {
-      this.log('Login error:', error);
-      this.emit('auth:login:failed', { error: error.message });
-      throw error;
+    logout() {
+        this.clearSession();
+        this.currentUser = null;
+        this.isAuthenticated = false;
+        
+        // セッションストレージから削除
+        sessionStorage.removeItem('auth_user');
+        sessionStorage.removeItem('auth_token');
+        sessionStorage.removeItem('auth_timestamp');
+        
+        // ログインページにリダイレクト
+        if (window.router) {
+            window.router.navigate('/login');
+        }
     }
-  }
 
-  /**
-   * ログアウト処理
-   */
-  async logout() {
-    try {
-      this.log('Logout initiated');
+    setCurrentUser(user, token = null) {
+        this.currentUser = user;
+        this.isAuthenticated = true;
+        
+        // セッションストレージに保存
+        sessionStorage.setItem('auth_user', JSON.stringify(user));
+        if (token) {
+            sessionStorage.setItem('auth_token', token);
+        }
+        sessionStorage.setItem('auth_timestamp', Date.now().toString());
+    }
 
-      // セッションタイマーをクリア
-      this.clearSessionTimer();
+    getCurrentUser() {
+        return this.currentUser;
+    }
 
-      // サーバーにログアウト通知（デモモード以外）
-      if (!this.isDemo && this.api) {
+    isAuthenticatedUser() {
+        return this.isAuthenticated && this.currentUser !== null;
+    }
+
+    hasRole(role) {
+        if (!this.currentUser) return false;
+        
+        // adminは全ての権限を持つ
+        if (this.currentUser.role === 'admin') return true;
+        
+        // 指定された役職をチェック
+        return this.currentUser.role === role;
+    }
+
+    hasPermission(permission) {
+        if (!this.currentUser) return false;
+        
+        // adminは全ての権限を持つ
+        if (this.currentUser.role === 'admin') return true;
+        
+        // 権限配列をチェック
+        return this.currentUser.permissions?.includes(permission) || 
+               this.currentUser.permissions?.includes('all');
+    }
+
+    canEvaluate() {
+        return this.hasPermission('evaluate');
+    }
+
+    canManageUsers() {
+        return this.hasPermission('manage_users') || this.hasRole('admin');
+    }
+
+    canViewReports() {
+        return this.hasPermission('view_reports');
+    }
+
+    restoreSession() {
         try {
-          await this.api.logout();
+            const userData = sessionStorage.getItem('auth_user');
+            const timestamp = sessionStorage.getItem('auth_timestamp');
+            
+            if (userData && timestamp) {
+                const sessionAge = Date.now() - parseInt(timestamp);
+                
+                // セッションがタイムアウトしていないかチェック
+                if (sessionAge < this.sessionTimeout) {
+                    this.currentUser = JSON.parse(userData);
+                    this.isAuthenticated = true;
+                    this.startSession();
+                    return true;
+                } else {
+                    // セッションタイムアウト
+                    this.clearSession();
+                }
+            }
         } catch (error) {
-          // ログアウトAPIが失敗してもローカルデータは削除
-          this.log('Logout API error (continuing):', error);
+            console.error('Failed to restore session:', error);
+            this.clearSession();
         }
-      }
-
-      // ローカルデータをクリア
-      this.clearAuthData();
-      
-      this.emit('auth:logout');
-      this.log('Logout completed');
-
-    } catch (error) {
-      this.log('Logout error:', error);
-      // エラーが発生してもローカルデータはクリア
-      this.clearAuthData();
-      this.emit('auth:logout');
-    }
-  }
-
-  /**
-   * 現在のユーザー設定
-   */
-  async setCurrentUser(user) {
-    this.currentUser = user;
-    this.isAuthenticated = true;
-    
-    // ローカルストレージに保存
-    localStorage.setItem(EvaluationApp.Constants.STORAGE_KEYS.USER_DATA, JSON.stringify(user));
-    
-    this.log('Current user set:', user.username);
-    this.emit('auth:user:changed', { user });
-  }
-
-  /**
-   * 認証データのクリア
-   */
-  clearAuthData() {
-    this.currentUser = null;
-    this.isAuthenticated = false;
-    
-    // ローカルストレージをクリア
-    localStorage.removeItem(EvaluationApp.Constants.STORAGE_KEYS.AUTH_TOKEN);
-    localStorage.removeItem(EvaluationApp.Constants.STORAGE_KEYS.REFRESH_TOKEN);
-    localStorage.removeItem(EvaluationApp.Constants.STORAGE_KEYS.USER_DATA);
-    
-    // APIクライアントのトークンもクリア
-    if (this.api) {
-      this.api.setAuthToken(null);
-    }
-    
-    this.log('Auth data cleared');
-  }
-
-  /**
-   * セッションタイマーの開始
-   */
-  startSessionTimer() {
-    this.clearSessionTimer();
-    
-    // セッション期限警告
-    setTimeout(() => {
-      this.showSessionWarning();
-    }, this.sessionDuration - this.warningTime);
-    
-    // セッション期限切れ
-    this.sessionTimeout = setTimeout(() => {
-      this.handleSessionExpired();
-    }, this.sessionDuration);
-    
-    this.log('Session timer started');
-  }
-
-  /**
-   * セッションタイマーのクリア
-   */
-  clearSessionTimer() {
-    if (this.sessionTimeout) {
-      clearTimeout(this.sessionTimeout);
-      this.sessionTimeout = null;
-    }
-  }
-
-  /**
-   * セッション期限警告
-   */
-  showSessionWarning() {
-    this.emit('auth:session:warning');
-    
-    // ユーザーに警告表示
-    if (confirm('セッションの期限が近づいています。続行しますか？')) {
-      this.extendSession();
-    }
-  }
-
-  /**
-   * セッション期限切れ処理
-   */
-  handleSessionExpired() {
-    this.log('Session expired');
-    this.emit('auth:session:expired');
-    
-    // 自動ログアウト
-    this.logout();
-    
-    // ユーザーに通知
-    alert('セッションの期限が切れました。再度ログインしてください。');
-  }
-
-  /**
-   * セッション延長
-   */
-  async extendSession() {
-    try {
-      if (this.isDemo) {
-        // デモモードでは単純にタイマーを再開
-        this.startSessionTimer();
-        return;
-      }
-
-      // 実際のセッション延長処理
-      if (this.api) {
-        await this.api.getProfile(); // プロフィール取得でセッション確認
-        this.startSessionTimer();
-        this.log('Session extended');
-      }
-      
-    } catch (error) {
-      this.log('Session extension failed:', error);
-      this.handleSessionExpired();
-    }
-  }
-
-  // === 権限チェック === //
-
-  /**
-   * ログイン状態の確認
-   */
-  isUserAuthenticated() {
-    return this.isAuthenticated && this.currentUser !== null;
-  }
-
-  /**
-   * 役割の確認
-   */
-  hasRole(role) {
-    if (!this.currentUser) return false;
-    
-    switch (role) {
-      case EvaluationApp.Constants.USER_ROLES.ADMIN:
-        return this.currentUser.role === EvaluationApp.Constants.USER_ROLES.ADMIN;
-      
-      case EvaluationApp.Constants.USER_ROLES.EVALUATOR:
-        return this.currentUser.role === EvaluationApp.Constants.USER_ROLES.EVALUATOR || 
-               this.currentUser.role === EvaluationApp.Constants.USER_ROLES.ADMIN;
-      
-      case EvaluationApp.Constants.USER_ROLES.EMPLOYEE:
-        return true; // 全ユーザーが従業員権限を持つ
-      
-      default:
+        
         return false;
     }
-  }
 
-  /**
-   * 権限の確認
-   */
-  hasPermission(permission) {
-    if (!this.currentUser) return false;
-    
-    const userRole = this.currentUser.role;
-    
-    // 管理者は全権限を持つ
-    if (userRole === EvaluationApp.Constants.USER_ROLES.ADMIN) {
-      return true;
+    startSession() {
+        this.clearSession(); // 既存のタイマーをクリア
+        
+        this.sessionTimer = setTimeout(() => {
+            window.notification?.show('セッションがタイムアウトしました', 'warning');
+            this.logout();
+        }, this.sessionTimeout);
     }
-    
-    // 権限マッピング
-    const rolePermissions = {
-      [EvaluationApp.Constants.USER_ROLES.EVALUATOR]: [
-        EvaluationApp.Constants.PERMISSIONS.EVALUATION_READ,
-        EvaluationApp.Constants.PERMISSIONS.EVALUATION_APPROVE,
-        EvaluationApp.Constants.PERMISSIONS.USER_READ,
-        EvaluationApp.Constants.PERMISSIONS.REPORT_VIEW
-      ],
-      [EvaluationApp.Constants.USER_ROLES.EMPLOYEE]: [
-        EvaluationApp.Constants.PERMISSIONS.EVALUATION_CREATE,
-        EvaluationApp.Constants.PERMISSIONS.EVALUATION_READ,
-        EvaluationApp.Constants.PERMISSIONS.EVALUATION_UPDATE,
-        EvaluationApp.Constants.PERMISSIONS.EVALUATION_SUBMIT
-      ]
-    };
-    
-    const permissions = rolePermissions[userRole] || [];
-    return permissions.includes(permission);
-  }
 
-  /**
-   * 自分の評価かどうかの確認
-   */
-  isOwnEvaluation(evaluation) {
-    return this.currentUser && evaluation.user_id === this.currentUser.id;
-  }
-
-  /**
-   * 評価対象者かどうかの確認
-   */
-  isSubordinate(userId) {
-    if (!this.currentUser) return false;
-    
-    // 管理者は全員を評価可能
-    if (this.hasRole(EvaluationApp.Constants.USER_ROLES.ADMIN)) {
-      return true;
+    clearSession() {
+        if (this.sessionTimer) {
+            clearTimeout(this.sessionTimer);
+            this.sessionTimer = null;
+        }
     }
-    
-    // 評価者の場合は直属の部下のみ
-    if (this.hasRole(EvaluationApp.Constants.USER_ROLES.EVALUATOR)) {
-      // 実際の実装では部下リストを確認
-      return true; // デモ用に簡略化
+
+    extendSession() {
+        // アクティビティがあった場合にセッションを延長
+        sessionStorage.setItem('auth_timestamp', Date.now().toString());
+        this.startSession();
     }
-    
-    return false;
-  }
 
-  // === ユーザー情報取得 === //
+    setupSessionTimeout() {
+        // ユーザーアクティビティの監視
+        const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+        
+        let lastActivity = Date.now();
+        
+        const updateActivity = () => {
+            const now = Date.now();
+            if (now - lastActivity > 60000) { // 1分間隔でチェック
+                lastActivity = now;
+                if (this.isAuthenticated) {
+                    this.extendSession();
+                }
+            }
+        };
 
-  /**
-   * 現在のユーザー取得
-   */
-  getCurrentUser() {
-    return this.currentUser;
-  }
-
-  /**
-   * ユーザーID取得
-   */
-  getCurrentUserId() {
-    return this.currentUser ? this.currentUser.id : null;
-  }
-
-  /**
-   * ユーザー名取得
-   */
-  getCurrentUsername() {
-    return this.currentUser ? this.currentUser.username : null;
-  }
-
-  /**
-   * 表示名取得
-   */
-  getCurrentUserDisplayName() {
-    return this.currentUser ? this.currentUser.fullName || this.currentUser.full_name : null;
-  }
-
-  /**
-   * ユーザー役職取得
-   */
-  getCurrentUserPosition() {
-    return this.currentUser ? this.currentUser.position : null;
-  }
-
-  // === イベント管理 === //
-
-  /**
-   * イベントリスナーの追加
-   */
-  on(eventName, callback) {
-    if (!this.eventListeners.has(eventName)) {
-      this.eventListeners.set(eventName, []);
+        activityEvents.forEach(event => {
+            document.addEventListener(event, updateActivity, true);
+        });
     }
-    
-    this.eventListeners.get(eventName).push(callback);
-    document.addEventListener(eventName, callback);
-  }
 
-  /**
-   * イベントリスナーの削除
-   */
-  off(eventName, callback) {
-    const listeners = this.eventListeners.get(eventName);
-    if (listeners) {
-      const index = listeners.indexOf(callback);
-      if (index > -1) {
-        listeners.splice(index, 1);
-        document.removeEventListener(eventName, callback);
-      }
+    setupVisibilityHandling() {
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && this.isAuthenticated) {
+                // タブが再表示された時にセッション有効性をチェック
+                const timestamp = sessionStorage.getItem('auth_timestamp');
+                if (timestamp) {
+                    const sessionAge = Date.now() - parseInt(timestamp);
+                    if (sessionAge >= this.sessionTimeout) {
+                        window.notification?.show('セッションがタイムアウトしました', 'warning');
+                        this.logout();
+                    }
+                }
+            }
+        });
     }
-  }
 
-  /**
-   * イベント発火
-   */
-  emit(eventName, data = null) {
-    const event = new CustomEvent(eventName, { detail: data });
-    document.dispatchEvent(event);
-    
-    if (this.debug) {
-      this.log(`Event emitted: ${eventName}`, data);
+    isDemoMode() {
+        // 開発環境またはデモモードの判定
+        return window.location.hostname === 'localhost' || 
+               window.location.hostname === '127.0.0.1' ||
+               window.location.hostname === '' ||
+               window.location.search.includes('demo=true');
     }
-  }
 
-  /**
-   * ログ出力
-   */
-  log(message, data = null) {
-    if (this.debug) {
-      console.log(`[Auth] ${message}`, data || '');
+    // トークン関連
+    getAuthToken() {
+        return sessionStorage.getItem('auth_token');
     }
-  }
 
-  // === ユーティリティ === //
-
-  /**
-   * パスワード強度チェック
-   */
-  checkPasswordStrength(password) {
-    const requirements = EvaluationApp.Constants.VALIDATION.PASSWORD;
-    const checks = {
-      length: password.length >= requirements.MIN_LENGTH,
-      uppercase: requirements.REQUIRE_UPPERCASE ? /[A-Z]/.test(password) : true,
-      lowercase: requirements.REQUIRE_LOWERCASE ? /[a-z]/.test(password) : true,
-      numbers: requirements.REQUIRE_NUMBERS ? /\d/.test(password) : true,
-      symbols: requirements.REQUIRE_SYMBOLS ? /[!@#$%^&*(),.?":{}|<>]/.test(password) : true
-    };
-    
-    const score = Object.values(checks).filter(Boolean).length;
-    const total = Object.keys(checks).length;
-    
-    return {
-      score,
-      total,
-      percentage: (score / total) * 100,
-      checks,
-      isValid: score === total
-    };
-  }
-
-  /**
-   * 認証情報の取得
-   */
-  getAuthInfo() {
-    return {
-      isAuthenticated: this.isAuthenticated,
-      currentUser: this.currentUser,
-      hasActiveSession: !!this.sessionTimeout,
-      isDemo: this.isDemo,
-      sessionDuration: this.sessionDuration,
-      warningTime: this.warningTime
-    };
-  }
-
-  /**
-   * 認証システムの破棄
-   */
-  destroy() {
-    this.log('Destroying auth manager...');
-    
-    // セッションタイマーをクリア
-    this.clearSessionTimer();
-    
-    // イベントリスナーを削除
-    for (const [eventName, listeners] of this.eventListeners) {
-      listeners.forEach(callback => {
-        document.removeEventListener(eventName, callback);
-      });
+    setAuthToken(token) {
+        sessionStorage.setItem('auth_token', token);
     }
-    this.eventListeners.clear();
-    
-    // 認証データをクリア
-    this.clearAuthData();
-    
-    this.log('Auth manager destroyed');
-  }
-};
 
-// デバッグ用
-if (EvaluationApp.Constants && EvaluationApp.Constants.APP.DEBUG) {
-  console.log('Auth system loaded');
+    // パスワード変更
+    async changePassword(currentPassword, newPassword) {
+        try {
+            if (this.isDemoMode()) {
+                window.notification?.show('デモモードではパスワード変更はできません', 'info');
+                return { success: false, error: 'デモモードでは利用できません' };
+            }
+
+            const result = await window.api?.changePassword({
+                currentPassword,
+                newPassword,
+                userId: this.currentUser.id
+            });
+
+            if (result.success) {
+                window.notification?.show('パスワードを変更しました', 'success');
+                return { success: true };
+            } else {
+                throw new Error(result.error || 'パスワード変更に失敗しました');
+            }
+
+        } catch (error) {
+            console.error('Password change failed:', error);
+            return { 
+                success: false, 
+                error: error.message || 'パスワード変更に失敗しました' 
+            };
+        }
+    }
+
+    // プロフィール更新
+    async updateProfile(profileData) {
+        try {
+            if (this.isDemoMode()) {
+                // デモモードでは一時的に更新
+                this.currentUser = { ...this.currentUser, ...profileData };
+                sessionStorage.setItem('auth_user', JSON.stringify(this.currentUser));
+                window.notification?.show('プロフィールを更新しました（デモモード）', 'success');
+                return { success: true, user: this.currentUser };
+            }
+
+            const result = await window.api?.updateUserProfile(this.currentUser.id, profileData);
+            
+            if (result.success) {
+                this.currentUser = { ...this.currentUser, ...result.user };
+                sessionStorage.setItem('auth_user', JSON.stringify(this.currentUser));
+                window.notification?.show('プロフィールを更新しました', 'success');
+                return { success: true, user: this.currentUser };
+            } else {
+                throw new Error(result.error || 'プロフィール更新に失敗しました');
+            }
+
+        } catch (error) {
+            console.error('Profile update failed:', error);
+            return { 
+                success: false, 
+                error: error.message || 'プロフィール更新に失敗しました' 
+            };
+        }
+    }
+
+    // デバッグ用
+    debug() {
+        return {
+            isAuthenticated: this.isAuthenticated,
+            currentUser: this.currentUser,
+            sessionTimeout: this.sessionTimeout,
+            isDemoMode: this.isDemoMode()
+        };
+    }
 }
+
+// グローバルインスタンス（両方の名前で利用可能）
+window.AuthManager = AuthManager;
+window.auth = new AuthManager();
