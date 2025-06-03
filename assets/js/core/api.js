@@ -1,608 +1,478 @@
 /**
- * API Client - 評価ツール
- * サーバーとの通信を管理するクラス
+ * API通信クライアント
+ * バックエンドAPIとの通信とモックデータの管理
  */
-
-EvaluationApp = EvaluationApp || {};
-
-/**
- * APIクライアントクラス
- * 本番環境では実際のAPIを呼び出し、デモモードではモックデータを使用
- */
-EvaluationApp.ApiClient = class {
-  constructor() {
-    this.baseUrl = EvaluationApp.Constants.API.BASE_URL;
-    this.endpoints = EvaluationApp.Constants.API.ENDPOINTS;
-    this.isDemo = EvaluationApp.Constants.APP.DEMO_MODE;
-    
-    // 認証トークン
-    this.authToken = null;
-    this.refreshToken = null;
-    
-    // リクエスト設定
-    this.timeout = 30000; // 30秒
-    this.retryCount = 3;
-    
-    // デバッグ用
-    this.debug = EvaluationApp.Constants.APP.DEBUG;
-    
-    this.log('API Client initialized', { isDemo: this.isDemo, baseUrl: this.baseUrl });
-  }
-
-  /**
-   * 認証トークンの設定
-   */
-  setAuthToken(token, refreshToken = null) {
-    this.authToken = token;
-    this.refreshToken = refreshToken;
-    
-    // ローカルストレージに保存
-    if (token) {
-      localStorage.setItem(EvaluationApp.Constants.STORAGE_KEYS.AUTH_TOKEN, token);
-      if (refreshToken) {
-        localStorage.setItem(EvaluationApp.Constants.STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
-      }
-    } else {
-      localStorage.removeItem(EvaluationApp.Constants.STORAGE_KEYS.AUTH_TOKEN);
-      localStorage.removeItem(EvaluationApp.Constants.STORAGE_KEYS.REFRESH_TOKEN);
-    }
-  }
-
-  /**
-   * 認証トークンの取得
-   */
-  getAuthToken() {
-    if (!this.authToken) {
-      this.authToken = localStorage.getItem(EvaluationApp.Constants.STORAGE_KEYS.AUTH_TOKEN);
-    }
-    return this.authToken;
-  }
-
-  /**
-   * 認証付きリクエストの実行
-   */
-  async fetchAuthenticated(endpoint, options = {}) {
-    // デモモードの場合はモックAPIを使用
-    if (this.isDemo) {
-      return this.handleMockRequest(endpoint, options);
+class ApiClient {
+    constructor() {
+        this.baseURL = this.getBaseURL();
+        this.useRealAPI = this.shouldUseRealAPI();
+        this.mockData = window.mockData || {};
+        
+        console.log(`API Client initialized - Using ${this.useRealAPI ? 'real' : 'mock'} API`);
     }
 
-    // 実際のAPI呼び出し
-    return this.handleRealRequest(endpoint, options);
-  }
+    getBaseURL() {
+        // 環境に応じてAPIエンドポイントを決定
+        const hostname = window.location.hostname;
+        
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            return 'http://localhost:3000/api';
+        } else if (hostname.includes('staging')) {
+            return 'https://api-staging.example.com';
+        } else {
+            return 'https://api.example.com';
+        }
+    }
 
-  /**
-   * モックリクエストの処理
-   */
-  async handleMockRequest(endpoint, options = {}) {
-    this.log('Mock API request:', { endpoint, options });
+    shouldUseRealAPI() {
+        // 本番APIを使用するかの判定
+        return window.location.search.includes('api=real') ||
+               (window.location.hostname !== 'localhost' && 
+                window.location.hostname !== '127.0.0.1' && 
+                window.location.hostname !== '');
+    }
 
-    // エンドポイントに応じてモックAPIを呼び出し
-    const method = options.method || 'GET';
-    const body = options.body ? JSON.parse(options.body) : null;
+    async request(endpoint, options = {}) {
+        if (!this.useRealAPI) {
+            return this.mockRequest(endpoint, options);
+        }
 
-    try {
-      // ユーザー関連
-      if (endpoint === '/users' && method === 'GET') {
-        return await EvaluationApp.MockAPI.getUsers();
-      }
-      
-      if (endpoint.startsWith('/users/') && endpoint.includes('/subordinates')) {
-        const userId = parseInt(endpoint.split('/')[2]);
-        return await EvaluationApp.MockAPI.getSubordinates(userId);
-      }
+        try {
+            const url = `${this.baseURL}${endpoint}`;
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                },
+                ...options
+            };
 
-      if (endpoint === '/users' && method === 'POST') {
-        return await EvaluationApp.MockAPI.saveUser(body);
-      }
+            // 認証トークンの追加
+            const token = window.auth?.getAuthToken();
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
 
-      if (endpoint.startsWith('/users/') && method === 'PUT') {
-        const userId = parseInt(endpoint.split('/')[2]);
-        return await EvaluationApp.MockAPI.saveUser({ ...body, id: userId });
-      }
+            const response = await fetch(url, config);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
 
-      if (endpoint.startsWith('/users/') && method === 'DELETE') {
-        const userId = parseInt(endpoint.split('/')[2]);
-        return await EvaluationApp.MockAPI.deleteUser(userId);
-      }
+            return await response.json();
 
-      // 評価関連
-      if (endpoint === '/evaluations' && method === 'GET') {
-        return await EvaluationApp.MockAPI.getEvaluations();
-      }
+        } catch (error) {
+            console.error(`API request failed: ${endpoint}`, error);
+            
+            // 認証エラーの場合はログアウト
+            if (error.message.includes('401') || error.message.includes('403')) {
+                window.auth?.logout();
+            }
+            
+            throw error;
+        }
+    }
 
-      if (endpoint.startsWith('/evaluations/') && !endpoint.includes('/submit') && method === 'GET') {
-        const evaluationId = parseInt(endpoint.split('/')[2]);
-        return await EvaluationApp.MockAPI.getEvaluation(evaluationId);
-      }
+    async mockRequest(endpoint, options = {}) {
+        // モックAPIのシミュレーション
+        await this.delay(100, 500); // ネットワーク遅延をシミュレート
 
-      if (endpoint === '/evaluations' && method === 'POST') {
-        return await EvaluationApp.MockAPI.saveEvaluation(body);
-      }
+        const method = options.method || 'GET';
+        const data = options.body ? JSON.parse(options.body) : null;
 
-      if (endpoint.startsWith('/evaluations/') && endpoint.includes('/submit')) {
-        const evaluationId = parseInt(endpoint.split('/')[2]);
-        const status = body?.status || 'submitted';
-        return await EvaluationApp.MockAPI.submitEvaluation(evaluationId, status);
-      }
+        console.log(`Mock API: ${method} ${endpoint}`, data);
 
-      // ダッシュボード
-      if (endpoint === '/dashboard') {
-        return await EvaluationApp.MockAPI.getDashboardData();
-      }
+        // エンドポイントに応じてモックレスポンスを返す
+        return this.handleMockEndpoint(endpoint, method, data);
+    }
 
-      // 評価期間
-      if (endpoint === '/evaluation-periods') {
-        return await EvaluationApp.MockAPI.getPeriods();
-      }
-
-      // 評価カテゴリ
-      if (endpoint === '/evaluation-categories') {
-        return await EvaluationApp.MockAPI.getEvaluationCategories();
-      }
-
-      // 定性評価項目
-      if (endpoint === '/qualitative-items') {
-        return await EvaluationApp.MockAPI.getQualitativeItems();
-      }
-
-      // 認証関連（デモモードでは常に成功）
-      if (endpoint.startsWith('/auth/')) {
-        await EvaluationApp.MockAPI.delay();
+    handleMockEndpoint(endpoint, method, data) {
+        // 認証関連
         if (endpoint === '/auth/login') {
-          return {
-            token: 'demo_token_' + Date.now(),
-            refreshToken: 'demo_refresh_' + Date.now(),
-            user: EvaluationApp.MockData.currentUser
-          };
+            return this.mockLogin(data);
         }
-        if (endpoint === '/auth/profile') {
-          return EvaluationApp.MockData.currentUser;
+
+        // 評価関連
+        if (endpoint === '/evaluations') {
+            if (method === 'GET') return this.mockData.evaluations || [];
+            if (method === 'POST') return this.mockCreateEvaluation(data);
         }
-        return { message: 'Success' };
-      }
 
-      // その他のエンドポイント
-      await EvaluationApp.MockAPI.delay();
-      return { message: 'デモモードでの操作が完了しました' };
+        if (endpoint.startsWith('/evaluations/')) {
+            const id = endpoint.split('/')[2];
+            if (method === 'GET') return this.mockGetEvaluation(id);
+            if (method === 'PUT') return this.mockUpdateEvaluation(id, data);
+            if (method === 'DELETE') return this.mockDeleteEvaluation(id);
+        }
 
-    } catch (error) {
-      this.log('Mock API error:', error);
-      throw error;
-    }
-  }
+        // ユーザー関連
+        if (endpoint === '/users') {
+            if (method === 'GET') return this.mockData.users || [];
+            if (method === 'POST') return this.mockCreateUser(data);
+        }
 
-  /**
-   * 実際のAPIリクエストの処理
-   */
-  async handleRealRequest(endpoint, options = {}) {
-    const url = this.baseUrl + endpoint;
-    const token = this.getAuthToken();
+        if (endpoint.startsWith('/users/')) {
+            const id = endpoint.split('/')[2];
+            if (method === 'GET') return this.mockGetUser(id);
+            if (method === 'PUT') return this.mockUpdateUser(id, data);
+            if (method === 'DELETE') return this.mockDeleteUser(id);
+        }
 
-    // リクエストヘッダーの設定
-    const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers
-    };
+        // 評価対象者関連
+        if (endpoint === '/subordinates') {
+            return this.mockData.subordinates || [];
+        }
 
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+        // 評価期間関連
+        if (endpoint === '/periods') {
+            return this.mockData.evaluationPeriods || [];
+        }
 
-    // リクエスト設定
-    const fetchOptions = {
-      method: options.method || 'GET',
-      headers,
-      ...options
-    };
+        // 評価カテゴリ関連
+        if (endpoint === '/evaluation-categories') {
+            return this.mockData.evaluationCategories || [];
+        }
 
-    // AbortController for timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-    fetchOptions.signal = controller.signal;
-
-    try {
-      this.log('API request:', { url, method: fetchOptions.method });
-
-      const response = await fetch(url, fetchOptions);
-      clearTimeout(timeoutId);
-
-      // ステータスコードの確認
-      if (!response.ok) {
-        await this.handleErrorResponse(response);
-      }
-
-      // レスポンスの解析
-      const contentType = response.headers.get('content-type');
-      let data;
-      
-      if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-      } else {
-        data = await response.text();
-      }
-
-      this.log('API response:', data);
-      return data;
-
-    } catch (error) {
-      clearTimeout(timeoutId);
-      
-      if (error.name === 'AbortError') {
-        throw new Error('リクエストがタイムアウトしました');
-      }
-
-      // トークンが期限切れの場合はリフレッシュを試行
-      if (error.status === 401 && this.refreshToken) {
-        return await this.retryWithRefreshToken(endpoint, options);
-      }
-
-      throw error;
-    }
-  }
-
-  /**
-   * エラーレスポンスの処理
-   */
-  async handleErrorResponse(response) {
-    let errorData;
-    
-    try {
-      errorData = await response.json();
-    } catch (e) {
-      errorData = { message: response.statusText };
+        // デフォルトレスポンス
+        throw new Error(`Mock endpoint not implemented: ${endpoint}`);
     }
 
-    const error = new Error(errorData.message || `HTTP ${response.status}`);
-    error.status = response.status;
-    error.data = errorData;
-
-    // 特定のエラーコードに対する処理
-    switch (response.status) {
-      case 401:
-        this.emit('auth:token:expired');
-        break;
-      case 403:
-        this.emit('auth:insufficient:permissions');
-        break;
-      case 404:
-        error.message = 'データが見つかりません';
-        break;
-      case 500:
-        error.message = 'サーバーエラーが発生しました';
-        break;
+    mockLogin(credentials) {
+        // 認証はAuthManagerで処理されるので、ここでは成功レスポンスを返す
+        return {
+            success: true,
+            user: credentials.user || { id: 'demo', name: 'Demo User' },
+            token: 'demo-token'
+        };
     }
 
-    throw error;
-  }
+    mockCreateEvaluation(data) {
+        const newEvaluation = {
+            id: this.generateId(),
+            ...data,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            status: data.status || 'draft'
+        };
 
-  /**
-   * トークンリフレッシュによるリトライ
-   */
-  async retryWithRefreshToken(endpoint, options) {
-    try {
-      const refreshResponse = await this.refreshAuthToken();
-      this.setAuthToken(refreshResponse.token, refreshResponse.refreshToken);
-      
-      // 元のリクエストをリトライ
-      return await this.handleRealRequest(endpoint, options);
-      
-    } catch (refreshError) {
-      // リフレッシュに失敗した場合はログアウト
-      this.emit('auth:refresh:failed');
-      throw refreshError;
-    }
-  }
+        if (!this.mockData.evaluations) {
+            this.mockData.evaluations = [];
+        }
+        this.mockData.evaluations.push(newEvaluation);
 
-  /**
-   * 認証トークンのリフレッシュ
-   */
-  async refreshAuthToken() {
-    if (!this.refreshToken) {
-      throw new Error('リフレッシュトークンがありません');
+        return newEvaluation;
     }
 
-    const response = await fetch(this.baseUrl + this.endpoints.AUTH.REFRESH, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        refreshToken: this.refreshToken
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error('トークンリフレッシュに失敗しました');
+    mockGetEvaluation(id) {
+        const evaluation = this.mockData.evaluations?.find(e => e.id === id);
+        if (!evaluation) {
+            throw new Error('Evaluation not found');
+        }
+        return evaluation;
     }
 
-    return await response.json();
-  }
+    mockUpdateEvaluation(id, data) {
+        const index = this.mockData.evaluations?.findIndex(e => e.id === id);
+        if (index === -1) {
+            throw new Error('Evaluation not found');
+        }
 
-  // === 便利メソッド === //
+        this.mockData.evaluations[index] = {
+            ...this.mockData.evaluations[index],
+            ...data,
+            updatedAt: new Date().toISOString()
+        };
 
-  /**
-   * ユーザー一覧取得
-   */
-  async getUsers() {
-    return await this.fetchAuthenticated('/users');
-  }
-
-  /**
-   * 評価対象者取得
-   */
-  async getSubordinates(userId) {
-    return await this.fetchAuthenticated(`/users/${userId}/subordinates`);
-  }
-
-  /**
-   * 評価一覧取得
-   */
-  async getEvaluations(filters = {}) {
-    const queryParams = new URLSearchParams();
-    
-    Object.keys(filters).forEach(key => {
-      if (filters[key] !== null && filters[key] !== undefined) {
-        queryParams.append(key, filters[key]);
-      }
-    });
-
-    const endpoint = '/evaluations' + (queryParams.toString() ? '?' + queryParams.toString() : '');
-    return await this.fetchAuthenticated(endpoint);
-  }
-
-  /**
-   * 評価詳細取得
-   */
-  async getEvaluation(evaluationId) {
-    return await this.fetchAuthenticated(`/evaluations/${evaluationId}`);
-  }
-
-  /**
-   * ダッシュボードデータ取得
-   */
-  async getDashboardData() {
-    return await this.fetchAuthenticated('/dashboard');
-  }
-
-  /**
-   * 評価カテゴリ取得
-   */
-  async getEvaluationCategories(positionType = null) {
-    const endpoint = '/evaluation-categories' + (positionType ? `?position=${positionType}` : '');
-    return await this.fetchAuthenticated(endpoint);
-  }
-
-  /**
-   * 定性評価項目取得
-   */
-  async getQualitativeItems(evaluationId) {
-    return await this.fetchAuthenticated(`/evaluations/${evaluationId}/qualitative-items`);
-  }
-
-  /**
-   * 評価期間一覧取得
-   */
-  async getPeriods() {
-    return await this.fetchAuthenticated('/evaluation-periods');
-  }
-
-  /**
-   * 評価保存
-   */
-  async saveEvaluation(evaluationData) {
-    if (evaluationData.id) {
-      // 更新
-      return await this.fetchAuthenticated(`/evaluations/${evaluationData.id}`, {
-        method: 'PUT',
-        body: JSON.stringify(evaluationData)
-      });
-    } else {
-      // 新規作成
-      return await this.fetchAuthenticated('/evaluations', {
-        method: 'POST',
-        body: JSON.stringify(evaluationData)
-      });
-    }
-  }
-
-  /**
-   * 評価提出
-   */
-  async submitEvaluation(evaluationId, status = 'submitted') {
-    return await this.fetchAuthenticated(`/evaluations/${evaluationId}/submit`, {
-      method: 'POST',
-      body: JSON.stringify({ status })
-    });
-  }
-
-  /**
-   * 評価承認
-   */
-  async approveEvaluation(evaluationId, status = 'approved_by_evaluator') {
-    return await this.fetchAuthenticated(`/evaluations/${evaluationId}/approve`, {
-      method: 'POST',
-      body: JSON.stringify({ status })
-    });
-  }
-
-  /**
-   * 評価差し戻し
-   */
-  async rejectEvaluation(evaluationId, reason = '') {
-    return await this.fetchAuthenticated(`/evaluations/${evaluationId}/reject`, {
-      method: 'POST',
-      body: JSON.stringify({ reason })
-    });
-  }
-
-  /**
-   * ユーザー保存
-   */
-  async saveUser(userData) {
-    if (userData.id) {
-      // 更新
-      return await this.fetchAuthenticated(`/users/${userData.id}`, {
-        method: 'PUT',
-        body: JSON.stringify(userData)
-      });
-    } else {
-      // 新規作成
-      return await this.fetchAuthenticated('/users', {
-        method: 'POST',
-        body: JSON.stringify(userData)
-      });
-    }
-  }
-
-  /**
-   * ユーザー削除
-   */
-  async deleteUser(userId) {
-    return await this.fetchAuthenticated(`/users/${userId}`, {
-      method: 'DELETE'
-    });
-  }
-
-  /**
-   * ログイン
-   */
-  async login(username, password) {
-    const response = await this.fetchAuthenticated('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ username, password })
-    });
-
-    if (response.token) {
-      this.setAuthToken(response.token, response.refreshToken);
+        return this.mockData.evaluations[index];
     }
 
-    return response;
-  }
+    mockDeleteEvaluation(id) {
+        const index = this.mockData.evaluations?.findIndex(e => e.id === id);
+        if (index === -1) {
+            throw new Error('Evaluation not found');
+        }
 
-  /**
-   * ログアウト
-   */
-  async logout() {
-    try {
-      await this.fetchAuthenticated('/auth/logout', {
-        method: 'POST'
-      });
-    } catch (error) {
-      // ログアウトAPIが失敗してもローカルのトークンは削除
-      this.log('Logout API failed:', error);
-    } finally {
-      this.setAuthToken(null);
+        this.mockData.evaluations.splice(index, 1);
+        return { success: true };
     }
-  }
 
-  /**
-   * プロフィール取得
-   */
-  async getProfile() {
-    return await this.fetchAuthenticated('/auth/profile');
-  }
+    mockCreateUser(data) {
+        const newUser = {
+            id: this.generateId(),
+            ...data,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
 
-  /**
-   * 評価基準取得
-   */
-  getEvaluationCriteria(positionType) {
-    if (positionType === '営業') {
-      return EvaluationApp.Constants.EVALUATION_CRITERIA.SALES;
+        if (!this.mockData.users) {
+            this.mockData.users = [];
+        }
+        this.mockData.users.push(newUser);
+
+        return newUser;
     }
-    return EvaluationApp.Constants.EVALUATION_CRITERIA.TECHNICAL;
-  }
 
-  /**
-   * 定性評価基準取得
-   */
-  getQualitativeCriteria() {
-    return EvaluationApp.Constants.EVALUATION_CRITERIA.QUALITATIVE;
-  }
-
-  // === ユーティリティメソッド === //
-
-  /**
-   * イベント発火
-   */
-  emit(eventName, data = null) {
-    const event = new CustomEvent(eventName, { detail: data });
-    document.dispatchEvent(event);
-    
-    if (this.debug) {
-      this.log(`Event emitted: ${eventName}`, data);
+    mockGetUser(id) {
+        const user = this.mockData.users?.find(u => u.id === id);
+        if (!user) {
+            throw new Error('User not found');
+        }
+        return user;
     }
-  }
 
-  /**
-   * ログ出力
-   */
-  log(message, data = null) {
-    if (this.debug) {
-      console.log(`[API] ${message}`, data || '');
+    mockUpdateUser(id, data) {
+        const index = this.mockData.users?.findIndex(u => u.id === id);
+        if (index === -1) {
+            throw new Error('User not found');
+        }
+
+        this.mockData.users[index] = {
+            ...this.mockData.users[index],
+            ...data,
+            updatedAt: new Date().toISOString()
+        };
+
+        return this.mockData.users[index];
     }
-  }
 
-  /**
-   * エラーハンドリング
-   */
-  handleError(context, error) {
-    console.error(`API Error in ${context}:`, error);
-    
-    // エラーイベントを発火
-    this.emit('api:error', {
-      context,
-      error: {
-        message: error.message,
-        status: error.status,
-        data: error.data
-      }
-    });
-  }
+    mockDeleteUser(id) {
+        const index = this.mockData.users?.findIndex(u => u.id === id);
+        if (index === -1) {
+            throw new Error('User not found');
+        }
 
-  /**
-   * 接続テスト
-   */
-  async testConnection() {
-    try {
-      if (this.isDemo) {
-        await EvaluationApp.MockAPI.delay(100);
-        return { status: 'ok', mode: 'demo' };
-      }
-
-      const response = await fetch(this.baseUrl + '/health', {
-        method: 'GET',
-        timeout: 5000
-      });
-
-      return {
-        status: response.ok ? 'ok' : 'error',
-        mode: 'production'
-      };
-    } catch (error) {
-      return {
-        status: 'error',
-        mode: this.isDemo ? 'demo' : 'production',
-        error: error.message
-      };
+        this.mockData.users.splice(index, 1);
+        return { success: true };
     }
-  }
 
-  /**
-   * API情報取得
-   */
-  getInfo() {
-    return {
-      baseUrl: this.baseUrl,
-      isDemo: this.isDemo,
-      hasAuthToken: !!this.authToken,
-      timeout: this.timeout,
-      retryCount: this.retryCount
-    };
-  }
-};
+    // 公開メソッド群
 
-// デバッグ用
-if (EvaluationApp.Constants && EvaluationApp.Constants.APP.DEBUG) {
-  console.log('API Client loaded');
+    // 認証
+    async authenticate(credentials) {
+        return this.request('/auth/login', {
+            method: 'POST',
+            body: JSON.stringify(credentials)
+        });
+    }
+
+    async changePassword(data) {
+        return this.request('/auth/change-password', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+
+    // 評価関連
+    async getEvaluations(filters = {}) {
+        const queryString = new URLSearchParams(filters).toString();
+        const endpoint = queryString ? `/evaluations?${queryString}` : '/evaluations';
+        return this.request(endpoint);
+    }
+
+    async getEvaluationById(id) {
+        return this.request(`/evaluations/${id}`);
+    }
+
+    async createEvaluation(data) {
+        return this.request('/evaluations', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+
+    async updateEvaluation(id, data) {
+        return this.request(`/evaluations/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    }
+
+    async deleteEvaluation(id) {
+        return this.request(`/evaluations/${id}`, {
+            method: 'DELETE'
+        });
+    }
+
+    async bulkUpdateEvaluations(ids, data) {
+        return this.request('/evaluations/bulk-update', {
+            method: 'POST',
+            body: JSON.stringify({ ids, data })
+        });
+    }
+
+    // ユーザー関連
+    async getUsers(filters = {}) {
+        const queryString = new URLSearchParams(filters).toString();
+        const endpoint = queryString ? `/users?${queryString}` : '/users';
+        return this.request(endpoint);
+    }
+
+    async getUserById(id) {
+        return this.request(`/users/${id}`);
+    }
+
+    async createUser(data) {
+        return this.request('/users', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+
+    async updateUser(id, data) {
+        return this.request(`/users/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    }
+
+    async deleteUser(id) {
+        return this.request(`/users/${id}`, {
+            method: 'DELETE'
+        });
+    }
+
+    async updateUserProfile(id, data) {
+        return this.request(`/users/${id}/profile`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    }
+
+    // 評価対象者関連
+    async getSubordinates(managerId = null) {
+        const endpoint = managerId ? `/subordinates?manager=${managerId}` : '/subordinates';
+        return this.request(endpoint);
+    }
+
+    // 評価期間関連
+    async getEvaluationPeriods() {
+        return this.request('/periods');
+    }
+
+    async createEvaluationPeriod(data) {
+        return this.request('/periods', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+
+    async updateEvaluationPeriod(id, data) {
+        return this.request(`/periods/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    }
+
+    // 評価カテゴリ関連
+    async getEvaluationCategories() {
+        return this.request('/evaluation-categories');
+    }
+
+    // レポート関連
+    async getReports(type, filters = {}) {
+        const queryString = new URLSearchParams({ type, ...filters }).toString();
+        return this.request(`/reports?${queryString}`);
+    }
+
+    async generateReport(type, options = {}) {
+        return this.request('/reports/generate', {
+            method: 'POST',
+            body: JSON.stringify({ type, options })
+        });
+    }
+
+    // ダッシュボード関連
+    async getDashboardData(userId = null) {
+        const endpoint = userId ? `/dashboard?user=${userId}` : '/dashboard';
+        return this.request(endpoint);
+    }
+
+    async getDashboardStats(period = 'current') {
+        return this.request(`/dashboard/stats?period=${period}`);
+    }
+
+    // 通知関連
+    async getNotifications(userId) {
+        return this.request(`/notifications?user=${userId}`);
+    }
+
+    async markNotificationAsRead(id) {
+        return this.request(`/notifications/${id}/read`, {
+            method: 'POST'
+        });
+    }
+
+    // ファイルアップロード
+    async uploadFile(file, type = 'evaluation') {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', type);
+
+        return this.request('/upload', {
+            method: 'POST',
+            body: formData,
+            headers: {} // Content-Typeを自動設定させる
+        });
+    }
+
+    // ユーティリティメソッド
+    async delay(min = 100, max = 500) {
+        const delay = Math.random() * (max - min) + min;
+        return new Promise(resolve => setTimeout(resolve, delay));
+    }
+
+    generateId() {
+        return 'id-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now();
+    }
+
+    // 接続テスト
+    async testConnection() {
+        try {
+            await this.request('/health');
+            return { success: true, message: 'API接続成功' };
+        } catch (error) {
+            console.error('API connection test failed:', error);
+            return { 
+                success: false, 
+                message: 'API接続に失敗しました',
+                error: error.message 
+            };
+        }
+    }
+
+    // 設定取得
+    getApiInfo() {
+        return {
+            baseURL: this.baseURL,
+            useRealAPI: this.useRealAPI,
+            mockDataAvailable: Object.keys(this.mockData).length > 0
+        };
+    }
+
+    // キャッシュ管理
+    clearCache() {
+        // 将来的にキャッシュ機能を追加した場合のメソッド
+        console.log('Cache cleared');
+    }
+
+    // エラーハンドリング用
+    formatError(error) {
+        if (error.message.includes('Failed to fetch')) {
+            return 'ネットワーク接続を確認してください';
+        } else if (error.message.includes('401')) {
+            return '認証が必要です';
+        } else if (error.message.includes('403')) {
+            return 'アクセス権限がありません';
+        } else if (error.message.includes('404')) {
+            return 'データが見つかりません';
+        } else if (error.message.includes('500')) {
+            return 'サーバーエラーが発生しました';
+        } else {
+            return error.message || '不明なエラーが発生しました';
+        }
+    }
 }
+
+// グローバルインスタンス（両方の名前で利用可能）
+window.ApiClient = ApiClient;
+window.api = new ApiClient();
