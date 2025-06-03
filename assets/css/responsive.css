@@ -1,0 +1,264 @@
+/**
+ * Responsive CSS - 評価ツール
+ * レスポンシブデザインとモバイル対応のスタイル
+ */
+
+/* === タブレット対応 (≤ 1200px) === */
+@media (max-width: 1200px) {
+  .container {
+    max-width: 100%;
+    padding: 0 var(--spacing-md);
+  }
+  
+  .card-body {
+    padding: var(--spacing-md);
+  }
+  
+  .modal-dialog {
+    max-width: 90%;
+  }
+}
+
+/* === 小さいタブレット対応 (≤ 992px) === */
+@media (max-width: 992px) {
+  /* ナビゲーション */
+  .navbar-nav .nav-text {
+    display: none;
+  }
+  
+  .navbar-nav .nav-link {
+    justify-content: center;
+    min-width: 44px;
+    padding: var(--spacing-sm);
+  }
+  
+  .user-info {
+    display: none !important;
+  }
+  
+  /* カード */
+  .card-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .info-card .card-body {
+    padding: var(--spacing-md);
+  }
+  
+  /* フォーム */
+  .form-row {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  /* テーブル */
+  .table-responsive {
+    font-size: var(--font-size-sm);
+  }
+  
+  .table td,
+  .table th {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  /* アクションボタン */
+  .action-buttons {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+  
+  .action-buttons .btn {
+    width: 100%;
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  /* チャート */
+  .radar-chart-container {
+    height: 250px;
+  }
+  
+  .chart-container {
+    height: 200px;
+  }
+}
+
+/* === モバイル対応 (≤ 768px) === */
+@media (max-width: 768px) {
+  /* ベースレイアウト */
+  .container,
+  .container-fluid {
+    padding: 0 var(--spacing-sm);
+  }
+  
+  /* ページヘッダー */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+  }
+  
+  .page-title {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .page-subtitle {
+    font-size: var(--font-size-sm);
+  }
+  
+  .page-actions {
+    width: 100%;
+    margin-top: var(--spacing-sm);
+  }
+  
+  .page-actions .btn {
+    width: 100%;
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  /* ナビゲーション */
+  .navbar {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .navbar-brand {
+    font-size: var(--font-size-lg);
+  }
+  
+  .navbar-collapse {
+    margin-top: var(--spacing-sm);
+  }
+  
+  .navbar-nav {
+    width: 100%;
+  }
+  
+  .navbar-nav .nav-item {
+    width: 100%;
+  }
+  
+  .navbar-nav .nav-link {
+    padding: var(--spacing-sm) var(--spacing-md);
+    justify-content: flex-start;
+  }
+  
+  .navbar-nav .nav-text {
+    display: inline;
+  }
+  
+  .dropdown-menu {
+    position: static !important;
+    transform: none !important;
+    width: 100%;
+    border: none;
+    box-shadow: none;
+    background-color: transparent;
+    padding: 0;
+  }
+  
+  .dropdown-item {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--color-gray-200);
+  }
+  
+  /* カード */
+  .card {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .card-body {
+    padding: var(--spacing-sm);
+  }
+  
+  .info-card .card-body {
+    padding: var(--spacing-sm);
+  }
+  
+  .card-footer {
+    padding: var(--spacing-sm);
+  }
+  
+  /* 統計カード */
+  .stat-card {
+    padding: var(--spacing-md);
+  }
+  
+  .stat-value {
+    font-size: var(--font-size-3xl);
+  }
+  
+  /* モーダル */
+  .modal-dialog {
+    margin: var(--spacing-sm);
+    max-width: none;
+    width: calc(100% - var(--spacing-md));
+  }
+  
+  .modal-body {
+    padding: var(--spacing-md);
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  
+  .modal-footer {
+    padding: var(--spacing-sm);
+    flex-direction: column-reverse;
+    gap: var(--spacing-xs);
+  }
+  
+  .modal-footer .btn {
+    width: 100%;
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  /* フォーム */
+  .form-section {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .form-section-header {
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+  }
+  
+  .form-section-title {
+    font-size: var(--font-size-lg);
+  }
+  
+  .category-section {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .category-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+  
+  .category-item {
+    padding: var(--spacing-md);
+  }
+  
+  .qualitative-item .card-body {
+    padding: var(--spacing-md);
+  }
+  
+  /* テーブル */
+  .table-responsive {
+    border-radius: var(--border-radius);
+    font-size: var(--font-size-xs);
+  }
+  
+  .table {
+    margin-bottom: 0;
+  }
+  
+  .table td,
+  .table th {
+    padding: var(--spacing-xs);
+    white-space: nowrap;
+  }
+  
+  .table-actions {
+    flex-direction: column;
+    gap: var(--
