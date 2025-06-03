@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>建設業評価システム</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
+    
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/3.9.1/chart.min.js"></script>
     <style>
         /* 基本スタイル */
         * {
@@ -275,61 +278,123 @@
             min-height: 100px;
         }
         
-        /* 評価フォーム */
-        .evaluation-form {
-            max-width: 800px;
+        /* 評価チャート */
+        .evaluation-chart {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
             margin: 0 auto;
         }
         
-        .form-section {
-            margin-bottom: 32px;
-            padding: 24px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-        }
-        
-        .form-section h3 {
-            color: #1976d2;
-            margin-bottom: 16px;
-            font-size: 18px;
-        }
-        
-        .rating-group {
+        /* 数値入力 */
+        .rating-input-group {
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
         
-        .rating-item {
+        .rating-input-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.2s;
+        }
+        
+        .rating-input-item:focus-within {
+            border-color: #1976d2;
+            background: #f0f8ff;
+        }
+        
+        .rating-input-label {
+            flex: 1;
+            margin-right: 16px;
+        }
+        
+        .rating-input-label strong {
+            display: block;
+            color: #1976d2;
+            margin-bottom: 4px;
+        }
+        
+        .rating-input-label small {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .rating-input-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .rating-input {
+            width: 80px;
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #1976d2;
+        }
+        
+        .rating-input:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+        
+        .rating-display {
+            font-size: 14px;
+            color: #666;
+            min-width: 60px;
+            text-align: right;
+        }
+        
+        /* 評価詳細表示 */
+        .evaluation-summary {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+        
+        .evaluation-details {
+            background: #f8f9fa;
+            padding: 24px;
+            border-radius: 8px;
+        }
+        
+        .detail-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: #f8f9fa;
-            border-radius: 6px;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
         }
         
-        .rating-label {
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
             font-weight: 500;
-            flex: 1;
+            color: #555;
         }
         
-        .star-rating {
-            display: flex;
-            gap: 4px;
-        }
-        
-        .star {
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            color: #ddd;
-            transition: color 0.2s;
-        }
-        
-        .star.active,
-        .star:hover {
-            color: #ffc107;
+        .detail-value {
+            color: #1976d2;
+            font-weight: 600;
         }
         
         /* 統計カード */
@@ -531,6 +596,22 @@
             .modal-content {
                 width: 95%;
                 margin: 20px;
+            }
+            
+            .evaluation-summary {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .rating-input-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .rating-input-controls {
+                justify-content: space-between;
+                width: 100%;
             }
         }
         
@@ -1023,20 +1104,37 @@
                             
                             <div class="form-section">
                                 <h3>⭐ 項目別評価</h3>
-                                <div class="rating-group">
+                                <div class="rating-input-group">
                                     ${app.mockData.evaluationCategories.map(category => `
-                                        <div class="rating-item">
-                                            <div class="rating-label">
+                                        <div class="rating-input-item">
+                                            <div class="rating-input-label">
                                                 <strong>${category.name}</strong>
-                                                <div style="font-size:12px;color:#666;">${category.description}</div>
+                                                <small>${category.description}</small>
                                             </div>
-                                            <div class="star-rating" data-category="${category.id}">
-                                                ${[1,2,3,4,5].map(star => `
-                                                    <span class="star" data-rating="${star}" onclick="setRating('${category.id}', ${star})">⭐</span>
-                                                `).join('')}
+                                            <div class="rating-input-controls">
+                                                <input 
+                                                    type="number" 
+                                                    class="rating-input" 
+                                                    id="rating-${category.id}"
+                                                    min="1" 
+                                                    max="5" 
+                                                    step="0.1"
+                                                    placeholder="1-5"
+                                                    onchange="updateRatingDisplay('${category.id}')"
+                                                    oninput="updateRatingDisplay('${category.id}')"
+                                                >
+                                                <div class="rating-display" id="display-${category.id}">未入力</div>
                                             </div>
                                         </div>
                                     `).join('')}
+                                </div>
+                                
+                                <!-- リアルタイム五角形チャート -->
+                                <div class="evaluation-chart" style="margin-top: 24px;">
+                                    <h4 style="text-align: center; margin-bottom: 20px; color: #1976d2;">📊 評価チャート（リアルタイム更新）</h4>
+                                    <div class="chart-container">
+                                        <canvas id="evaluation-radar-chart"></canvas>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -1078,25 +1176,120 @@
             // フォームイベントリスナー追加
             const form = document.getElementById('new-evaluation-form');
             form.addEventListener('submit', handleSaveEvaluation);
+            
+            // レーダーチャート初期化
+            initializeRadarChart();
+        }
+        
+        function initializeRadarChart() {
+            const ctx = document.getElementById('evaluation-radar-chart');
+            if (!ctx) return;
+            
+            // 既存のチャートがあれば削除
+            if (window.evaluationChart) {
+                window.evaluationChart.destroy();
+            }
+            
+            const categories = app.mockData.evaluationCategories;
+            
+            window.evaluationChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: categories.map(cat => cat.name),
+                    datasets: [{
+                        label: '評価',
+                        data: categories.map(() => 0),
+                        backgroundColor: 'rgba(25, 118, 210, 0.2)',
+                        borderColor: 'rgba(25, 118, 210, 1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: 'rgba(25, 118, 210, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(25, 118, 210, 1)',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            pointLabels: {
+                                color: '#1976d2',
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                }
+                            },
+                            ticks: {
+                                color: '#666',
+                                backdropColor: 'transparent',
+                                min: 0,
+                                max: 5,
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateRatingDisplay(categoryId) {
+            const input = document.getElementById(`rating-${categoryId}`);
+            const display = document.getElementById(`display-${categoryId}`);
+            const value = parseFloat(input.value);
+            
+            if (isNaN(value) || value < 1 || value > 5) {
+                display.textContent = '未入力';
+                display.style.color = '#666';
+            } else {
+                display.textContent = `${value}/5`;
+                display.style.color = '#1976d2';
+                
+                // 星表示を追加
+                const stars = '⭐'.repeat(Math.floor(value));
+                const halfStar = (value % 1 >= 0.5) ? '⭐' : '';
+                display.innerHTML = `${value}/5<br><small>${stars}${halfStar}</small>`;
+            }
+            
+            // チャートを更新
+            updateRadarChart();
+        }
+        
+        function updateRadarChart() {
+            if (!window.evaluationChart) return;
+            
+            const categories = app.mockData.evaluationCategories;
+            const newData = categories.map(category => {
+                const input = document.getElementById(`rating-${category.id}`);
+                const value = parseFloat(input.value);
+                return isNaN(value) ? 0 : Math.max(0, Math.min(5, value));
+            });
+            
+            window.evaluationChart.data.datasets[0].data = newData;
+            window.evaluationChart.update('none'); // アニメーションなしで即座に更新
         }
         
         function setRating(category, rating) {
-            const stars = document.querySelectorAll(`[data-category="${category}"] .star`);
-            stars.forEach((star, index) => {
-                if (index < rating) {
-                    star.classList.add('active');
-                    star.style.color = '#ffc107';
-                } else {
-                    star.classList.remove('active');
-                    star.style.color = '#ddd';
-                }
-            });
-            
-            // データを保存
-            if (!window.tempEvaluationData) {
-                window.tempEvaluationData = { ratings: {} };
+            // 星評価は削除され、数値入力のみ使用
+            // この関数は後方互換性のために残す
+            const input = document.getElementById(`rating-${category}`);
+            if (input) {
+                input.value = rating;
+                updateRatingDisplay(category);
             }
-            window.tempEvaluationData.ratings[category] = rating;
         }
         
         function handleSaveEvaluation(e) {
@@ -1112,6 +1305,23 @@
                 return;
             }
             
+            // 評価値を収集
+            const ratings = {};
+            let hasRatings = false;
+            app.mockData.evaluationCategories.forEach(category => {
+                const input = document.getElementById(`rating-${category.id}`);
+                const value = parseFloat(input.value);
+                if (!isNaN(value) && value >= 1 && value <= 5) {
+                    ratings[category.id] = value;
+                    hasRatings = true;
+                }
+            });
+            
+            if (!hasRatings) {
+                showNotification('少なくとも1つの評価項目を入力してください', 'error');
+                return;
+            }
+            
             // コメントを収集
             const comments = {};
             app.mockData.evaluationCategories.forEach(category => {
@@ -1122,7 +1332,6 @@
             });
             
             // 総合評価を計算
-            const ratings = window.tempEvaluationData?.ratings || {};
             const totalRating = Object.values(ratings).reduce((sum, rating) => sum + rating, 0);
             const avgRating = totalRating / Object.keys(ratings).length || 0;
             
@@ -1146,9 +1355,6 @@
             
             // データに追加
             app.mockData.evaluations.push(newEvaluation);
-            
-            // 一時データをクリア
-            window.tempEvaluationData = null;
             
             showNotification('評価を保存しました！', 'success');
             
@@ -1181,33 +1387,181 @@
                         </button>
                     </div>
                     <div class="page-content">
-                        <div class="evaluation-form">
-                            <div class="form-section">
-                                <h3>📋 基本情報</h3>
-                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-                                    <div><strong>評価期間:</strong> ${evaluation.period}</div>
-                                    <div><strong>評価対象者:</strong> ${evaluation.subordinate}</div>
-                                    <div><strong>評価者:</strong> ${evaluation.evaluator}</div>
-                                    <div><strong>ステータス:</strong> ${getStatusDisplayName(evaluation.status)}</div>
-                                    <div><strong>総合評価:</strong> ${evaluation.overallRating}/5 ⭐</div>
-                                    <div><strong>更新日:</strong> ${evaluation.updatedAt}</div>
+                        <div class="evaluation-summary">
+                            <div class="evaluation-details">
+                                <h3 style="color: #1976d2; margin-bottom: 16px;">📋 基本情報</h3>
+                                <div class="detail-row">
+                                    <span class="detail-label">評価期間:</span>
+                                    <span class="detail-value">${evaluation.period}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">評価対象者:</span>
+                                    <span class="detail-value">${evaluation.subordinate}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">評価者:</span>
+                                    <span class="detail-value">${evaluation.evaluator}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">ステータス:</span>
+                                    <span class="detail-value">${getStatusDisplayName(evaluation.status)}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">総合評価:</span>
+                                    <span class="detail-value">${evaluation.overallRating}/5 ⭐</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">更新日:</span>
+                                    <span class="detail-value">${evaluation.updatedAt}</span>
                                 </div>
                             </div>
                             
-                            <div class="form-section">
-                                <h3>⭐ 項目別評価</h3>
-                                <div class="rating-group">
-                                    ${app.mockData.evaluationCategories.map(category => `
-                                        <div class="rating-item">
-                                            <div class="rating-label">
+                            <!-- 五角形評価チャート -->
+                            <div class="evaluation-chart">
+                                <h4 style="text-align: center; margin-bottom: 20px; color: #1976d2;">📊 評価チャート</h4>
+                                <div class="chart-container">
+                                    <canvas id="detail-radar-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3>⭐ 項目別評価詳細</h3>
+                            <div class="rating-input-group">
+                                ${app.mockData.evaluationCategories.map(category => {
+                                    const rating = evaluation.ratings[category.id] || 0;
+                                    const stars = '⭐'.repeat(Math.floor(rating)) + (rating % 1 >= 0.5 ? '⭐' : '');
+                                    return `
+                                        <div class="rating-input-item">
+                                            <div class="rating-input-label">
                                                 <strong>${category.name}</strong>
+                                                <small>${category.description}</small>
                                             </div>
-                                            <div style="display:flex;align-items:center;gap:8px;">
-                                                <div>${'⭐'.repeat(evaluation.ratings[category.id] || 0)}${'☆'.repeat(5 - (evaluation.ratings[category.id] || 0))}</div>
-                                                <span>${evaluation.ratings[category.id] || 0}/5</span>
+                                            <div class="rating-input-controls">
+                                                <div class="rating-display" style="text-align: center;">
+                                                    <div style="font-size: 18px; font-weight: bold; color: #1976d2;">${rating}/5</div>
+                                                    <div style="font-size: 16px;">${stars}</div>
+                                                </div>
                                             </div>
                                         </div>
-                                    `).join('')}
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                        
+                        ${Object.keys(evaluation.comments).length > 0 ? `
+                            <div class="form-section">
+                                <h3>💭 詳細コメント</h3>
+                                ${app.mockData.evaluationCategories.map(category => 
+                                    evaluation.comments[category.id] ? `
+                                        <div class="form-group">
+                                            <label><strong>${category.name}</strong></label>
+                                            <div style="padding:12px;background:#f8f9fa;border-radius:4px;">${evaluation.comments[category.id]}</div>
+                                        </div>
+                                    ` : ''
+                                ).join('')}
+                            </div>
+                        ` : ''}
+                        
+                        ${evaluation.overallComment || evaluation.improvementSuggestions ? `
+                            <div class="form-section">
+                                <h3>📝 総合評価</h3>
+                                ${evaluation.overallComment ? `
+                                    <div class="form-group">
+                                        <label><strong>総合コメント</strong></label>
+                                        <div style="padding:12px;background:#f8f9fa;border-radius:4px;">${evaluation.overallComment}</div>
+                                    </div>
+                                ` : ''}
+                                ${evaluation.improvementSuggestions ? `
+                                    <div class="form-group">
+                                        <label><strong>改善提案</strong></label>
+                                        <div style="padding:12px;background:#f8f9fa;border-radius:4px;">${evaluation.improvementSuggestions}</div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            // 詳細表示用レーダーチャートを初期化
+            setTimeout(() => {
+                initializeDetailRadarChart(evaluation);
+            }, 100);
+        }
+        
+        function initializeDetailRadarChart(evaluation) {
+            const ctx = document.getElementById('detail-radar-chart');
+            if (!ctx) return;
+            
+            // 既存のチャートがあれば削除
+            if (window.detailChart) {
+                window.detailChart.destroy();
+            }
+            
+            const categories = app.mockData.evaluationCategories;
+            const data = categories.map(category => evaluation.ratings[category.id] || 0);
+            
+            window.detailChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: categories.map(cat => cat.name),
+                    datasets: [{
+                        label: '評価',
+                        data: data,
+                        backgroundColor: 'rgba(25, 118, 210, 0.3)',
+                        borderColor: 'rgba(25, 118, 210, 1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: 'rgba(25, 118, 210, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(25, 118, 210, 1)',
+                        pointRadius: 8,
+                        pointHoverRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            pointLabels: {
+                                color: '#1976d2',
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                }
+                            },
+                            ticks: {
+                                color: '#666',
+                                backdropColor: 'transparent',
+                                min: 0,
+                                max: 5,
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.raw}/5`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }                                                        `).join('')}
                                 </div>
                             </div>
                             
