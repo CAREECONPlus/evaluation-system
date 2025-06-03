@@ -1,680 +1,541 @@
 /**
- * Notification System - 評価ツール
- * ユーザーへの通知・フィードバックを管理するクラス
+ * 通知システム
+ * ユーザーへのフィードバック表示を管理
  */
-
-EvaluationApp = EvaluationApp || {};
-
-/**
- * 通知管理クラス
- */
-EvaluationApp.Notification = class {
-  constructor(container = null) {
-    this.container = container || this.createContainer();
-    this.notifications = new Map();
-    this.queue = [];
-    this.maxNotifications = 5;
-    this.debug = EvaluationApp.Constants.APP.DEBUG;
-    
-    // 通知の設定
-    this.defaultDuration = EvaluationApp.Constants.UI.NOTIFICATION_DURATION;
-    this.animationDuration = 300;
-    
-    // イベントリスナー
-    this.eventListeners = new Map();
-    
-    this.log('Notification system initialized');
-    this.setupGlobalEventListeners();
-  }
-
-  /**
-   * 通知コンテナの作成
-   */
-  createContainer() {
-    let container = document.getElementById('notification-container');
-    
-    if (!container) {
-      container = document.createElement('div');
-      container.id = 'notification-container';
-      container.className = 'position-fixed bottom-0 end-0 p-3';
-      container.style.zIndex = '1055';
-      document.body.appendChild(container);
+class NotificationSystem {
+    constructor() {
+        this.notifications = [];
+        this.container = null;
+        this.defaultDuration = 5000; // 5秒
+        this.maxNotifications = 5;
+        
+        this.init();
     }
-    
-    return container;
-  }
 
-  /**
-   * グローバルイベントリスナーの設定
-   */
-  setupGlobalEventListeners() {
-    // カスタムイベントの監視
-    document.addEventListener('notification:show', (event) => {
-      const { title, message, type, options } = event.detail || {};
-      this.show(title, message, type, options);
-    });
+    init() {
+        this.createContainer();
+        this.bindEvents();
+    }
 
-    document.addEventListener('notification:success', (event) => {
-      const { title, message, options } = event.detail || {};
-      this.success(title, message, options);
-    });
-
-    document.addEventListener('notification:error', (event) => {
-      const { title, message, options } = event.detail || {};
-      this.error(title, message, options);
-    });
-
-    document.addEventListener('notification:warning', (event) => {
-      const { title, message, options } = event.detail || {};
-      this.warning(title, message, options);
-    });
-
-    document.addEventListener('notification:info', (event) => {
-      const { title, message, options } = event.detail || {};
-      this.info(title, message, options);
-    });
-
-    this.log('Global event listeners set up');
-  }
-
-  /**
-   * 通知の表示
-   * @param {string} title - 通知タイトル
-   * @param {string} message - 通知メッセージ
-   * @param {string} type - 通知タイプ (success, error, warning, info)
-   * @param {Object} options - オプション設定
-   */
-  show(title, message = '', type = 'info', options = {}) {
-    const config = {
-      id: this.generateId(),
-      title: title || '通知',
-      message: message,
-      type: type,
-      duration: options.duration || this.getDurationByType(type),
-      persistent: options.persistent || false,
-      icon: options.icon || this.getIconByType(type),
-      actions: options.actions || [],
-      onClick: options.onClick || null,
-      onClose: options.onClose || null,
-      position: options.position || 'bottom-end',
-      ...options
-    };
-
-    this.log('Showing notification:', config);
-
-    // キューに追加
-    this.queue.push(config);
-    this.processQueue();
-
-    return config.id;
-  }
-
-  /**
-   * 成功通知
-   */
-  success(title, message = '', options = {}) {
-    return this.show(title, message, 'success', options);
-  }
-
-  /**
-   * エラー通知
-   */
-  error(title, message = '', options = {}) {
-    return this.show(title, message, 'error', {
-      persistent: true,
-      ...options
-    });
-  }
-
-  /**
-   * 警告通知
-   */
-  warning(title, message = '', options = {}) {
-    return this.show(title, message, 'warning', options);
-  }
-
-  /**
-   * 情報通知
-   */
-  info(title, message = '', options = {}) {
-    return this.show(title, message, 'info', options);
-  }
-
-  /**
-   * 確認ダイアログ風通知
-   */
-  confirm(title, message, onConfirm, onCancel = null) {
-    const actions = [
-      {
-        text: 'キャンセル',
-        class: 'btn-outline-secondary',
-        onClick: () => {
-          if (onCancel) onCancel();
+    createContainer() {
+        // 通知コンテナが既に存在するかチェック
+        this.container = document.getElementById('notification-container');
+        
+        if (!this.container) {
+            this.container = document.createElement('div');
+            this.container.id = 'notification-container';
+            this.container.className = 'notification-container';
+            document.body.appendChild(this.container);
         }
-      },
-      {
-        text: '確認',
-        class: 'btn-primary',
-        onClick: () => {
-          if (onConfirm) onConfirm();
+    }
+
+    bindEvents() {
+        // 通知のクリックイベント（閉じる）
+        this.container.addEventListener('click', (e) => {
+            if (e.target.classList.contains('notification-close')) {
+                const notification = e.target.closest('.notification');
+                if (notification) {
+                    this.removeNotification(notification.dataset.id);
+                }
+            } else if (e.target.classList.contains('notification')) {
+                // 通知本体をクリックしても閉じる
+                this.removeNotification(e.target.dataset.id);
+            }
+        });
+
+        // キーボードイベント（Escapeで全て閉じる）
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.clearAll();
+            }
+        });
+    }
+
+    /**
+     * 通知を表示
+     * @param {string} message - 表示メッセージ
+     * @param {string} type - 通知タイプ (success, error, warning, info)
+     * @param {Object} options - オプション設定
+     */
+    show(message, type = 'info', options = {}) {
+        const config = {
+            duration: options.duration || this.defaultDuration,
+            persistent: options.persistent || false,
+            actionButton: options.actionButton || null,
+            onAction: options.onAction || null,
+            onClose: options.onClose || null,
+            allowHtml: options.allowHtml || false,
+            position: options.position || 'top-right'
+        };
+
+        const notification = this.createNotification(message, type, config);
+        this.addNotification(notification);
+        
+        return notification.id;
+    }
+
+    createNotification(message, type, config) {
+        const id = this.generateId();
+        const timestamp = Date.now();
+
+        const notification = {
+            id,
+            message,
+            type,
+            config,
+            timestamp,
+            element: null
+        };
+
+        // HTML要素を作成
+        notification.element = this.createNotificationElement(notification);
+        
+        return notification;
+    }
+
+    createNotificationElement(notification) {
+        const element = document.createElement('div');
+        element.className = `notification notification-${notification.type}`;
+        element.dataset.id = notification.id;
+        
+        // アニメーション用のクラス
+        element.classList.add('notification-enter');
+
+        // アイコンの決定
+        const iconClass = this.getIconClass(notification.type);
+
+        // メッセージの処理（HTMLかテキストか）
+        const messageContent = notification.config.allowHtml 
+            ? notification.message 
+            : this.escapeHtml(notification.message);
+
+        // アクションボタンの処理
+        const actionButtonHtml = notification.config.actionButton
+            ? `<button class="notification-action" data-id="${notification.id}">
+                 ${this.escapeHtml(notification.config.actionButton)}
+               </button>`
+            : '';
+
+        element.innerHTML = `
+            <div class="notification-content">
+                <div class="notification-icon">
+                    <i class="${iconClass}"></i>
+                </div>
+                <div class="notification-body">
+                    <div class="notification-message">${messageContent}</div>
+                    ${actionButtonHtml}
+                </div>
+                <button class="notification-close" aria-label="閉じる">
+                    <i class="icon-x"></i>
+                </button>
+            </div>
+            ${!notification.config.persistent ? '<div class="notification-progress"></div>' : ''}
+        `;
+
+        // アクションボタンのイベント
+        if (notification.config.actionButton && notification.config.onAction) {
+            const actionBtn = element.querySelector('.notification-action');
+            if (actionBtn) {
+                actionBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    notification.config.onAction(notification.id);
+                });
+            }
         }
-      }
-    ];
 
-    return this.show(title, message, 'info', {
-      persistent: true,
-      actions: actions,
-      icon: 'fas fa-question-circle'
-    });
-  }
-
-  /**
-   * 進捗通知
-   */
-  progress(title, message = '', options = {}) {
-    const progressId = this.generateId();
-    
-    const config = {
-      id: progressId,
-      title: title,
-      message: message,
-      type: 'info',
-      persistent: true,
-      progress: 0,
-      ...options
-    };
-
-    this.queue.push(config);
-    this.processQueue();
-
-    return {
-      id: progressId,
-      update: (progress, newMessage = null) => {
-        this.updateProgress(progressId, progress, newMessage);
-      },
-      complete: (finalMessage = null) => {
-        this.completeProgress(progressId, finalMessage);
-      },
-      fail: (errorMessage = null) => {
-        this.failProgress(progressId, errorMessage);
-      }
-    };
-  }
-
-  /**
-   * キューの処理
-   */
-  processQueue() {
-    // 表示可能な通知数をチェック
-    while (this.notifications.size < this.maxNotifications && this.queue.length > 0) {
-      const config = this.queue.shift();
-      this.displayNotification(config);
-    }
-  }
-
-  /**
-   * 通知の表示実行
-   */
-  displayNotification(config) {
-    const notificationElement = this.createNotificationElement(config);
-    
-    // コンテナに追加
-    this.container.appendChild(notificationElement);
-    
-    // 通知を管理対象に追加
-    this.notifications.set(config.id, {
-      config,
-      element: notificationElement,
-      timeout: null
-    });
-
-    // アニメーション
-    setTimeout(() => {
-      notificationElement.classList.add('show');
-    }, 10);
-
-    // 自動消去の設定
-    if (!config.persistent && config.duration > 0) {
-      this.setAutoHide(config.id, config.duration);
+        return element;
     }
 
-    // クリックイベント
-    if (config.onClick) {
-      notificationElement.addEventListener('click', config.onClick);
-    }
-
-    this.log('Notification displayed:', config.id);
-  }
-
-  /**
-   * 通知要素の作成
-   */
-  createNotificationElement(config) {
-    const notification = document.createElement('div');
-    notification.className = `toast notification-toast notification-${config.type}`;
-    notification.setAttribute('role', 'alert');
-    notification.setAttribute('aria-live', 'assertive');
-    notification.setAttribute('aria-atomic', 'true');
-    notification.dataset.notificationId = config.id;
-
-    // 通知の構造
-    const header = this.createNotificationHeader(config);
-    const body = this.createNotificationBody(config);
-    const footer = this.createNotificationFooter(config);
-
-    notification.appendChild(header);
-    notification.appendChild(body);
-    
-    if (footer) {
-      notification.appendChild(footer);
-    }
-
-    return notification;
-  }
-
-  /**
-   * 通知ヘッダーの作成
-   */
-  createNotificationHeader(config) {
-    const header = document.createElement('div');
-    header.className = 'toast-header';
-
-    const icon = document.createElement('i');
-    icon.className = `${config.icon} me-2 text-${this.getColorByType(config.type)}`;
-
-    const title = document.createElement('strong');
-    title.className = 'me-auto';
-    title.textContent = config.title;
-
-    const time = document.createElement('small');
-    time.className = 'text-muted';
-    time.textContent = this.formatTime(new Date());
-
-    const closeButton = document.createElement('button');
-    closeButton.type = 'button';
-    closeButton.className = 'btn-close';
-    closeButton.setAttribute('aria-label', 'Close');
-    closeButton.addEventListener('click', () => {
-      this.hide(config.id);
-    });
-
-    header.appendChild(icon);
-    header.appendChild(title);
-    header.appendChild(time);
-    header.appendChild(closeButton);
-
-    return header;
-  }
-
-  /**
-   * 通知ボディの作成
-   */
-  createNotificationBody(config) {
-    const body = document.createElement('div');
-    body.className = 'toast-body';
-
-    if (config.message) {
-      const message = document.createElement('div');
-      message.className = 'notification-message';
-      message.textContent = config.message;
-      body.appendChild(message);
-    }
-
-    // 進捗バー
-    if (config.progress !== undefined) {
-      const progressContainer = document.createElement('div');
-      progressContainer.className = 'progress mt-2';
-      progressContainer.style.height = '4px';
-
-      const progressBar = document.createElement('div');
-      progressBar.className = 'progress-bar';
-      progressBar.style.width = `${config.progress}%`;
-      progressBar.setAttribute('role', 'progressbar');
-      progressBar.setAttribute('aria-valuenow', config.progress);
-      progressBar.setAttribute('aria-valuemin', '0');
-      progressBar.setAttribute('aria-valuemax', '100');
-
-      progressContainer.appendChild(progressBar);
-      body.appendChild(progressContainer);
-    }
-
-    return body;
-  }
-
-  /**
-   * 通知フッターの作成
-   */
-  createNotificationFooter(config) {
-    if (!config.actions || config.actions.length === 0) {
-      return null;
-    }
-
-    const footer = document.createElement('div');
-    footer.className = 'toast-footer border-top pt-2 mt-2';
-
-    const buttonGroup = document.createElement('div');
-    buttonGroup.className = 'd-flex gap-2 justify-content-end';
-
-    config.actions.forEach(action => {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = `btn btn-sm ${action.class || 'btn-outline-secondary'}`;
-      button.textContent = action.text;
-      
-      button.addEventListener('click', () => {
-        if (action.onClick) {
-          action.onClick();
+    addNotification(notification) {
+        // 最大数チェック
+        if (this.notifications.length >= this.maxNotifications) {
+            this.removeOldestNotification();
         }
-        // アクション実行後に通知を閉じる
-        this.hide(config.id);
-      });
 
-      buttonGroup.appendChild(button);
-    });
+        // 通知を配列に追加
+        this.notifications.push(notification);
 
-    footer.appendChild(buttonGroup);
-    return footer;
-  }
+        // DOMに追加
+        this.container.appendChild(notification.element);
 
-  /**
-   * 通知を隠す
-   */
-  hide(notificationId) {
-    const notification = this.notifications.get(notificationId);
-    
-    if (!notification) {
-      this.log('Notification not found:', notificationId);
-      return;
+        // アニメーション開始
+        requestAnimationFrame(() => {
+            notification.element.classList.remove('notification-enter');
+            notification.element.classList.add('notification-visible');
+        });
+
+        // プログレスバーアニメーション
+        if (!notification.config.persistent) {
+            this.startProgressAnimation(notification);
+        }
+
+        // 自動削除タイマー
+        if (!notification.config.persistent && notification.config.duration > 0) {
+            setTimeout(() => {
+                this.removeNotification(notification.id);
+            }, notification.config.duration);
+        }
     }
 
-    this.log('Hiding notification:', notificationId);
-
-    // タイムアウトをクリア
-    if (notification.timeout) {
-      clearTimeout(notification.timeout);
+    startProgressAnimation(notification) {
+        const progressBar = notification.element.querySelector('.notification-progress');
+        if (progressBar && notification.config.duration > 0) {
+            progressBar.style.animationDuration = `${notification.config.duration}ms`;
+            progressBar.classList.add('notification-progress-active');
+        }
     }
 
-    // アニメーション
-    notification.element.classList.remove('show');
-    notification.element.classList.add('hiding');
+    removeNotification(notificationId) {
+        const index = this.notifications.findIndex(n => n.id === notificationId);
+        if (index === -1) return;
 
-    // onClose コールバック
-    if (notification.config.onClose) {
-      notification.config.onClose();
+        const notification = this.notifications[index];
+        
+        // 閉じるコールバック実行
+        if (notification.config.onClose) {
+            notification.config.onClose(notificationId);
+        }
+
+        // アニメーション
+        notification.element.classList.add('notification-exit');
+        
+        // DOM削除
+        setTimeout(() => {
+            if (notification.element.parentNode) {
+                notification.element.parentNode.removeChild(notification.element);
+            }
+            this.notifications.splice(index, 1);
+        }, 300); // アニメーション時間
     }
 
-    // DOM から削除
-    setTimeout(() => {
-      if (notification.element.parentNode) {
-        notification.element.parentNode.removeChild(notification.element);
-      }
-      this.notifications.delete(notificationId);
-      
-      // キューの処理
-      this.processQueue();
-    }, this.animationDuration);
-  }
-
-  /**
-   * すべての通知を隠す
-   */
-  hideAll() {
-    const notificationIds = Array.from(this.notifications.keys());
-    notificationIds.forEach(id => this.hide(id));
-  }
-
-  /**
-   * 指定タイプの通知を隠す
-   */
-  hideByType(type) {
-    for (const [id, notification] of this.notifications) {
-      if (notification.config.type === type) {
-        this.hide(id);
-      }
-    }
-  }
-
-  /**
-   * 進捗の更新
-   */
-  updateProgress(notificationId, progress, message = null) {
-    const notification = this.notifications.get(notificationId);
-    
-    if (!notification) {
-      return;
+    removeOldestNotification() {
+        if (this.notifications.length > 0) {
+            const oldest = this.notifications[0];
+            this.removeNotification(oldest.id);
+        }
     }
 
-    const progressBar = notification.element.querySelector('.progress-bar');
-    if (progressBar) {
-      progressBar.style.width = `${progress}%`;
-      progressBar.setAttribute('aria-valuenow', progress);
+    clearAll() {
+        const notificationIds = this.notifications.map(n => n.id);
+        notificationIds.forEach(id => this.removeNotification(id));
     }
 
-    if (message) {
-      const messageElement = notification.element.querySelector('.notification-message');
-      if (messageElement) {
-        messageElement.textContent = message;
-      }
+    // 便利メソッド
+    success(message, options = {}) {
+        return this.show(message, 'success', options);
     }
 
-    // 進捗を設定に保存
-    notification.config.progress = progress;
-  }
-
-  /**
-   * 進捗完了
-   */
-  completeProgress(notificationId, finalMessage = null) {
-    const notification = this.notifications.get(notificationId);
-    
-    if (!notification) {
-      return;
+    error(message, options = {}) {
+        return this.show(message, 'error', {
+            duration: 8000, // エラーは少し長めに表示
+            ...options
+        });
     }
 
-    // 進捗を100%に
-    this.updateProgress(notificationId, 100, finalMessage || '完了しました');
-
-    // タイプを成功に変更
-    notification.config.type = 'success';
-    notification.element.className = notification.element.className.replace('notification-info', 'notification-success');
-
-    // アイコンを変更
-    const icon = notification.element.querySelector('.toast-header i');
-    if (icon) {
-      icon.className = 'fas fa-check-circle me-2 text-success';
+    warning(message, options = {}) {
+        return this.show(message, 'warning', {
+            duration: 6000,
+            ...options
+        });
     }
 
-    // 自動で閉じる
-    setTimeout(() => {
-      this.hide(notificationId);
-    }, 2000);
-  }
-
-  /**
-   * 進捗失敗
-   */
-  failProgress(notificationId, errorMessage = null) {
-    const notification = this.notifications.get(notificationId);
-    
-    if (!notification) {
-      return;
+    info(message, options = {}) {
+        return this.show(message, 'info', options);
     }
 
-    // メッセージを更新
-    const messageElement = notification.element.querySelector('.notification-message');
-    if (messageElement) {
-      messageElement.textContent = errorMessage || 'エラーが発生しました';
+    // 確認ダイアログ風の通知
+    confirm(message, onConfirm, onCancel = null) {
+        return this.show(message, 'warning', {
+            persistent: true,
+            actionButton: '確認',
+            onAction: (id) => {
+                this.removeNotification(id);
+                if (onConfirm) onConfirm();
+            },
+            onClose: (id) => {
+                if (onCancel) onCancel();
+            }
+        });
     }
 
-    // 進捗バーを非表示
-    const progressContainer = notification.element.querySelector('.progress');
-    if (progressContainer) {
-      progressContainer.style.display = 'none';
+    // 進行状況表示
+    progress(message, options = {}) {
+        const id = this.show(message, 'info', {
+            persistent: true,
+            ...options
+        });
+
+        return {
+            id,
+            update: (newMessage) => {
+                const notification = this.notifications.find(n => n.id === id);
+                if (notification) {
+                    const messageEl = notification.element.querySelector('.notification-message');
+                    if (messageEl) {
+                        messageEl.textContent = newMessage;
+                    }
+                }
+            },
+            complete: (finalMessage = null) => {
+                if (finalMessage) {
+                    const notification = this.notifications.find(n => n.id === id);
+                    if (notification) {
+                        const messageEl = notification.element.querySelector('.notification-message');
+                        if (messageEl) {
+                            messageEl.textContent = finalMessage;
+                        }
+                        notification.element.classList.remove('notification-info');
+                        notification.element.classList.add('notification-success');
+                    }
+                }
+                setTimeout(() => this.removeNotification(id), 2000);
+            },
+            error: (errorMessage) => {
+                const notification = this.notifications.find(n => n.id === id);
+                if (notification) {
+                    const messageEl = notification.element.querySelector('.notification-message');
+                    if (messageEl) {
+                        messageEl.textContent = errorMessage;
+                    }
+                    notification.element.classList.remove('notification-info');
+                    notification.element.classList.add('notification-error');
+                }
+                setTimeout(() => this.removeNotification(id), 5000);
+            }
+        };
     }
 
-    // タイプをエラーに変更
-    notification.config.type = 'error';
-    notification.element.className = notification.element.className.replace('notification-info', 'notification-error');
-
-    // アイコンを変更
-    const icon = notification.element.querySelector('.toast-header i');
-    if (icon) {
-      icon.className = 'fas fa-exclamation-circle me-2 text-danger';
-    }
-  }
-
-  /**
-   * 自動非表示の設定
-   */
-  setAutoHide(notificationId, duration) {
-    const notification = this.notifications.get(notificationId);
-    
-    if (!notification) {
-      return;
+    // ユーティリティメソッド
+    getIconClass(type) {
+        const icons = {
+            success: 'icon-check-circle',
+            error: 'icon-x-circle',
+            warning: 'icon-alert-triangle',
+            info: 'icon-info'
+        };
+        return icons[type] || icons.info;
     }
 
-    notification.timeout = setTimeout(() => {
-      this.hide(notificationId);
-    }, duration);
-  }
-
-  // === ユーティリティメソッド === //
-
-  /**
-   * ID生成
-   */
-  generateId() {
-    return 'notification_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-  }
-
-  /**
-   * タイプ別の期間取得
-   */
-  getDurationByType(type) {
-    switch (type) {
-      case 'success':
-        return this.defaultDuration.SUCCESS;
-      case 'error':
-        return this.defaultDuration.ERROR;
-      case 'warning':
-        return this.defaultDuration.WARNING;
-      case 'info':
-      default:
-        return this.defaultDuration.INFO;
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
-  }
 
-  /**
-   * タイプ別のアイコン取得
-   */
-  getIconByType(type) {
-    const iconMap = {
-      success: 'fas fa-check-circle',
-      error: 'fas fa-exclamation-circle',
-      warning: 'fas fa-exclamation-triangle',
-      info: 'fas fa-info-circle'
-    };
-    return iconMap[type] || iconMap.info;
-  }
-
-  /**
-   * タイプ別の色取得
-   */
-  getColorByType(type) {
-    const colorMap = {
-      success: 'success',
-      error: 'danger',
-      warning: 'warning',
-      info: 'info'
-    };
-    return colorMap[type] || colorMap.info;
-  }
-
-  /**
-   * 時刻フォーマット
-   */
-  formatTime(date) {
-    return date.toLocaleTimeString('ja-JP', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
-  /**
-   * ログ出力
-   */
-  log(message, data = null) {
-    if (this.debug) {
-      console.log(`[Notification] ${message}`, data || '');
+    generateId() {
+        return `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     }
-  }
 
-  /**
-   * 通知システムの破棄
-   */
-  destroy() {
-    this.log('Destroying notification system...');
-    
-    // すべての通知を隠す
-    this.hideAll();
-    
-    // イベントリスナーの削除
-    for (const [eventName, listeners] of this.eventListeners) {
-      listeners.forEach(callback => {
-        document.removeEventListener(eventName, callback);
-      });
+    // 設定メソッド
+    setDefaultDuration(duration) {
+        this.defaultDuration = duration;
     }
-    this.eventListeners.clear();
-    
-    // コンテナをクリア
-    if (this.container && this.container.parentNode) {
-      this.container.parentNode.removeChild(this.container);
+
+    setMaxNotifications(max) {
+        this.maxNotifications = max;
     }
-    
-    this.log('Notification system destroyed');
-  }
 
-  /**
-   * システム情報の取得
-   */
-  getInfo() {
-    return {
-      activeNotifications: this.notifications.size,
-      queuedNotifications: this.queue.length,
-      maxNotifications: this.maxNotifications,
-      defaultDuration: this.defaultDuration
-    };
-  }
-};
+    // 通知数の取得
+    getNotificationCount() {
+        return this.notifications.length;
+    }
 
-// グローバルヘルパー関数
-window.showNotification = function(title, message, type = 'info', options = {}) {
-  if (window.evaluationApp && window.evaluationApp.notification) {
-    return window.evaluationApp.notification.show(title, message, type, options);
-  } else {
-    // フォールバック
-    console.log(`[${type.toUpperCase()}] ${title}: ${message}`);
-    alert(`${title}\n${message}`);
-  }
-};
+    // 特定タイプの通知数
+    getNotificationCountByType(type) {
+        return this.notifications.filter(n => n.type === type).length;
+    }
 
-window.showSuccess = function(title, message, options = {}) {
-  return window.showNotification(title, message, 'success', options);
-};
+    // 既存の通知の有無チェック
+    hasNotification(type = null) {
+        if (type) {
+            return this.notifications.some(n => n.type === type);
+        }
+        return this.notifications.length > 0;
+    }
 
-window.showError = function(title, message, options = {}) {
-  return window.showNotification(title, message, 'error', options);
-};
+    // 既存の通知を更新
+    updateNotification(id, newMessage, newType = null) {
+        const notification = this.notifications.find(n => n.id === id);
+        if (notification) {
+            const messageEl = notification.element.querySelector('.notification-message');
+            if (messageEl) {
+                messageEl.textContent = newMessage;
+            }
+            
+            if (newType && newType !== notification.type) {
+                notification.element.classList.remove(`notification-${notification.type}`);
+                notification.element.classList.add(`notification-${newType}`);
+                notification.type = newType;
+                
+                // アイコンも更新
+                const iconEl = notification.element.querySelector('.notification-icon i');
+                if (iconEl) {
+                    iconEl.className = this.getIconClass(newType);
+                }
+            }
+        }
+    }
 
-window.showWarning = function(title, message, options = {}) {
-  return window.showNotification(title, message, 'warning', options);
-};
-
-window.showInfo = function(title, message, options = {}) {
-  return window.showNotification(title, message, 'info', options);
-};
-
-// デバッグ用
-if (EvaluationApp.Constants && EvaluationApp.Constants.APP.DEBUG) {
-  console.log('Notification system loaded');
+    // デバッグ用
+    debug() {
+        return {
+            notifications: this.notifications,
+            container: this.container,
+            count: this.notifications.length
+        };
+    }
 }
+
+// CSS を動的に追加（必要な場合）
+function injectNotificationStyles() {
+    if (document.getElementById('notification-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'notification-styles';
+    style.textContent = `
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        .notification {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 12px;
+            min-width: 320px;
+            max-width: 480px;
+            position: relative;
+            overflow: hidden;
+            pointer-events: auto;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .notification-enter {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        .notification-visible {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .notification-exit {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        .notification-content {
+            display: flex;
+            padding: 16px;
+            align-items: flex-start;
+        }
+
+        .notification-icon {
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .notification-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-message {
+            font-size: 14px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .notification-action {
+            background: transparent;
+            border: 1px solid currentColor;
+            border-radius: 4px;
+            padding: 4px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .notification-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            margin-left: 8px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+        .notification-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: currentColor;
+            opacity: 0.3;
+            transform-origin: left;
+            transform: scaleX(0);
+        }
+
+        .notification-progress-active {
+            animation: notification-progress linear forwards;
+        }
+
+        @keyframes notification-progress {
+            to { transform: scaleX(1); }
+        }
+
+        /* 通知タイプ別のスタイル */
+        .notification-success {
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+
+        .notification-error {
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+        }
+
+        .notification-warning {
+            border-left: 4px solid #f59e0b;
+            color: #92400e;
+        }
+
+        .notification-info {
+            border-left: 4px solid #3b82f6;
+            color: #1e40af;
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-width: 640px) {
+            .notification-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+            }
+            
+            .notification {
+                min-width: auto;
+                max-width: none;
+            }
+        }
+    `;
+    
+    document.head.appendChild(style);
+}
+
+// スタイルを注入
+injectNotificationStyles();
+
+// グローバルインスタンス
+window.notification = new NotificationSystem();
