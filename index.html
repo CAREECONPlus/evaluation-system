@@ -693,6 +693,284 @@
     <script>
         console.log('🚀 Building evaluation system started');
         
+        // 多言語対応システム
+        const i18n = {
+            currentLanguage: 'ja',
+            
+            languages: {
+                ja: {
+                    name: '日本語',
+                    flag: '🇯🇵'
+                },
+                vi: {
+                    name: 'Tiếng Việt',
+                    flag: '🇻🇳'
+                },
+                en: {
+                    name: 'English', 
+                    flag: '🇺🇸'
+                }
+            },
+            
+            translations: {
+                ja: {
+                    // システム基本
+                    'system.title': '建設業評価システム',
+                    'system.subtitle': 'システムにログインしてください',
+                    'system.copyright': '建設業評価システム. All rights reserved.',
+                    
+                    // ログイン
+                    'login.email': 'メールアドレス',
+                    'login.password': 'パスワード',
+                    'login.submit': 'ログイン',
+                    'login.demo': 'デモアカウント',
+                    'login.admin': '管理者',
+                    'login.manager': 'マネージャー',
+                    'login.supervisor': '主任',
+                    'login.welcome': 'さん、おかえりなさい！',
+                    'login.failed': 'ログインに失敗しました',
+                    
+                    // ナビゲーション
+                    'nav.dashboard': '📊 ダッシュボード',
+                    'nav.evaluations': '📋 評価一覧',
+                    'nav.logout': 'ログアウト',
+                    
+                    // ダッシュボード
+                    'dashboard.title': '📊 ダッシュボード',
+                    'dashboard.total_evaluations': '総評価数',
+                    'dashboard.completed': '完了済み',
+                    'dashboard.average_rating': '平均評価',
+                    'dashboard.evaluation_items': '評価項目数',
+                    'dashboard.recent_activity': '📈 最近の活動',
+                    'dashboard.view_evaluations': '📋 評価一覧',
+                    
+                    // 評価関連
+                    'evaluation.list_title': '📋 評価一覧',
+                    'evaluation.new_title': '📝 新規評価作成',
+                    'evaluation.detail_title': '👁️ 評価詳細',
+                    'evaluation.basic_info': '📋 基本情報',
+                    'evaluation.ratings': '⭐ 項目別評価',
+                    'evaluation.comments': '💭 詳細コメント',
+                    'evaluation.overall': '📝 総合評価',
+                    'evaluation.chart': '📊 評価チャート',
+                    'evaluation.chart_realtime': '📊 評価チャート（リアルタイム更新）',
+                    
+                    // 評価項目
+                    'category.safety': '安全性',
+                    'category.safety_desc': '安全ルールの遵守、危険予知能力',
+                    'category.quality': '品質',
+                    'category.quality_desc': '作業品質、仕上がりの精度',
+                    'category.efficiency': '効率性',
+                    'category.efficiency_desc': '作業スピード、時間管理',
+                    'category.teamwork': 'チームワーク',
+                    'category.teamwork_desc': '協調性、チーム貢献度',
+                    'category.communication': 'コミュニケーション',
+                    'category.communication_desc': '報告・連絡・相談',
+                    
+                    // フォーム
+                    'form.period': '評価期間',
+                    'form.select_period': '評価期間を選択',
+                    'form.target': '評価対象者',
+                    'form.select_target': '対象者を選択',
+                    'form.overall_comment': '総合コメント',
+                    'form.overall_comment_placeholder': '総合的な評価コメントを入力してください',
+                    'form.cancel': 'キャンセル',
+                    'form.save': '💾 評価を保存',
+                    'form.not_entered': '未入力',
+                    
+                    // ボタン・アクション
+                    'action.back': '← 評価一覧に戻る',
+                    'action.new_evaluation': '➕ 新規評価',
+                    'action.view_detail': '👁️ 詳細',
+                    'action.dashboard': '🏠 ダッシュボード',
+                    
+                    // テーブルヘッダー
+                    'table.id': 'ID',
+                    'table.target': '評価対象者',
+                    'table.evaluator': '評価者',
+                    'table.period': '評価期間',
+                    'table.rating': '総合評価',
+                    'table.status': 'ステータス',
+                    'table.updated': '更新日',
+                    'table.actions': '操作',
+                    
+                    // メッセージ
+                    'message.select_period_target': '評価期間と対象者を選択してください',
+                    'message.enter_rating': '少なくとも1つの評価項目を入力してください',
+                    'message.saved': '評価を保存しました！',
+                    'message.not_found': '評価が見つかりません'
+                },
+                
+                vi: {
+                    // Hệ thống cơ bản
+                    'system.title': 'Hệ thống Đánh giá Ngành Xây dựng',
+                    'system.subtitle': 'Vui lòng đăng nhập vào hệ thống',
+                    'system.copyright': 'Hệ thống Đánh giá Ngành Xây dựng. Bảo lưu mọi quyền.',
+                    
+                    // Đăng nhập
+                    'login.email': 'Địa chỉ email',
+                    'login.password': 'Mật khẩu',
+                    'login.submit': 'Đăng nhập',
+                    'login.demo': 'Tài khoản Demo',
+                    'login.admin': 'Quản trị viên',
+                    'login.manager': 'Quản lý',
+                    'login.supervisor': 'Giám sát',
+                    'login.welcome': ', chào mừng bạn trở lại!',
+                    'login.failed': 'Đăng nhập thất bại',
+                    
+                    // Điều hướng
+                    'nav.dashboard': '📊 Bảng điều khiển',
+                    'nav.evaluations': '📋 Danh sách đánh giá',
+                    'nav.logout': 'Đăng xuất',
+                    
+                    // Bảng điều khiển
+                    'dashboard.title': '📊 Bảng điều khiển',
+                    'dashboard.total_evaluations': 'Tổng số đánh giá',
+                    'dashboard.completed': 'Đã hoàn thành',
+                    'dashboard.average_rating': 'Điểm trung bình',
+                    'dashboard.evaluation_items': 'Số tiêu chí đánh giá',
+                    'dashboard.recent_activity': '📈 Hoạt động gần đây',
+                    'dashboard.view_evaluations': '📋 Danh sách đánh giá',
+                    
+                    // Đánh giá
+                    'evaluation.list_title': '📋 Danh sách đánh giá',
+                    'evaluation.new_title': '📝 Tạo đánh giá mới',
+                    'evaluation.detail_title': '👁️ Chi tiết đánh giá',
+                    'evaluation.basic_info': '📋 Thông tin cơ bản',
+                    'evaluation.ratings': '⭐ Đánh giá theo tiêu chí',
+                    'evaluation.comments': '💭 Nhận xét chi tiết',
+                    'evaluation.overall': '📝 Đánh giá tổng thể',
+                    'evaluation.chart': '📊 Biểu đồ đánh giá',
+                    'evaluation.chart_realtime': '📊 Biểu đồ đánh giá (Cập nhật thời gian thực)',
+                    
+                    // Tiêu chí đánh giá
+                    'category.safety': 'An toàn',
+                    'category.safety_desc': 'Tuân thủ quy tắc an toàn, khả năng nhận biết nguy hiểm',
+                    'category.quality': 'Chất lượng',
+                    'category.quality_desc': 'Chất lượng công việc, độ chính xác hoàn thiện',
+                    'category.efficiency': 'Hiệu quả',
+                    'category.efficiency_desc': 'Tốc độ làm việc, quản lý thời gian',
+                    'category.teamwork': 'Làm việc nhóm',
+                    'category.teamwork_desc': 'Khả năng hợp tác, đóng góp cho nhóm',
+                    'category.communication': 'Giao tiếp',
+                    'category.communication_desc': 'Báo cáo, liên lạc, tham vấn',
+                    
+                    // Biểu mẫu
+                    'form.period': 'Kỳ đánh giá',
+                    'form.select_period': 'Chọn kỳ đánh giá',
+                    'form.target': 'Người được đánh giá',
+                    'form.select_target': 'Chọn người được đánh giá',
+                    'form.overall_comment': 'Nhận xét tổng thể',
+                    'form.overall_comment_placeholder': 'Vui lòng nhập nhận xét đánh giá tổng thể',
+                    'form.cancel': 'Hủy',
+                    'form.save': '💾 Lưu đánh giá',
+                    'form.not_entered': 'Chưa nhập',
+                    
+                    // Nút - Hành động
+                    'action.back': '← Quay lại danh sách đánh giá',
+                    'action.new_evaluation': '➕ Đánh giá mới',
+                    'action.view_detail': '👁️ Chi tiết',
+                    'action.dashboard': '🏠 Bảng điều khiển',
+                    
+                    // Tiêu đề bảng
+                    'table.id': 'ID',
+                    'table.target': 'Người được đánh giá',
+                    'table.evaluator': 'Người đánh giá',
+                    'table.period': 'Kỳ đánh giá',
+                    'table.rating': 'Điểm tổng thể',
+                    'table.status': 'Trạng thái',
+                    'table.updated': 'Ngày cập nhật',
+                    'table.actions': 'Thao tác',
+                    
+                    // Thông báo
+                    'message.select_period_target': 'Vui lòng chọn kỳ đánh giá và người được đánh giá',
+                    'message.enter_rating': 'Vui lòng nhập ít nhất một tiêu chí đánh giá',
+                    'message.saved': 'Đã lưu đánh giá thành công!',
+                    'message.not_found': 'Không tìm thấy đánh giá'
+                }
+            },
+            
+            t(key) {
+                return this.translations[this.currentLanguage][key] || key;
+            },
+            
+            setLanguage(lang) {
+                if (this.translations[lang]) {
+                    this.currentLanguage = lang;
+                    this.updateUI();
+                }
+            },
+            
+            updateUI() {
+                // ページを再描画して新しい言語を適用
+                if (app.currentUser) {
+                    if (app.currentPage === 'dashboard') {
+                        showDashboard();
+                    } else if (app.currentPage === 'evaluations') {
+                        showEvaluations();
+                    }
+                } else {
+                    // ログインページを更新
+                    updateLoginPage();
+                }
+            }
+        };
+        
+        function updateLoginPage() {
+            const loginContainer = document.querySelector('.login-container');
+            if (loginContainer) {
+                loginContainer.innerHTML = `
+                    <div class="login-header">
+                        <h1>🏗️ ${i18n.t('system.title')}</h1>
+                        <p>${i18n.t('system.subtitle')}</p>
+                        <div style="margin-top: 16px;">
+                            <select onchange="i18n.setLanguage(this.value)" style="padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                                ${Object.entries(i18n.languages).map(([code, lang]) => 
+                                    `<option value="${code}" ${i18n.currentLanguage === code ? 'selected' : ''}>${lang.flag} ${lang.name}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="email">${i18n.t('login.email')}</label>
+                            <input type="email" id="email" name="email" 
+                                   value="admin@company.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">${i18n.t('login.password')}</label>
+                            <input type="password" id="password" name="password" 
+                                   value="password123" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            ${i18n.t('login.submit')}
+                        </button>
+                    </form>
+                    
+                    <div class="demo-info">
+                        <strong>🚀 ${i18n.t('login.demo')}</strong>
+                        <div class="demo-accounts">
+                            <div class="demo-account">
+                                <strong>${i18n.t('login.admin')}:</strong> admin@company.com / password123
+                            </div>
+                            <div class="demo-account">
+                                <strong>${i18n.t('login.manager')}:</strong> manager@company.com / password123
+                            </div>
+                            <div class="demo-account">
+                                <strong>${i18n.t('login.supervisor')}:</strong> supervisor@company.com / password123
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // イベントリスナーを再設定
+                setupEventListeners();
+            }
+        }
+        
         // 五角形チャート作成クラス
         class PentagonChart {
             constructor(containerId, categories, data = []) {
@@ -877,11 +1155,11 @@
                     }
                 ],
                 evaluationCategories: [
-                    { id: 'safety', name: '安全性', description: '安全ルールの遵守、危険予知能力' },
-                    { id: 'quality', name: '品質', description: '作業品質、仕上がりの精度' },
-                    { id: 'efficiency', name: '効率性', description: '作業スピード、時間管理' },
-                    { id: 'teamwork', name: 'チームワーク', description: '協調性、チーム貢献度' },
-                    { id: 'communication', name: 'コミュニケーション', description: '報告・連絡・相談' }
+                    { id: 'safety', name: () => i18n.t('category.safety'), description: () => i18n.t('category.safety_desc') },
+                    { id: 'quality', name: () => i18n.t('category.quality'), description: () => i18n.t('category.quality_desc') },
+                    { id: 'efficiency', name: () => i18n.t('category.efficiency'), description: () => i18n.t('category.efficiency_desc') },
+                    { id: 'teamwork', name: () => i18n.t('category.teamwork'), description: () => i18n.t('category.teamwork_desc') },
+                    { id: 'communication', name: () => i18n.t('category.communication'), description: () => i18n.t('category.communication_desc') }
                 ]
             }
         };
@@ -889,6 +1167,7 @@
         // 初期化
         document.addEventListener('DOMContentLoaded', function() {
             console.log('✅ DOM loaded');
+            updateLoginPage(); // 多言語対応のログインページを表示
             setupEventListeners();
         });
         
@@ -912,14 +1191,14 @@
             
             if (user) {
                 app.currentUser = user;
-                showNotification(user.name + 'さん、おかえりなさい！', 'success');
+                showNotification(user.name + i18n.t('login.welcome'), 'success');
                 console.log('✅ Login successful:', user.name);
                 
                 setTimeout(() => {
                     showDashboard();
                 }, 1000);
             } else {
-                showNotification('ログインに失敗しました', 'error');
+                showNotification(i18n.t('login.failed'), 'error');
                 console.log('❌ Login failed');
             }
         }
