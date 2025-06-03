@@ -21,6 +21,909 @@
                     <h1 id="header-title" data-i18n="system.title">🏗️ 建設業評価システム</h1>
                 </div>
                 <nav>
+                    <ul class="nav-menu" id="nav-menu">
+                        <!-- 動的に生成 -->
+                    </ul>
+                </nav>
+                <div class="user-menu">
+                    <div class="user-info" id="user-info">
+                        <!-- 動的に生成 -->
+                    </div>
+                    <div class="language-selector">
+                        <select id="header-language-select">
+                            <option value="ja">🇯🇵 日本語</option>
+                            <option value="vi">🇻🇳 Tiếng Việt</option>
+                            <option value="en">🇺🇸 English</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ブレッドクラム -->
+        <div id="breadcrumbs" class="breadcrumbs" style="display: none;">
+            <!-- 動的に生成 -->
+        </div>
+
+        <!-- メインコンテンツ -->
+        <main id="main-content" class="main-content">
+            <!-- 初期状態：ログインページ -->
+            <div class="login-page">
+                <div class="login-container">
+                    <div class="login-header">
+                        <h1 data-i18n="system.title">🏗️ 建設業評価システム</h1>
+                        <p data-i18n="system.subtitle">システムにログインしてください</p>
+                        <div style="margin-top: 16px;">
+                            <select id="login-language-select" style="padding: 8px; border-radius: 4px; border: 1px solid #ddd;">
+                                <option value="ja">🇯🇵 日本語</option>
+                                <option value="vi">🇻🇳 Tiếng Việt</option>
+                                <option value="en">🇺🇸 English</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="email" data-i18n="login.email">メールアドレス</label>
+                            <input type="email" id="email" name="email" 
+                                   value="admin@company.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password" data-i18n="login.password">パスワード</label>
+                            <input type="password" id="password" name="password" 
+                                   value="password123" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%;" data-i18n="login.submit">
+                            ログイン
+                        </button>
+                    </form>
+                    
+                    <div class="demo-info">
+                        <strong data-i18n="login.demo">🚀 デモアカウント</strong>
+                        <div class="demo-accounts">
+                            <div class="demo-account">
+                                <strong>管理者:</strong> admin@company.com / password123
+                            </div>
+                            <div class="demo-account">
+                                <strong>マネージャー:</strong> manager@company.com / password123
+                            </div>
+                            <div class="demo-account">
+                                <strong>主任:</strong> supervisor@company.com / password123
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- フッター -->
+        <footer class="app-footer" style="background: #f8f9fa; text-align: center; padding: 20px; border-top: 1px solid #e0e0e0;">
+            <p>&copy; 2025 建設業評価システム. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <!-- 通知コンテナ -->
+    <div id="notification-container"></div>
+
+    <!-- JavaScript Files -->
+    <!-- Core -->
+    <script src="assets/js/core/i18n.js"></script>
+    <script src="assets/js/core/auth.js"></script>
+    <script src="assets/js/core/app.js"></script>
+    
+    <!-- Components -->
+    <script src="assets/js/components/pentagon-chart.js"></script>
+    <script src="assets/js/components/notification.js"></script>
+    
+    <!-- Data -->
+    <script src="assets/js/data/mock-data.js"></script>
+    
+    <!-- Utils -->
+    <script src="assets/js/utils/constants.js"></script>
+
+    <!-- 初期化スクリプト -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Building evaluation system started');
+            
+            // 多言語システムを初期化
+            if (typeof i18n !== 'undefined') {
+                i18n.init();
+                
+                // 言語切り替えイベントリスナーを設定
+                const loginLanguageSelect = document.getElementById('login-language-select');
+                const headerLanguageSelect = document.getElementById('header-language-select');
+                
+                if (loginLanguageSelect) {
+                    loginLanguageSelect.addEventListener('change', function() {
+                        i18n.setLanguage(this.value);
+                        if (headerLanguageSelect) headerLanguageSelect.value = this.value;
+                    });
+                }
+                
+                if (headerLanguageSelect) {
+                    headerLanguageSelect.addEventListener('change', function() {
+                        i18n.setLanguage(this.value);
+                        if (loginLanguageSelect) loginLanguageSelect.value = this.value;
+                    });
+                }
+            }
+            
+            // アプリケーション初期化
+            setupEventListeners();
+            
+            console.log('✅ Evaluation system initialized');
+        });
+
+        // アプリケーション状態
+        const app = {
+            currentUser: null,
+            currentPage: 'login',
+            
+            mockData: {
+                users: [
+                    { 
+                        id: '1', 
+                        email: 'admin@company.com', 
+                        password: 'password123', 
+                        name: '田中 太郎', 
+                        role: 'admin',
+                        department: 'admin',
+                        position: 'システム管理者'
+                    },
+                    { 
+                        id: '2', 
+                        email: 'manager@company.com', 
+                        password: 'password123', 
+                        name: '佐藤 花子', 
+                        role: 'manager',
+                        department: 'construction',
+                        position: '現場監督'
+                    },
+                    { 
+                        id: '3', 
+                        email: 'supervisor@company.com', 
+                        password: 'password123', 
+                        name: '鈴木 一郎', 
+                        role: 'supervisor',
+                        department: 'construction',
+                        position: '主任'
+                    }
+                ],
+                evaluations: [
+                    { 
+                        id: '1', 
+                        subordinate: '山田 太郎', 
+                        subordinateId: '4',
+                        evaluator: '田中 太郎', 
+                        evaluatorId: '1',
+                        status: 'completed', 
+                        overallRating: 4.5,
+                        ratings: {
+                            safety: 5,
+                            quality: 4,
+                            efficiency: 4,
+                            teamwork: 5,
+                            communication: 4
+                        },
+                        comments: {
+                            safety: '安全管理が徹底されている',
+                            quality: '品質基準を満たしている',
+                            efficiency: '作業効率が良い',
+                            teamwork: 'チームワークが素晴らしい',
+                            communication: 'コミュニケーション能力が高い'
+                        },
+                        overallComment: '総合的に優秀な作業員です。',
+                        period: '2025年第1四半期',
+                        updatedAt: '2025-06-01',
+                        createdAt: '2025-05-15'
+                    }
+                ],
+                evaluationCategories: [
+                    { id: 'safety', name: '安全性', description: '安全ルールの遵守、危険予知能力' },
+                    { id: 'quality', name: '品質', description: '作業品質、仕上がりの精度' },
+                    { id: 'efficiency', name: '効率性', description: '作業スピード、時間管理' },
+                    { id: 'teamwork', name: 'チームワーク', description: '協調性、チーム貢献度' },
+                    { id: 'communication', name: 'コミュニケーション', description: '報告・連絡・相談' }
+                ]
+            }
+        };
+
+        // カテゴリ名取得（多言語対応）
+        function getCategoryName(index) {
+            if (typeof i18n !== 'undefined') {
+                const categoryKeys = ['category.safety', 'category.quality', 'category.efficiency', 'category.teamwork', 'category.communication'];
+                return i18n.t(categoryKeys[index]);
+            }
+            return app.mockData.evaluationCategories[index]?.name || `項目${index + 1}`;
+        }
+
+        function getCategoryDesc(index) {
+            if (typeof i18n !== 'undefined') {
+                const descKeys = ['category.safety_desc', 'category.quality_desc', 'category.efficiency_desc', 'category.teamwork_desc', 'category.communication_desc'];
+                return i18n.t(descKeys[index]);
+            }
+            return app.mockData.evaluationCategories[index]?.description || '';
+        }
+
+        // イベントリスナー設定
+        function setupEventListeners() {
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+                console.log('✅ Login form listener added');
+            }
+        }
+
+        // ログイン処理
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            console.log('🔐 Login attempt:', email);
+            
+            const user = app.mockData.users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                app.currentUser = user;
+                const welcomeMsg = typeof i18n !== 'undefined' ? 
+                    user.name + i18n.t('login.welcome') : 
+                    user.name + 'さん、おかえりなさい！';
+                showNotification(welcomeMsg, 'success');
+                console.log('✅ Login successful:', user.name);
+                
+                setTimeout(() => {
+                    showDashboard();
+                }, 1000);
+            } else {
+                const errorMsg = typeof i18n !== 'undefined' ? 
+                    i18n.t('login.failed') : 
+                    'ログインに失敗しました';
+                showNotification(errorMsg, 'error');
+                console.log('❌ Login failed');
+            }
+        }
+
+        // ダッシュボード表示
+        function showDashboard() {
+            console.log('🏠 Showing dashboard');
+            app.currentPage = 'dashboard';
+            
+            const header = document.getElementById('app-header');
+            const breadcrumbs = document.getElementById('breadcrumbs');
+            header.style.display = 'block';
+            breadcrumbs.style.display = 'block';
+            
+            buildNavigation();
+            
+            const dashboardLabel = typeof i18n !== 'undefined' ? i18n.t('nav.dashboard') : '📊 ダッシュボード';
+            updateBreadcrumbs([{ label: dashboardLabel, path: '/dashboard' }]);
+            
+            const mainContent = document.getElementById('main-content');
+            const evaluationsLabel = typeof i18n !== 'undefined' ? i18n.t('nav.evaluations') : '📋 評価一覧';
+            const dashboardTitle = typeof i18n !== 'undefined' ? i18n.t('dashboard.title') : '📊 ダッシュボード';
+            const totalLabel = typeof i18n !== 'undefined' ? i18n.t('dashboard.total') : '総評価数';
+            const completedLabel = typeof i18n !== 'undefined' ? i18n.t('dashboard.completed') : '完了済み';
+            const averageLabel = typeof i18n !== 'undefined' ? i18n.t('dashboard.average') : '平均評価';
+            const itemsLabel = typeof i18n !== 'undefined' ? i18n.t('dashboard.items') : '評価項目数';
+            const recentLabel = typeof i18n !== 'undefined' ? i18n.t('dashboard.recent') : '📈 最近の活動';
+            const detailLabel = typeof i18n !== 'undefined' ? i18n.t('action.detail') : '👁️ 詳細';
+            
+            mainContent.innerHTML = `
+                <div class="page">
+                    <div class="page-header">
+                        <h1 class="page-title">${dashboardTitle}</h1>
+                        <button class="btn btn-primary" onclick="showEvaluations()">
+                            ${evaluationsLabel}
+                        </button>
+                    </div>
+                    <div class="page-content">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">${app.mockData.evaluations.length}</div>
+                                <div class="stat-label">${totalLabel}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">1</div>
+                                <div class="stat-label">${completedLabel}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">4.5</div>
+                                <div class="stat-label">${averageLabel}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">5</div>
+                                <div class="stat-label">${itemsLabel}</div>
+                            </div>
+                        </div>
+                        
+                        <h3>${recentLabel}</h3>
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>評価対象者</th>
+                                        <th>評価者</th>
+                                        <th>評価期間</th>
+                                        <th>ステータス</th>
+                                        <th>更新日</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${app.mockData.evaluations.map(evaluation => `
+                                        <tr>
+                                            <td>${evaluation.subordinate}</td>
+                                            <td>${evaluation.evaluator}</td>
+                                            <td>${evaluation.period}</td>
+                                            <td>完了</td>
+                                            <td>${evaluation.updatedAt}</td>
+                                            <td>
+                                                <button class="btn btn-secondary" onclick="viewEvaluation('${evaluation.id}')">
+                                                    ${detailLabel}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 評価一覧表示
+        function showEvaluations() {
+            console.log('📋 Showing evaluations');
+            app.currentPage = 'evaluations';
+            
+            const dashboardLabel = typeof i18n !== 'undefined' ? i18n.t('nav.dashboard') : '📊 ダッシュボード';
+            const evaluationsLabel = typeof i18n !== 'undefined' ? i18n.t('nav.evaluations') : '📋 評価一覧';
+            updateBreadcrumbs([
+                { label: dashboardLabel, path: '/dashboard' },
+                { label: evaluationsLabel, path: '/evaluations' }
+            ]);
+            
+            const mainContent = document.getElementById('main-content');
+            const listTitle = typeof i18n !== 'undefined' ? i18n.t('evaluation.list') : '📋 評価一覧';
+            const dashboardBtn = typeof i18n !== 'undefined' ? i18n.t('action.dashboard') : '🏠 ダッシュボード';
+            const newBtn = typeof i18n !== 'undefined' ? i18n.t('action.new') : '➕ 新規評価';
+            const detailLabel = typeof i18n !== 'undefined' ? i18n.t('action.detail') : '👁️ 詳細';
+            
+            mainContent.innerHTML = `
+                <div class="page">
+                    <div class="page-header">
+                        <h1 class="page-title">${listTitle}</h1>
+                        <div>
+                            <button class="btn btn-secondary" onclick="showDashboard()">
+                                ${dashboardBtn}
+                            </button>
+                            <button class="btn btn-primary" onclick="showNewEvaluationForm()">
+                                ${newBtn}
+                            </button>
+                        </div>
+                    </div>
+                    <div class="page-content">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>評価対象者</th>
+                                        <th>評価者</th>
+                                        <th>評価期間</th>
+                                        <th>総合評価</th>
+                                        <th>ステータス</th>
+                                        <th>更新日</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${app.mockData.evaluations.map(evaluation => `
+                                        <tr>
+                                            <td>${evaluation.id}</td>
+                                            <td>${evaluation.subordinate}</td>
+                                            <td>${evaluation.evaluator}</td>
+                                            <td>${evaluation.period}</td>
+                                            <td>${evaluation.overallRating}/5 ⭐</td>
+                                            <td>完了</td>
+                                            <td>${evaluation.updatedAt}</td>
+                                            <td>
+                                                <button class="btn btn-secondary" onclick="viewEvaluation('${evaluation.id}')">
+                                                    ${detailLabel}
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 新規評価フォーム表示
+        function showNewEvaluationForm() {
+            console.log('📝 Showing new evaluation form');
+            
+            const dashboardLabel = typeof i18n !== 'undefined' ? i18n.t('nav.dashboard') : '📊 ダッシュボード';
+            const evaluationsLabel = typeof i18n !== 'undefined' ? i18n.t('nav.evaluations') : '📋 評価一覧';
+            const newLabel = typeof i18n !== 'undefined' ? i18n.t('evaluation.new') : '📝 新規評価作成';
+            updateBreadcrumbs([
+                { label: dashboardLabel, path: '/dashboard' },
+                { label: evaluationsLabel, path: '/evaluations' },
+                { label: newLabel, path: '/evaluations/new' }
+            ]);
+            
+            const mainContent = document.getElementById('main-content');
+            const backBtn = typeof i18n !== 'undefined' ? i18n.t('action.back') : '← 評価一覧に戻る';
+            const basicInfo = typeof i18n !== 'undefined' ? i18n.t('evaluation.basic') : '📋 基本情報';
+            const ratings = typeof i18n !== 'undefined' ? i18n.t('evaluation.ratings') : '⭐ 項目別評価';
+            const chartTitle = typeof i18n !== 'undefined' ? i18n.t('evaluation.chart') : '📊 評価チャート（リアルタイム更新）';
+            const periodLabel = typeof i18n !== 'undefined' ? i18n.t('form.period') : '評価期間';
+            const targetLabel = typeof i18n !== 'undefined' ? i18n.t('form.target') : '評価対象者';
+            const cancelBtn = typeof i18n !== 'undefined' ? i18n.t('form.cancel') : 'キャンセル';
+            const saveBtn = typeof i18n !== 'undefined' ? i18n.t('form.save') : '💾 評価を保存';
+            const notEntered = typeof i18n !== 'undefined' ? i18n.t('form.not_entered') : '未入力';
+            
+            mainContent.innerHTML = `
+                <div class="page">
+                    <div class="page-header">
+                        <h1 class="page-title">${newLabel}</h1>
+                        <button class="btn btn-secondary" onclick="showEvaluations()">
+                            ${backBtn}
+                        </button>
+                    </div>
+                    <div class="page-content">
+                        <form class="evaluation-form" id="new-evaluation-form">
+                            <div class="form-section">
+                                <h3>${basicInfo}</h3>
+                                <div class="form-group">
+                                    <label for="evaluation-period">${periodLabel}</label>
+                                    <select id="evaluation-period" required>
+                                        <option value="">評価期間を選択</option>
+                                        <option value="2025-Q1">2025年第1四半期</option>
+                                        <option value="2025-Q2">2025年第2四半期</option>
+                                        <option value="2025-Q3">2025年第3四半期</option>
+                                        <option value="2025-Q4">2025年第4四半期</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="subordinate-select">${targetLabel}</label>
+                                    <select id="subordinate-select" required>
+                                        <option value="">対象者を選択</option>
+                                        <option value="山田 太郎">山田 太郎 (作業員)</option>
+                                        <option value="佐藤 次郎">佐藤 次郎 (作業員)</option>
+                                        <option value="鈴木 三郎">鈴木 三郎 (作業員)</option>
+                                        <option value="田中 四郎">田中 四郎 (作業員)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-section">
+                                <h3>${ratings}</h3>
+                                <div class="rating-input-group">
+                                    ${app.mockData.evaluationCategories.map((category, index) => `
+                                        <div class="rating-input-item">
+                                            <div class="rating-input-label">
+                                                <strong>${getCategoryName(index)}</strong>
+                                                <small>${getCategoryDesc(index)}</small>
+                                            </div>
+                                            <div class="rating-input-controls">
+                                                <input 
+                                                    type="number" 
+                                                    class="rating-input" 
+                                                    id="rating-${category.id}"
+                                                    min="1" 
+                                                    max="5" 
+                                                    step="0.1"
+                                                    placeholder="1-5"
+                                                    onchange="updateRatingDisplay('${category.id}')"
+                                                    oninput="updateRatingDisplay('${category.id}')"
+                                                >
+                                                <div class="rating-display" id="display-${category.id}">${notEntered}</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                
+                                <div class="evaluation-chart" style="margin-top: 24px;">
+                                    <h4 style="text-align: center; margin-bottom: 20px; color: #1976d2;">${chartTitle}</h4>
+                                    <div class="chart-container">
+                                        <div id="evaluation-radar-chart" class="pentagon-chart"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-section">
+                                <h3>📝 総合評価</h3>
+                                <div class="form-group">
+                                    <label for="overall-comment">総合コメント</label>
+                                    <textarea id="overall-comment" placeholder="総合的な評価コメントを入力してください" rows="4"></textarea>
+                                </div>
+                            </div>
+                            
+                            <div style="text-align: center; margin-top: 32px;">
+                                <button type="button" class="btn btn-secondary" onclick="showEvaluations()" style="margin-right: 12px;">
+                                    ${cancelBtn}
+                                </button>
+                                <button type="submit" class="btn btn-success">
+                                    ${saveBtn}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            
+            const form = document.getElementById('new-evaluation-form');
+            form.addEventListener('submit', handleSaveEvaluation);
+            
+            initializeRadarChart();
+        }
+
+        // レーダーチャート初期化
+        function initializeRadarChart() {
+            console.log('🎯 Initializing pentagon chart');
+            const categories = app.mockData.evaluationCategories;
+            
+            setTimeout(() => {
+                try {
+                    if (typeof PentagonChart !== 'undefined') {
+                        // 五角形チャートにカテゴリ名取得関数を設定
+                        PentagonChart.prototype.getCategoryName = getCategoryName;
+                        window.pentagonChart = new PentagonChart('evaluation-radar-chart', categories);
+                        console.log('✅ Pentagon chart initialized successfully');
+                    } else {
+                        console.warn('PentagonChart class not found');
+                    }
+                } catch (error) {
+                    console.error('Error creating pentagon chart:', error);
+                }
+            }, 100);
+        }
+
+        // 評価表示更新
+        function updateRatingDisplay(categoryId) {
+            const input = document.getElementById(`rating-${categoryId}`);
+            const display = document.getElementById(`display-${categoryId}`);
+            const value = parseFloat(input.value);
+            
+            const notEntered = typeof i18n !== 'undefined' ? i18n.t('form.not_entered') : '未入力';
+            
+            if (isNaN(value) || value < 1 || value > 5) {
+                display.textContent = notEntered;
+                display.style.color = '#666';
+            } else {
+                display.textContent = `${value}/5`;
+                display.style.color = '#1976d2';
+                
+                const stars = '⭐'.repeat(Math.floor(value));
+                const halfStar = (value % 1 >= 0.5) ? '⭐' : '';
+                display.innerHTML = `${value}/5<br><small>${stars}${halfStar}</small>`;
+            }
+            
+            updateRadarChart();
+        }
+
+        // レーダーチャート更新
+        function updateRadarChart() {
+            if (!window.pentagonChart) return;
+            
+            const categories = app.mockData.evaluationCategories;
+            const newData = categories.map(category => {
+                const input = document.getElementById(`rating-${category.id}`);
+                const value = parseFloat(input.value);
+                return isNaN(value) ? 0 : Math.max(0, Math.min(5, value));
+            });
+            
+            window.pentagonChart.updateData(newData);
+        }
+
+        // 評価保存処理
+        function handleSaveEvaluation(e) {
+            e.preventDefault();
+            
+            const period = document.getElementById('evaluation-period').value;
+            const subordinate = document.getElementById('subordinate-select').value;
+            const overallComment = document.getElementById('overall-comment').value;
+            
+            if (!period || !subordinate) {
+                showNotification('評価期間と対象者を選択してください', 'error');
+                return;
+            }
+            
+            const ratings = {};
+            let hasRatings = false;
+            app.mockData.evaluationCategories.forEach(category => {
+                const input = document.getElementById(`rating-${category.id}`);
+                const value = parseFloat(input.value);
+                if (!isNaN(value) && value >= 1 && value <= 5) {
+                    ratings[category.id] = value;
+                    hasRatings = true;
+                }
+            });
+            
+            if (!hasRatings) {
+                showNotification('少なくとも1つの評価項目を入力してください', 'error');
+                return;
+            }
+            
+            const totalRating = Object.values(ratings).reduce((sum, rating) => sum + rating, 0);
+            const avgRating = totalRating / Object.keys(ratings).length || 0;
+            
+            const newEvaluation = {
+                id: (app.mockData.evaluations.length + 1).toString(),
+                subordinate: subordinate,
+                subordinateId: '7',
+                evaluator: app.currentUser.name,
+                evaluatorId: app.currentUser.id,
+                status: 'completed',
+                overallRating: Math.round(avgRating * 10) / 10,
+                ratings: ratings,
+                comments: {},
+                overallComment: overallComment,
+                period: period === '2025-Q1' ? '2025年第1四半期' : period,
+                updatedAt: new Date().toISOString().split('T')[0],
+                createdAt: new Date().toISOString().split('T')[0]
+            };
+            
+            app.mockData.evaluations.push(newEvaluation);
+            
+            const savedMsg = typeof i18n !== 'undefined' ? i18n.t('message.saved') : '評価を保存しました！';
+            showNotification(savedMsg, 'success');
+            
+            setTimeout(() => {
+                showEvaluations();
+            }, 1500);
+        }
+
+        // 評価詳細表示
+        function viewEvaluation(id) {
+            console.log('👁️ Viewing evaluation:', id);
+            const evaluation = app.mockData.evaluations.find(e => e.id === id);
+            if (!evaluation) {
+                showNotification('評価が見つかりません', 'error');
+                return;
+            }
+            
+            const dashboardLabel = typeof i18n !== 'undefined' ? i18n.t('nav.dashboard') : '📊 ダッシュボード';
+            const evaluationsLabel = typeof i18n !== 'undefined' ? i18n.t('nav.evaluations') : '📋 評価一覧';
+            updateBreadcrumbs([
+                { label: dashboardLabel, path: '/dashboard' },
+                { label: evaluationsLabel, path: '/evaluations' },
+                { label: '評価詳細', path: `/evaluations/${id}` }
+            ]);
+            
+            const mainContent = document.getElementById('main-content');
+            const backBtn = typeof i18n !== 'undefined' ? i18n.t('action.back') : '← 評価一覧に戻る';
+            const basicInfo = typeof i18n !== 'undefined' ? i18n.t('evaluation.basic') : '📋 基本情報';
+            const ratings = typeof i18n !== 'undefined' ? i18n.t('evaluation.ratings') : '⭐ 項目別評価詳細';
+            
+            mainContent.innerHTML = `
+                <div class="page">
+                    <div class="page-header">
+                        <h1 class="page-title">👁️ 評価詳細</h1>
+                        <button class="btn btn-secondary" onclick="showEvaluations()">
+                            ${backBtn}
+                        </button>
+                    </div>
+                    <div class="page-content">
+                        <div class="evaluation-summary">
+                            <div class="evaluation-details">
+                                <h3 style="color: #1976d2; margin-bottom: 16px;">${basicInfo}</h3>
+                                <div class="detail-row">
+                                    <span class="detail-label">評価期間:</span>
+                                    <span class="detail-value">${evaluation.period}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">評価対象者:</span>
+                                    <span class="detail-value">${evaluation.subordinate}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">評価者:</span>
+                                    <span class="detail-value">${evaluation.evaluator}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">ステータス:</span>
+                                    <span class="detail-value">完了</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">総合評価:</span>
+                                    <span class="detail-value">${evaluation.overallRating}/5 ⭐</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">更新日:</span>
+                                    <span class="detail-value">${evaluation.updatedAt}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="evaluation-chart">
+                                <h4 style="text-align: center; margin-bottom: 20px; color: #1976d2;">📊 評価チャート</h4>
+                                <div class="chart-container">
+                                    <div id="detail-radar-chart" class="pentagon-chart"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3>${ratings}</h3>
+                            <div class="rating-input-group">
+                                ${app.mockData.evaluationCategories.map((category, index) => {
+                                    const rating = evaluation.ratings[category.id] || 0;
+                                    const stars = '⭐'.repeat(Math.floor(rating)) + (rating % 1 >= 0.5 ? '⭐' : '');
+                                    return `
+                                        <div class="rating-input-item">
+                                            <div class="rating-input-label">
+                                                <strong>${getCategoryName(index)}</strong>
+                                                <small>${getCategoryDesc(index)}</small>
+                                            </div>
+                                            <div class="rating-input-controls">
+                                                <div class="rating-display" style="text-align: center;">
+                                                    <div style="font-size: 18px; font-weight: bold; color: #1976d2;">${rating}/5</div>
+                                                    <div style="font-size: 16px;">${stars}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                        
+                        ${evaluation.overallComment ? `
+                            <div class="form-section">
+                                <h3>📝 総合評価</h3>
+                                <div class="form-group">
+                                    <label><strong>総合コメント</strong></label>
+                                    <div style="padding:12px;background:#f8f9fa;border-radius:4px;">${evaluation.overallComment}</div>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                initializeDetailRadarChart(evaluation);
+            }, 200);
+        }
+
+        // 詳細レーダーチャート初期化
+        function initializeDetailRadarChart(evaluation) {
+            console.log('🎯 Initializing detail pentagon chart');
+            const categories = app.mockData.evaluationCategories;
+            const data = categories.map(category => evaluation.ratings[category.id] || 0);
+            
+            try {
+                if (typeof PentagonChart !== 'undefined') {
+                    // 五角形チャートにカテゴリ名取得関数を設定
+                    PentagonChart.prototype.getCategoryName = getCategoryName;
+                    window.detailPentagonChart = new PentagonChart('detail-radar-chart', categories, data);
+                    console.log('✅ Detail pentagon chart initialized successfully');
+                } else {
+                    console.warn('PentagonChart class not found');
+                }
+            } catch (error) {
+                console.error('Error creating detail pentagon chart:', error);
+            }
+        }
+
+        // ナビゲーション構築
+        function buildNavigation() {
+            const navMenu = document.getElementById('nav-menu');
+            const userInfo = document.getElementById('user-info');
+            
+            const dashboardLabel = typeof i18n !== 'undefined' ? i18n.t('nav.dashboard') : '📊 ダッシュボード';
+            const evaluationsLabel = typeof i18n !== 'undefined' ? i18n.t('nav.evaluations') : '📋 評価一覧';
+            const logoutLabel = typeof i18n !== 'undefined' ? i18n.t('nav.logout') : 'ログアウト';
+            
+            if (navMenu) {
+                navMenu.innerHTML = `
+                    <li><a href="#" class="nav-link ${app.currentPage === 'dashboard' ? 'active' : ''}" onclick="showDashboard()">${dashboardLabel}</a></li>
+                    <li><a href="#" class="nav-link ${app.currentPage === 'evaluations' ? 'active' : ''}" onclick="showEvaluations()">${evaluationsLabel}</a></li>
+                `;
+            }
+            
+            if (userInfo) {
+                userInfo.innerHTML = `
+                    <div class="user-avatar">${app.currentUser.name.charAt(0)}</div>
+                    <div class="user-details">
+                        <div class="user-name">${app.currentUser.name}</div>
+                        <div class="user-role">管理者</div>
+                    </div>
+                    <button onclick="logout()" style="margin-left: 12px; background: none; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+                        ${logoutLabel}
+                    </button>
+                `;
+            }
+        }
+
+        // ブレッドクラム更新
+        function updateBreadcrumbs(items) {
+            const breadcrumbs = document.getElementById('breadcrumbs');
+            if (!breadcrumbs || !items.length) return;
+            
+            breadcrumbs.innerHTML = items.map((item, index) => {
+                const isLast = index === items.length - 1;
+                if (isLast) {
+                    return `<span class="current">${item.label}</span>`;
+                } else {
+                    return `<a href="#" onclick="navigateFromBreadcrumb('${item.path}')">${item.label}</a>`;
+                }
+            }).join(' <span class="separator">></span> ');
+        }
+
+        // ブレッドクラムナビゲーション
+        function navigateFromBreadcrumb(path) {
+            if (path === '/dashboard') showDashboard();
+            else if (path === '/evaluations') showEvaluations();
+        }
+
+        // ログアウト
+        function logout() {
+            console.log('🚪 Logging out');
+            app.currentUser = null;
+            app.currentPage = 'login';
+            
+            document.getElementById('app-header').style.display = 'none';
+            document.getElementById('breadcrumbs').style.display = 'none';
+            
+            location.reload();
+        }
+
+        // 通知表示
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    container.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        console.log('✅ Building evaluation system ready');
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="system.title">建設業評価システム</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- ヘッダー（ログイン時のみ表示） -->
+        <header id="app-header" class="app-header" style="display: none;">
+            <div class="header-content">
+                <div class="logo">
+                    <h1 id="header-title" data-i18n="system.title">🏗️ 建設業評価システム</h1>
+                </div>
+                <nav>
                     <ul class="nav-menu" id="nav-menu"></ul>
                 </nav>
                 <div class="user-menu">
