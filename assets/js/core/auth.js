@@ -139,6 +139,10 @@ class AuthManager {
         return this.currentUser;
     }
 
+    isAuthenticated() {
+        return this.isAuthenticated && this.currentUser !== null;
+    }
+
     isAuthenticatedUser() {
         return this.isAuthenticated && this.currentUser !== null;
     }
