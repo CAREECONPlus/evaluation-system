@@ -259,6 +259,586 @@
     white-space: nowrap;
   }
   
+  /* テーブル */
+  .table-responsive {
+    border-radius: var(--border-radius);
+    font-size: var(--font-size-xs);
+  }
+  
+  .table {
+    margin-bottom: 0;
+  }
+  
+  .table td,
+  .table th {
+    padding: var(--spacing-xs);
+    white-space: nowrap;
+  }
+  
   .table-actions {
     flex-direction: column;
-    gap: var(--
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+  }
+  
+  .table-search {
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .table-filters {
+    margin-left: 0;
+    width: 100%;
+    justify-content: stretch;
+  }
+  
+  .table-filters .form-select {
+    flex: 1;
+  }
+  
+  /* ボタン */
+  .btn-group {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .btn-group .btn {
+    border-radius: var(--border-radius) !important;
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  /* アラート */
+  .alert-custom {
+    padding: var(--spacing-sm);
+  }
+  
+  .alert-custom .alert-icon {
+    font-size: var(--font-size-base);
+  }
+  
+  /* 空状態 */
+  .empty-state {
+    padding: var(--spacing-xl) var(--spacing-sm);
+  }
+  
+  .empty-state-icon {
+    font-size: 3rem;
+  }
+  
+  .empty-state-title {
+    font-size: var(--font-size-lg);
+  }
+  
+  /* プログレス */
+  .progress-label {
+    font-size: var(--font-size-xs);
+  }
+  
+  /* チャート */
+  .chart-container,
+  .radar-chart-container {
+    height: 200px;
+    padding: var(--spacing-sm);
+  }
+  
+  .chart-legend {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+  
+  /* タブ */
+  .nav-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .nav-tabs .nav-link {
+    white-space: nowrap;
+    padding: var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+  
+  /* ドロップダウン */
+  .dropdown-menu {
+    min-width: 200px;
+    max-width: 300px;
+  }
+  
+  /* ユーティリティ */
+  .d-md-none {
+    display: none !important;
+  }
+  
+  .d-md-block {
+    display: block !important;
+  }
+}
+
+/* === 小さなモバイル対応 (≤ 576px) === */
+@media (max-width: 576px) {
+  /* ベースフォント */
+  html {
+    font-size: 14px;
+  }
+  
+  /* レイアウト */
+  .container,
+  .container-fluid {
+    padding: 0 var(--spacing-xs);
+  }
+  
+  /* ページ */
+  .page {
+    padding: var(--spacing-sm) 0;
+  }
+  
+  .page-header {
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+  }
+  
+  .page-title {
+    font-size: var(--font-size-xl);
+    line-height: var(--line-height-tight);
+  }
+  
+  /* ナビゲーション */
+  .navbar {
+    padding: var(--spacing-xs);
+  }
+  
+  .navbar-brand {
+    font-size: var(--font-size-base);
+  }
+  
+  .navbar-brand i {
+    display: none;
+  }
+  
+  /* カード */
+  .card {
+    border-radius: var(--border-radius);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .card-body {
+    padding: var(--spacing-xs);
+  }
+  
+  .card-header {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .card-title {
+    font-size: var(--font-size-sm);
+  }
+  
+  .info-card .card-body {
+    padding: var(--spacing-xs);
+  }
+  
+  /* 統計 */
+  .stat-card {
+    padding: var(--spacing-sm);
+  }
+  
+  .stat-value {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .stat-label {
+    font-size: var(--font-size-xs);
+  }
+  
+  /* モーダル */
+  .modal-dialog {
+    margin: var(--spacing-xs);
+    width: calc(100% - var(--spacing-sm));
+  }
+  
+  .modal-body {
+    padding: var(--spacing-sm);
+    max-height: 50vh;
+  }
+  
+  .modal-footer {
+    padding: var(--spacing-xs);
+  }
+  
+  /* フォーム */
+  .form-section {
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .form-control,
+  .form-select {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .category-header {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .category-item {
+    padding: var(--spacing-sm);
+  }
+  
+  /* ボタン */
+  .btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+  }
+  
+  .btn-sm {
+    padding: 2px var(--spacing-xs);
+    font-size: var(--font-size-xs);
+  }
+  
+  /* テーブル */
+  .table {
+    font-size: var(--font-size-xs);
+  }
+  
+  .table td,
+  .table th {
+    padding: 2px var(--spacing-xs);
+    font-size: var(--font-size-xs);
+  }
+  
+  /* 隠すコンテンツ */
+  .table th:nth-child(n+4),
+  .table td:nth-child(n+4) {
+    display: none;
+  }
+  
+  .table.table-mobile-full th,
+  .table.table-mobile-full td {
+    display: table-cell;
+  }
+  
+  /* アクションボタン */
+  .action-buttons .btn {
+    padding: var(--spacing-xs);
+    min-width: 32px;
+  }
+  
+  .action-buttons .btn span {
+    display: none;
+  }
+  
+  /* アラート */
+  .alert-custom {
+    padding: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+  }
+  
+  .alert-title {
+    font-size: var(--font-size-sm);
+  }
+  
+  .alert-message {
+    font-size: var(--font-size-xs);
+  }
+  
+  /* 空状態 */
+  .empty-state {
+    padding: var(--spacing-lg) var(--spacing-xs);
+  }
+  
+  .empty-state-icon {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .empty-state-title {
+    font-size: var(--font-size-base);
+  }
+  
+  .empty-state-description {
+    font-size: var(--font-size-sm);
+  }
+  
+  /* トースト */
+  .toast {
+    min-width: 250px;
+    max-width: 300px;
+    font-size: var(--font-size-sm);
+  }
+  
+  /* チャート */
+  .chart-container,
+  .radar-chart-container {
+    height: 150px;
+    padding: var(--spacing-xs);
+  }
+  
+  /* タブ */
+  .nav-tabs .nav-link {
+    padding: var(--spacing-xs);
+    font-size: var(--font-size-xs);
+  }
+  
+  /* ユーティリティ */
+  .d-sm-none {
+    display: none !important;
+  }
+  
+  .d-sm-block {
+    display: block !important;
+  }
+  
+  .d-sm-flex {
+    display: flex !important;
+  }
+}
+
+/* === 横向きモバイル対応 === */
+@media (max-width: 896px) and (orientation: landscape) {
+  .modal-body {
+    max-height: 40vh;
+  }
+  
+  .navbar {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  
+  .page-header {
+    margin-bottom: var(--spacing-sm);
+    padding-bottom: var(--spacing-xs);
+  }
+}
+
+/* === 高DPI対応 === */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* アイコンやボーダーの調整 */
+  .border {
+    border-width: 0.5px !important;
+  }
+  
+  /* より鮮明なフォント */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* === タッチデバイス用の調整 === */
+@media (hover: none) and (pointer: coarse) {
+  /* タッチターゲットサイズの確保 */
+  .btn,
+  .nav-link,
+  .dropdown-item,
+  .form-control,
+  .form-select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* ホバー効果を無効化 */
+  .btn:hover,
+  .nav-link:hover,
+  .dropdown-item:hover,
+  .card:hover {
+    transform: none;
+  }
+  
+  /* タッチフィードバック */
+  .btn:active,
+  .nav-link:active,
+  .dropdown-item:active {
+    background-color: var(--color-primary-100);
+    transform: scale(0.98);
+  }
+}
+
+/* === ダークモード対応（将来用） === */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* ダークモード用の色設定は variables.css で定義 */
+  }
+  
+  /* 画像の調整 */
+  img {
+    opacity: 0.9;
+  }
+  
+  /* テキストの可読性向上 */
+  .text-muted {
+    color: var(--color-gray-400) !important;
+  }
+}
+
+/* === 低解像度対応 === */
+@media (max-width: 320px) {
+  html {
+    font-size: 13px;
+  }
+  
+  .container,
+  .container-fluid {
+    padding: 0 var(--spacing-xs);
+  }
+  
+  .page-title {
+    font-size: var(--font-size-lg);
+  }
+  
+  .btn {
+    padding: 2px var(--spacing-xs);
+    font-size: var(--font-size-xs);
+  }
+  
+  .card-body {
+    padding: var(--spacing-xs);
+  }
+  
+  .modal-dialog {
+    margin: 2px;
+    width: calc(100% - 4px);
+  }
+}
+
+/* === プリント用の調整 === */
+@media print {
+  /* モバイルレイアウトでも印刷時は横幅を活用 */
+  .container,
+  .container-fluid {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  
+  .row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .col-md-6,
+  .col-lg-4,
+  .col-lg-8 {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+  }
+  
+  /* フォントサイズの調整 */
+  body {
+    font-size: 12pt;
+    line-height: 1.4;
+  }
+  
+  .page-title {
+    font-size: 18pt;
+  }
+  
+  .card-title {
+    font-size: 14pt;
+  }
+  
+  /* 不要な要素を非表示 */
+  .page-actions,
+  .action-buttons,
+  .btn,
+  .dropdown,
+  .navbar-toggler {
+    display: none !important;
+  }
+  
+  /* テーブルの調整 */
+  .table {
+    font-size: 10pt;
+  }
+  
+  .table th,
+  .table td {
+    padding: 4pt 6pt;
+  }
+  
+  /* 改ページの制御 */
+  .card,
+  .info-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  .page-header {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+}
+
+/* === アクセシビリティ対応 === */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .spinner-border {
+    animation: none;
+  }
+  
+  .loading-spinner::before {
+    content: '読み込み中...';
+  }
+  
+  .loading-spinner .spinner-border {
+    display: none;
+  }
+}
+
+/* === 高コントラストモード === */
+@media (prefers-contrast: high) {
+  .btn,
+  .card,
+  .form-control,
+  .form-select {
+    border-width: 2px !important;
+  }
+  
+  .text-muted {
+    color: var(--color-gray-700) !important;
+  }
+  
+  .badge {
+    border: 2px solid currentColor;
+  }
+}
+
+/* === 横向きタブレット用の特別対応 === */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .navbar-nav .nav-text {
+    display: inline;
+  }
+  
+  .sidebar {
+    width: 200px;
+  }
+  
+  .main-content {
+    margin-left: 200px;
+  }
+}
+
+/* === iPhone X 以降のノッチ対応 === */
+@supports (padding: max(0px)) {
+  .navbar {
+    padding-left: max(var(--navbar-padding-x), env(safe-area-inset-left));
+    padding-right: max(var(--navbar-padding-x), env(safe-area-inset-right));
+  }
+  
+  .container,
+  .container-fluid {
+    padding-left: max(var(--spacing-sm), env(safe-area-inset-left));
+    padding-right: max(var(--spacing-sm), env(safe-area-inset-right));
+  }
+  
+  .modal-dialog {
+    margin-left: max(var(--spacing-sm), env(safe-area-inset-left));
+    margin-right: max(var(--spacing-sm), env(safe-area-inset-right));
+  }
+}
