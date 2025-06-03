@@ -48,6 +48,12 @@ class App {
 
             this.isInitialized = true;
             console.log('App initialization completed successfully');
+            
+            // 緊急対策: 3秒後に確実にローディングを隠してログインページを表示
+            setTimeout(() => {
+                console.log('🚨 Emergency: Force showing login page');
+                this.emergencyShowLogin();
+            }, 3000);
 
         } catch (error) {
             console.error('App initialization failed:', error);
@@ -62,6 +68,79 @@ class App {
                 this.hideLoading();
                 console.log('🔄 Loading indicator hide confirmed');
             }, 2000);
+        }
+    }
+
+    emergencyShowLogin() {
+        console.log('🚨 Emergency login page display');
+        
+        // 強制的にローディングを削除
+        this.forceHideLoading();
+        
+        // ログインページを強制表示
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.innerHTML = `
+                <div style="padding: 40px; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
+                    <h1 style="color: #1976d2; margin-bottom: 20px;">🏗️ 建設業評価システム</h1>
+                    <div style="max-width: 400px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <h2 style="margin-bottom: 20px;">ログイン</h2>
+                        <form id="emergency-login-form">
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; margin-bottom: 5px; text-align: left;">メールアドレス</label>
+                                <input type="email" id="emergency-email" value="admin@company.com" 
+                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                            </div>
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 5px; text-align: left;">パスワード</label>
+                                <input type="password" id="emergency-password" value="password123"
+                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                            </div>
+                            <button type="submit" style="width: 100%; padding: 12px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+                                ログイン
+                            </button>
+                        </form>
+                        <div style="margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 4px; font-size: 14px;">
+                            <strong>🚀 緊急表示モード</strong><br>
+                            管理者アカウントが事前入力済みです
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 緊急ログインフォームの処理
+            const form = document.getElementById('emergency-login-form');
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const email = document.getElementById('emergency-email').value;
+                    const password = document.getElementById('emergency-password').value;
+                    
+                    console.log('🚨 Emergency login attempt');
+                    
+                    try {
+                        if (window.auth) {
+                            const result = await window.auth.login({ email, password });
+                            if (result.success) {
+                                console.log('✅ Emergency login successful');
+                                if (window.navigation) {
+                                    window.navigation.render();
+                                }
+                                if (window.dashboard) {
+                                    window.dashboard.render();
+                                }
+                            } else {
+                                alert('ログインに失敗しました: ' + result.error);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Emergency login error:', error);
+                        alert('ログインエラー: ' + error.message);
+                    }
+                });
+            }
+            
+            console.log('✅ Emergency login page displayed');
         }
     }
 
@@ -176,9 +255,15 @@ class App {
     }
 
     onAppReady() {
+        console.log('🎉 App ready - starting final setup');
+        
         // アプリケーション準備完了時の処理
         this.setupGlobalEventListeners();
         this.startPeriodicTasks();
+        
+        // 強制的にローディングを隠す
+        console.log('🔄 Force hiding loading...');
+        this.forceHideLoading();
         
         // デバッグ情報の表示（開発環境のみ）
         if (window.DEBUG_MODE) {
@@ -191,9 +276,47 @@ class App {
         }
 
         // 準備完了通知
-        window.notification?.success('システムが正常に起動しました', {
-            duration: 3000
+        setTimeout(() => {
+            window.notification?.success('システムが正常に起動しました', {
+                duration: 3000
+            });
+        }, 1000);
+        
+        console.log('✅ App ready process completed');
+    }
+
+    forceHideLoading() {
+        console.log('🚨 Force hiding loading indicator');
+        
+        // ローディングインジケーターを強制的に隠す
+        const loadingElements = [
+            document.getElementById('loading-indicator'),
+            document.querySelector('.loading-overlay'),
+            document.querySelector('[id*="loading"]')
+        ];
+        
+        loadingElements.forEach(element => {
+            if (element) {
+                element.style.display = 'none !important';
+                element.style.visibility = 'hidden';
+                element.style.opacity = '0';
+                element.remove(); // 完全に削除
+                console.log('🗑️ Loading element removed');
+            }
         });
+        
+        // メインコンテンツを確実に表示
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.style.display = 'block';
+            mainContent.style.visibility = 'visible';
+            mainContent.style.opacity = '1';
+            console.log('✅ Main content forced visible');
+        }
+        
+        // bodyのスタイルもリセット
+        document.body.style.overflow = 'auto';
+        document.body.classList.remove('loading');
     }
 
     setupGlobalEventListeners() {
