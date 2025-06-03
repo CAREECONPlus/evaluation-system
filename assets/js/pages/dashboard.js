@@ -1,1068 +1,680 @@
 /**
- * Dashboard Controller - 評価ツール
- * ダッシュボードページの表示と管理を行うクラス
+ * ダッシュボードページコントローラー
+ * 建設業界の評価システムに特化したダッシュボード表示
  */
-
-EvaluationApp = EvaluationApp || {};
-
-/**
- * ダッシュボードコントローラークラス
- */
-EvaluationApp.DashboardController = class {
-  constructor(app) {
-    this.app = app;
-    this.api = app.api;
-    this.auth = app.auth;
-    this.debug = EvaluationApp.Constants.APP.DEBUG;
-    
-    // DOM要素
-    this.container = null;
-    this.elements = {};
-    
-    // データ
-    this.dashboardData = null;
-    this.refreshInterval = null;
-    
-    // 設定
-    this.autoRefreshInterval = 5 * 60 * 1000; // 5分
-    
-    this.log('Dashboard controller initialized');
-  }
-
-  /**
-   * ダッシュボードページの表示
-   */
-  async show(data = {}) {
-    try {
-      this.log('Showing dashboard page');
-      
-      // コンテナの取得
-      this.container = document.getElementById('app-content');
-      if (!this.container) {
-        throw new Error('App content container not found');
-      }
-      
-      // ローディング表示
-      this.showLoading();
-      
-      // データの読み込み
-      await this.loadDashboardData();
-      
-      // HTMLの描画
-      await this.render();
-      
-      // イベントリスナーの設定
-      this.setupEventListeners();
-      
-      // 自動リフレッシュの開始
-      this.startAutoRefresh();
-      
-      this.log('Dashboard page shown successfully');
-      
-    } catch (error) {
-      this.log('Error showing dashboard:', error);
-      this.showError('ダッシュボードの読み込みに失敗しました', error.message);
+class DashboardController {
+    constructor() {
+        this.statsData = {};
+        this.recentEvaluations = [];
+        this.upcomingDeadlines = [];
+        this.refreshInterval = null;
+        
+        console.log('Dashboard controller initialized');
     }
-  }
 
-  /**
-   * ダッシュボードデータの読み込み
-   */
-  async loadDashboardData() {
-    try {
-      this.log('Loading dashboard data...');
-      
-      if (!this.api) {
-        throw new Error('API client not available');
-      }
-      
-      // ダッシュボードデータを取得
-      this.dashboardData = await this.api.getDashboardData();
-      
-      this.log('Dashboard data loaded:', this.dashboardData);
-      
-    } catch (error) {
-      this.log('Error loading dashboard data:', error);
-      throw error;
+    async render() {
+        const mainContent = document.getElementById('main-content');
+        if (!mainContent) return;
+
+        // ローディング表示
+        this.showLoading();
+
+        try {
+            await this.loadDashboardData();
+            this.createDashboardStructure();
+            this.populateData();
+            this.setupEventListeners();
+            this.startAutoRefresh();
+        } catch (error) {
+            console.error('Dashboard render failed:', error);
+            this.showError('ダッシュボードの読み込みに失敗しました');
+        } finally {
+            this.hideLoading();
+        }
     }
-  }
 
-  /**
-   * ダッシュボードHTMLの描画
-   */
-  async render() {
-    if (!this.dashboardData) {
-      throw new Error('Dashboard data not loaded');
-    }
-    
-    const currentUser = this.auth ? this.auth.getCurrentUser() : null;
-    if (!currentUser) {
-      throw new Error('User not authenticated');
-    }
-    
-    const html = this.buildDashboardHTML(currentUser);
-    this.container.innerHTML = html;
-    
-    // DOM要素の参照を取得
-    this.cacheElements();
-    
-    // データの表示
-    await this.updateDisplays();
-    
-    this.log('Dashboard rendered');
-  }
+    createDashboardStructure() {
+        const mainContent = document.getElementById('main-content');
+        if (!mainContent) return;
 
-  /**
-   * ダッシュボードHTMLの構築
-   */
-  buildDashboardHTML(currentUser) {
-    const userRole = currentUser.role;
-    const activePeriod = this.dashboardData.activePeriod;
-    
-    return `
-      <div class="dashboard-page page">
-        <!-- ページヘッダー -->
-        <div class="page-header d-flex justify-content-between align-items-center">
-          <div>
-            <h1 class="page-title">ダッシュボード</h1>
-            <p class="page-subtitle">こんにちは、${currentUser.fullName || currentUser.full_name}さん</p>
-          </div>
-          <div class="page-actions">
-            <button class="btn btn-outline-primary btn-sm me-2" id="refresh-dashboard">
-              <i class="fas fa-sync-alt"></i> 更新
-            </button>
-            ${this.buildQuickActionButton(userRole)}
-          </div>
-        </div>
-
-        <!-- サマリーカード -->
-        <div class="row mb-4">
-          ${this.buildSummaryCards(currentUser, activePeriod)}
-        </div>
-
-        <!-- メインコンテンツ -->
-        <div class="row">
-          <!-- 左カラム -->
-          <div class="col-lg-8 mb-4">
-            ${this.buildMainContent(currentUser)}
-          </div>
-          
-          <!-- 右カラム -->
-          <div class="col-lg-4 mb-4">
-            ${this.buildSideContent(currentUser)}
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  /**
-   * サマリーカードの構築
-   */
-  buildSummaryCards(currentUser, activePeriod) {
-    const cards = [];
-    
-    // 評価期間カード
-    cards.push(`
-      <div class="col-md-6 col-lg-3 mb-3">
-        <div class="info-card">
-          <div class="card-header">
-            <h6 class="card-title m-0">
-              <i class="fas fa-calendar-alt me-2"></i>現在の評価期間
-            </h6>
-          </div>
-          <div class="card-body">
-            <h5 class="mb-1" id="current-period-name">${activePeriod ? activePeriod.name : '未設定'}</h5>
-            <p class="text-muted small mb-0" id="current-period-dates">
-              ${activePeriod ? this.formatPeriodDates(activePeriod) : '-'}
-            </p>
-          </div>
-        </div>
-      </div>
-    `);
-    
-    // 自己評価状況カード
-    cards.push(`
-      <div class="col-md-6 col-lg-3 mb-3">
-        <div class="info-card">
-          <div class="card-header bg-info">
-            <h6 class="card-title m-0">
-              <i class="fas fa-user-check me-2"></i>自己評価状況
-            </h6>
-          </div>
-          <div class="card-body">
-            <div id="self-evaluation-status" class="mb-2">読み込み中...</div>
-            <div class="progress progress-custom mb-2">
-              <div class="progress-bar progress-bar-custom" id="self-evaluation-progress" 
-                   role="progressbar" style="width: 0%"></div>
-            </div>
-            <button class="btn btn-sm btn-outline-info w-100" id="evaluation-action-btn">
-              評価を開始
-            </button>
-          </div>
-        </div>
-      </div>
-    `);
-    
-    // 評価者向けカード
-    if (this.auth && this.auth.hasRole('evaluator')) {
-      cards.push(`
-        <div class="col-md-6 col-lg-3 mb-3">
-          <div class="info-card">
-            <div class="card-header bg-success">
-              <h6 class="card-title m-0">
-                <i class="fas fa-users me-2"></i>評価対象者
-              </h6>
-            </div>
-            <div class="card-body">
-              <div class="stat-card">
-                <div class="stat-value" id="subordinates-count">0</div>
-                <div class="stat-label">評価対象者</div>
-              </div>
-              <div class="text-center mt-2">
-                <span class="badge bg-warning" id="pending-evaluations-count">0件 審査待ち</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      `);
-    }
-    
-    // 管理者向けカード
-    if (this.auth && this.auth.hasRole('admin')) {
-      cards.push(`
-        <div class="col-md-6 col-lg-3 mb-3">
-          <div class="info-card">
-            <div class="card-header bg-primary">
-              <h6 class="card-title m-0">
-                <i class="fas fa-chart-bar me-2"></i>全体状況
-              </h6>
-            </div>
-            <div class="card-body">
-              <div class="stat-card">
-                <div class="stat-value" id="total-evaluations">0</div>
-                <div class="stat-label">総評価数</div>
-              </div>
-              <div class="text-center mt-2">
-                <span class="badge bg-success" id="completed-rate">0% 完了</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      `);
-    }
-    
-    return cards.join('');
-  }
-
-  /**
-   * クイックアクションボタンの構築
-   */
-  buildQuickActionButton(userRole) {
-    if (userRole === 'admin') {
-      return `
-        <div class="dropdown">
-          <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-            <i class="fas fa-plus me-1"></i>クイックアクション
-          </button>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#" data-action="add-user">
-              <i class="fas fa-user-plus me-2"></i>ユーザー追加
-            </a></li>
-            <li><a class="dropdown-item" href="#" data-action="add-period">
-              <i class="fas fa-calendar-plus me-2"></i>評価期間追加
-            </a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="#" data-action="export-data">
-              <i class="fas fa-download me-2"></i>データエクスポート
-            </a></li>
-          </ul>
-        </div>
-      `;
-    } else {
-      return `
-        <button class="btn btn-primary" id="start-evaluation">
-          <i class="fas fa-edit me-1"></i>評価を開始
-        </button>
-      `;
-    }
-  }
-
-  /**
-   * メインコンテンツの構築
-   */
-  buildMainContent(currentUser) {
-    return `
-      <!-- 最近の評価 -->
-      <div class="info-card mb-4">
-        <div class="card-header">
-          <h5 class="card-title m-0">
-            <i class="fas fa-history me-2"></i>最近の評価
-          </h5>
-        </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>期間</th>
-                  ${this.auth && this.auth.hasRole('evaluator') ? '<th>対象者</th>' : ''}
-                  <th>自己評価</th>
-                  <th>評価者評価</th>
-                  <th>状態</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody id="recent-evaluations-table">
-                <tr>
-                  <td colspan="6" class="text-center">
-                    <div class="loading-spinner">
-                      <div class="spinner-border spinner-border-sm me-2"></div>
-                      読み込み中...
+        mainContent.innerHTML = `
+            <div class="dashboard-page">
+                <!-- ページヘッダー -->
+                <div class="page-header">
+                    <div class="header-content">
+                        <h1>ダッシュボード</h1>
+                        <div class="header-actions">
+                            <button class="btn-secondary" id="refresh-dashboard">
+                                <i class="icon-refresh"></i>
+                                更新
+                            </button>
+                            <button class="btn-primary" id="new-evaluation-btn">
+                                <i class="icon-plus"></i>
+                                新規評価
+                            </button>
+                        </div>
                     </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div class="card-footer">
-          <a href="#" class="btn btn-outline-primary" data-route="evaluations">
-            すべての評価を見る <i class="fas fa-arrow-right ms-1"></i>
-          </a>
-        </div>
-      </div>
+                </div>
 
-      <!-- 評価進捗チャート（管理者・評価者向け） -->
-      ${this.auth && this.auth.hasRole('evaluator') ? this.buildProgressChart() : ''}
-    `;
-  }
+                <!-- 統計カード -->
+                <div class="stats-section">
+                    <div class="stats-grid">
+                        <div class="stat-card" id="total-evaluations-card">
+                            <div class="stat-header">
+                                <span class="stat-title">総評価数</span>
+                                <i class="stat-icon icon-clipboard"></i>
+                            </div>
+                            <div class="stat-number" id="total-evaluations">0</div>
+                            <div class="stat-change positive" id="total-change">
+                                <i class="icon-trend-up"></i>
+                                <span>+5.2% 前月比</span>
+                            </div>
+                        </div>
 
-  /**
-   * サイドコンテンツの構築
-   */
-  buildSideContent(currentUser) {
-    return `
-      <!-- お知らせ -->
-      <div class="info-card mb-4">
-        <div class="card-header">
-          <h5 class="card-title m-0">
-            <i class="fas fa-bullhorn me-2"></i>お知らせ
-          </h5>
-        </div>
-        <div class="card-body">
-          <div id="announcements-list">
-            ${this.buildAnnouncementsList()}
-          </div>
-        </div>
-      </div>
+                        <div class="stat-card" id="pending-evaluations-card">
+                            <div class="stat-header">
+                                <span class="stat-title">未完了評価</span>
+                                <i class="stat-icon icon-clock"></i>
+                            </div>
+                            <div class="stat-number" id="pending-evaluations">0</div>
+                            <div class="stat-change neutral" id="pending-change">
+                                <i class="icon-minus"></i>
+                                <span>前月と同じ</span>
+                            </div>
+                        </div>
 
-      <!-- 今週の予定 -->
-      <div class="info-card mb-4">
-        <div class="card-header">
-          <h5 class="card-title m-0">
-            <i class="fas fa-calendar-week me-2"></i>今週の予定
-          </h5>
-        </div>
-        <div class="card-body">
-          <div id="schedule-list">
-            ${this.buildScheduleList()}
-          </div>
-        </div>
-      </div>
+                        <div class="stat-card" id="average-score-card">
+                            <div class="stat-header">
+                                <span class="stat-title">平均評価</span>
+                                <i class="stat-icon icon-star"></i>
+                            </div>
+                            <div class="stat-number" id="average-score">0.0</div>
+                            <div class="stat-change positive" id="score-change">
+                                <i class="icon-trend-up"></i>
+                                <span>+0.3 前月比</span>
+                            </div>
+                        </div>
 
-      <!-- クイックリンク -->
-      <div class="info-card">
-        <div class="card-header">
-          <h5 class="card-title m-0">
-            <i class="fas fa-link me-2"></i>クイックリンク
-          </h5>
-        </div>
-        <div class="card-body">
-          ${this.buildQuickLinks(currentUser)}
-        </div>
-      </div>
-    `;
-  }
+                        <div class="stat-card" id="completion-rate-card">
+                            <div class="stat-header">
+                                <span class="stat-title">完了率</span>
+                                <i class="stat-icon icon-check-circle"></i>
+                            </div>
+                            <div class="stat-number" id="completion-rate">0%</div>
+                            <div class="stat-change positive" id="completion-change">
+                                <i class="icon-trend-up"></i>
+                                <span>+12% 前月比</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-  /**
-   * 進捗チャートの構築
-   */
-  buildProgressChart() {
-    return `
-      <div class="info-card">
-        <div class="card-header">
-          <h5 class="card-title m-0">
-            <i class="fas fa-chart-pie me-2"></i>評価進捗状況
-          </h5>
-        </div>
-        <div class="card-body">
-          <div class="chart-container">
-            <canvas id="progress-chart" width="400" height="200"></canvas>
-          </div>
-          <div class="chart-legend mt-3" id="progress-legend">
-            <!-- 凡例は動的に生成 -->
-          </div>
-        </div>
-      </div>
-    `;
-  }
+                <!-- メインコンテンツグリッド -->
+                <div class="dashboard-grid">
+                    <!-- 最近の評価活動 -->
+                    <div class="dashboard-card recent-evaluations-card">
+                        <div class="card-header">
+                            <h2>最近の評価活動</h2>
+                            <a href="#" class="view-all-link" id="view-all-evaluations">
+                                すべて表示 <i class="icon-arrow-right"></i>
+                            </a>
+                        </div>
+                        <div class="card-content">
+                            <div id="recent-evaluations-list" class="recent-evaluations-list">
+                                <!-- 動的に生成 -->
+                            </div>
+                        </div>
+                    </div>
 
-  /**
-   * お知らせリストの構築
-   */
-  buildAnnouncementsList() {
-    const announcements = [
-      {
-        title: '評価期間のお知らせ',
-        content: '2024年上期の評価期間が開始されました。',
-        date: '2024-09-01',
-        type: 'info'
-      },
-      {
-        title: 'システムメンテナンス',
-        content: '定期メンテナンスを実施いたします。',
-        date: '2024-08-28',
-        type: 'warning'
-      },
-      {
-        title: '評価基準の更新',
-        content: '新しい評価基準が適用されました。',
-        date: '2024-08-25',
-        type: 'success'
-      }
-    ];
+                    <!-- 評価進捗チャート -->
+                    <div class="dashboard-card chart-card">
+                        <div class="card-header">
+                            <h2>月別評価進捗</h2>
+                            <div class="chart-controls">
+                                <select id="chart-period" class="chart-period-select">
+                                    <option value="6months">過去6ヶ月</option>
+                                    <option value="1year">過去1年</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="evaluation-progress-chart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
 
-    return announcements.map(announcement => `
-      <div class="alert alert-custom alert-${announcement.type} mb-2">
-        <div class="d-flex">
-          <div class="alert-icon">
-            <i class="fas fa-${this.getAnnouncementIcon(announcement.type)}"></i>
-          </div>
-          <div class="flex-grow-1">
-            <div class="alert-title">${announcement.title}</div>
-            <div class="alert-message small">${announcement.content}</div>
-            <div class="text-muted small mt-1">${this.formatDate(announcement.date)}</div>
-          </div>
-        </div>
-      </div>
-    `).join('');
-  }
+                    <!-- 評価期限アラート -->
+                    <div class="dashboard-card deadlines-card">
+                        <div class="card-header">
+                            <h2>評価期限</h2>
+                            <span class="urgent-badge" id="urgent-count">0</span>
+                        </div>
+                        <div class="card-content">
+                            <div id="upcoming-deadlines" class="deadlines-list">
+                                <!-- 動的に生成 -->
+                            </div>
+                        </div>
+                    </div>
 
-  /**
-   * スケジュールリストの構築
-   */
-  buildScheduleList() {
-    const schedule = [
-      {
-        title: '評価面談',
-        time: '14:00',
-        date: '今日',
-        type: 'meeting'
-      },
-      {
-        title: '評価提出期限',
-        time: '23:59',
-        date: '明日',
-        type: 'deadline'
-      },
-      {
-        title: '部下評価確認',
-        time: '10:00',
-        date: '明後日',
-        type: 'review'
-      }
-    ];
+                    <!-- クイックアクション -->
+                    <div class="dashboard-card quick-actions-card">
+                        <div class="card-header">
+                            <h2>クイックアクション</h2>
+                        </div>
+                        <div class="card-content">
+                            <div class="quick-actions-grid">
+                                <button class="quick-action-btn" id="start-evaluation">
+                                    <i class="icon-edit"></i>
+                                    <span>評価開始</span>
+                                </button>
+                                <button class="quick-action-btn" id="view-reports">
+                                    <i class="icon-chart"></i>
+                                    <span>レポート表示</span>
+                                </button>
+                                <button class="quick-action-btn" id="manage-users">
+                                    <i class="icon-users"></i>
+                                    <span>ユーザー管理</span>
+                                </button>
+                                <button class="quick-action-btn" id="export-data">
+                                    <i class="icon-download"></i>
+                                    <span>データ出力</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
-    if (schedule.length === 0) {
-      return '<p class="text-muted text-center">予定はありません</p>';
-    }
+                    <!-- 評価分布 -->
+                    <div class="dashboard-card distribution-card">
+                        <div class="card-header">
+                            <h2>評価分布</h2>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="evaluation-distribution-chart" width="300" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
 
-    return schedule.map(item => `
-      <div class="d-flex align-items-center mb-2 p-2 border-bottom">
-        <div class="me-3">
-          <i class="fas fa-${this.getScheduleIcon(item.type)} text-primary"></i>
-        </div>
-        <div class="flex-grow-1">
-          <div class="fw-medium">${item.title}</div>
-          <div class="small text-muted">${item.date} ${item.time}</div>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  /**
-   * クイックリンクの構築
-   */
-  buildQuickLinks(currentUser) {
-    const links = [];
-    
-    // 共通リンク
-    links.push(`
-      <a href="#" class="btn btn-outline-primary btn-sm w-100 mb-2" data-route="evaluations">
-        <i class="fas fa-clipboard-list me-2"></i>評価一覧
-      </a>
-    `);
-
-    // 評価者向けリンク
-    if (this.auth && this.auth.hasRole('evaluator')) {
-      links.push(`
-        <a href="#" class="btn btn-outline-success btn-sm w-100 mb-2" data-route="subordinates">
-          <i class="fas fa-users me-2"></i>評価対象者
-        </a>
-      `);
-    }
-
-    // 管理者向けリンク
-    if (this.auth && this.auth.hasRole('admin')) {
-      links.push(`
-        <a href="#" class="btn btn-outline-info btn-sm w-100 mb-2" data-route="users">
-          <i class="fas fa-user-cog me-2"></i>ユーザー管理
-        </a>
-        <a href="#" class="btn btn-outline-secondary btn-sm w-100 mb-2" data-route="settings">
-          <i class="fas fa-cog me-2"></i>設定
-        </a>
-      `);
-    }
-
-    return links.join('');
-  }
-
-  /**
-   * DOM要素の参照をキャッシュ
-   */
-  cacheElements() {
-    this.elements = {
-      currentPeriodName: document.getElementById('current-period-name'),
-      currentPeriodDates: document.getElementById('current-period-dates'),
-      selfEvaluationStatus: document.getElementById('self-evaluation-status'),
-      selfEvaluationProgress: document.getElementById('self-evaluation-progress'),
-      evaluationActionBtn: document.getElementById('evaluation-action-btn'),
-      subordinatesCount: document.getElementById('subordinates-count'),
-      pendingEvaluationsCount: document.getElementById('pending-evaluations-count'),
-      totalEvaluations: document.getElementById('total-evaluations'),
-      completedRate: document.getElementById('completed-rate'),
-      recentEvaluationsTable: document.getElementById('recent-evaluations-table'),
-      refreshBtn: document.getElementById('refresh-dashboard'),
-      startEvaluationBtn: document.getElementById('start-evaluation'),
-      progressChart: document.getElementById('progress-chart')
-    };
-  }
-
-  /**
-   * 表示内容の更新
-   */
-  async updateDisplays() {
-    try {
-      // 自己評価状況の更新
-      await this.updateSelfEvaluationStatus();
-      
-      // 評価者向け情報の更新
-      if (this.auth && this.auth.hasRole('evaluator')) {
-        await this.updateEvaluatorInfo();
-      }
-      
-      // 管理者向け情報の更新
-      if (this.auth && this.auth.hasRole('admin')) {
-        await this.updateAdminInfo();
-      }
-      
-      // 最近の評価テーブルの更新
-      await this.updateRecentEvaluations();
-      
-      // 進捗チャートの更新
-      if (this.elements.progressChart) {
-        await this.updateProgressChart();
-      }
-      
-    } catch (error) {
-      this.log('Error updating displays:', error);
-    }
-  }
-
-  /**
-   * 自己評価状況の更新
-   */
-  async updateSelfEvaluationStatus() {
-    if (!this.elements.selfEvaluationStatus) return;
-    
-    const currentUser = this.auth.getCurrentUser();
-    const activePeriod = this.dashboardData.activePeriod;
-    
-    if (!activePeriod) {
-      this.elements.selfEvaluationStatus.textContent = '評価期間が設定されていません';
-      return;
-    }
-    
-    // 現在のユーザーの評価を取得
-    const userEvaluation = this.dashboardData.evaluations.find(e => 
-      e.user_id === currentUser.id && e.period_id === activePeriod.id
-    );
-    
-    let statusText = '未評価';
-    let progressPercent = 0;
-    let actionText = '評価を開始';
-    let actionClass = 'btn-outline-info';
-    
-    if (userEvaluation) {
-      switch (userEvaluation.status) {
-        case 'draft':
-          statusText = '下書き保存中';
-          progressPercent = 25;
-          actionText = '評価を続ける';
-          actionClass = 'btn-outline-warning';
-          break;
-        case 'submitted':
-          statusText = '提出済み（評価者確認待ち）';
-          progressPercent = 50;
-          actionText = '評価を確認';
-          actionClass = 'btn-outline-primary';
-          break;
-        case 'approved_by_evaluator':
-          statusText = '一次承認済み（最終承認待ち）';
-          progressPercent = 75;
-          actionText = '評価を確認';
-          actionClass = 'btn-outline-info';
-          break;
-        case 'approved_by_admin':
-          statusText = '評価完了';
-          progressPercent = 100;
-          actionText = '評価結果を見る';
-          actionClass = 'btn-outline-success';
-          break;
-      }
-    }
-    
-    // 表示を更新
-    this.elements.selfEvaluationStatus.textContent = statusText;
-    this.elements.selfEvaluationProgress.style.width = `${progressPercent}%`;
-    
-    if (this.elements.evaluationActionBtn) {
-      this.elements.evaluationActionBtn.textContent = actionText;
-      this.elements.evaluationActionBtn.className = `btn btn-sm w-100 ${actionClass}`;
-    }
-  }
-
-  /**
-   * 評価者情報の更新
-   */
-  async updateEvaluatorInfo() {
-    if (!this.elements.subordinatesCount) return;
-    
-    const subordinatesCount = this.dashboardData.subordinatesCount || 0;
-    const pendingCount = this.dashboardData.pendingEvaluations ? this.dashboardData.pendingEvaluations.length : 0;
-    
-    this.elements.subordinatesCount.textContent = subordinatesCount;
-    this.elements.pendingEvaluationsCount.textContent = `${pendingCount}件 審査待ち`;
-  }
-
-  /**
-   * 管理者情報の更新
-   */
-  async updateAdminInfo() {
-    if (!this.elements.totalEvaluations) return;
-    
-    const totalEvaluations = this.dashboardData.evaluations ? this.dashboardData.evaluations.length : 0;
-    const completedEvaluations = this.dashboardData.evaluations ? 
-      this.dashboardData.evaluations.filter(e => e.status === 'approved_by_admin').length : 0;
-    
-    const completedRate = totalEvaluations > 0 ? 
-      Math.round((completedEvaluations / totalEvaluations) * 100) : 0;
-    
-    this.elements.totalEvaluations.textContent = totalEvaluations;
-    this.elements.completedRate.textContent = `${completedRate}% 完了`;
-  }
-
-  /**
-   * 最近の評価テーブルの更新
-   */
-  async updateRecentEvaluations() {
-    if (!this.elements.recentEvaluationsTable) return;
-    
-    const evaluations = this.dashboardData.evaluations || [];
-    const recentEvaluations = evaluations
-      .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
-      .slice(0, 5);
-    
-    if (recentEvaluations.length === 0) {
-      this.elements.recentEvaluationsTable.innerHTML = `
-        <tr>
-          <td colspan="6" class="text-center">
-            <div class="empty-state py-4">
-              <div class="empty-state-icon">
-                <i class="fas fa-clipboard-list"></i>
-              </div>
-              <div class="empty-state-title">評価データがありません</div>
-              <div class="empty-state-description">まだ評価が作成されていません</div>
+                <!-- 通知・アラート -->
+                <div id="dashboard-alerts" class="dashboard-alerts">
+                    <!-- 動的に生成 -->
+                </div>
             </div>
-          </td>
-        </tr>
-      `;
-      return;
+        `;
     }
-    
-    const isEvaluator = this.auth && this.auth.hasRole('evaluator');
-    
-    const rows = recentEvaluations.map(evaluation => {
-      const statusInfo = this.getStatusInfo(evaluation.status);
-      return `
-        <tr>
-          <td>${evaluation.period_name || '不明'}</td>
-          ${isEvaluator ? `<td>${evaluation.user_name || '-'}</td>` : ''}
-          <td>${evaluation.self_rating || '-'}</td>
-          <td>${evaluation.evaluator_rating || '-'}</td>
-          <td>
-            <span class="status-badge status-${evaluation.status}">
-              ${statusInfo.label}
-            </span>
-          </td>
-          <td>
-            <div class="action-buttons">
-              <button class="btn btn-sm btn-outline-primary" 
-                      onclick="app.showEvaluationDetail(${evaluation.id})">
-                <i class="fas fa-eye"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      `;
-    }).join('');
-    
-    this.elements.recentEvaluationsTable.innerHTML = rows;
-  }
 
-  /**
-   * 進捗チャートの更新
-   */
-  async updateProgressChart() {
-    if (!this.elements.progressChart) return;
-    
-    try {
-      const ctx = this.elements.progressChart.getContext('2d');
-      const evaluations = this.dashboardData.evaluations || [];
-      
-      // ステータス別の集計
-      const statusCounts = {
-        draft: 0,
-        submitted: 0,
-        approved_by_evaluator: 0,
-        approved_by_admin: 0
-      };
-      
-      evaluations.forEach(evaluation => {
-        if (statusCounts.hasOwnProperty(evaluation.status)) {
-          statusCounts[evaluation.status]++;
-        }
-      });
-      
-      // チャートデータ
-      const chartData = {
-        labels: ['下書き', '提出済', '一次承認済', '評価完了'],
-        datasets: [{
-          data: [
-            statusCounts.draft,
-            statusCounts.submitted,
-            statusCounts.approved_by_evaluator,
-            statusCounts.approved_by_admin
-          ],
-          backgroundColor: [
-            'var(--color-gray-400)',
-            'var(--color-warning)',
-            'var(--color-info)',
-            'var(--color-success)'
-          ],
-          borderWidth: 2,
-          borderColor: 'var(--color-white)'
-        }]
-      };
-      
-      // チャートの作成
-      new Chart(ctx, {
-        type: 'doughnut',
-        data: chartData,
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: false
+    async loadDashboardData() {
+        try {
+            if (window.api) {
+                // APIから実際のデータを取得
+                const [stats, recentEvals, deadlines] = await Promise.all([
+                    window.api.getDashboardStats(),
+                    window.api.getEvaluations({ limit: 5, sort: 'updatedAt', order: 'desc' }),
+                    window.api.getUpcomingDeadlines()
+                ]);
+
+                this.statsData = stats;
+                this.recentEvaluations = recentEvals;
+                this.upcomingDeadlines = deadlines;
+            } else {
+                // モックデータを使用
+                this.generateMockData();
             }
-          }
+        } catch (error) {
+            console.error('Failed to load dashboard data:', error);
+            this.generateMockData();
         }
-      });
-      
-    } catch (error) {
-      this.log('Error updating progress chart:', error);
     }
-  }
 
-  /**
-   * イベントリスナーの設定
-   */
-  setupEventListeners() {
-    // 更新ボタン
-    if (this.elements.refreshBtn) {
-      this.elements.refreshBtn.addEventListener('click', () => {
-        this.refreshDashboard();
-      });
+    generateMockData() {
+        // モックデータの生成
+        this.statsData = {
+            totalEvaluations: 127,
+            pendingEvaluations: 23,
+            averageScore: 4.2,
+            completionRate: 87
+        };
+
+        this.recentEvaluations = [
+            {
+                id: '1',
+                subordinateName: '田中 太郎',
+                evaluatorName: '佐藤 花子',
+                status: 'completed',
+                updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+                overallRating: 4.5
+            },
+            {
+                id: '2',
+                subordinateName: '山田 次郎',
+                evaluatorName: '鈴木 一郎',
+                status: 'pending',
+                updatedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+                overallRating: null
+            },
+            {
+                id: '3',
+                subordinateName: '伊藤 三郎',
+                evaluatorName: '佐藤 花子',
+                status: 'submitted',
+                updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+                overallRating: 3.8
+            }
+        ];
+
+        this.upcomingDeadlines = [
+            {
+                id: '1',
+                title: '第2四半期評価',
+                deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+                priority: 'high',
+                remainingDays: 3
+            },
+            {
+                id: '2',
+                title: '新人評価期間',
+                deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                priority: 'medium',
+                remainingDays: 7
+            }
+        ];
     }
-    
-    // 評価開始ボタン
-    if (this.elements.startEvaluationBtn) {
-      this.elements.startEvaluationBtn.addEventListener('click', () => {
-        this.startEvaluation();
-      });
+
+    populateData() {
+        // 統計データの表示
+        document.getElementById('total-evaluations').textContent = this.statsData.totalEvaluations || 0;
+        document.getElementById('pending-evaluations').textContent = this.statsData.pendingEvaluations || 0;
+        document.getElementById('average-score').textContent = (this.statsData.averageScore || 0).toFixed(1);
+        document.getElementById('completion-rate').textContent = `${this.statsData.completionRate || 0}%`;
+
+        // 最近の評価活動
+        this.renderRecentEvaluations();
+
+        // 期限アラート
+        this.renderUpcomingDeadlines();
+
+        // チャートの描画
+        this.renderCharts();
     }
-    
-    // 評価アクションボタン
-    if (this.elements.evaluationActionBtn) {
-      this.elements.evaluationActionBtn.addEventListener('click', () => {
-        this.handleEvaluationAction();
-      });
+
+    renderRecentEvaluations() {
+        const container = document.getElementById('recent-evaluations-list');
+        if (!container) return;
+
+        if (this.recentEvaluations.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="icon-clipboard"></i>
+                    <p>最近の評価活動がありません</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = this.recentEvaluations.map(evaluation => `
+            <div class="recent-evaluation-item" data-evaluation-id="${evaluation.id}">
+                <div class="evaluation-info">
+                    <div class="evaluation-participants">
+                        <span class="subordinate">${evaluation.subordinateName}</span>
+                        <span class="evaluator">評価者: ${evaluation.evaluatorName}</span>
+                    </div>
+                    <div class="evaluation-meta">
+                        <span class="status-badge status-${evaluation.status}">
+                            ${this.getStatusDisplayName(evaluation.status)}
+                        </span>
+                        ${evaluation.overallRating ? `
+                            <div class="rating-display">
+                                ${this.renderStars(evaluation.overallRating)}
+                                <span class="rating-number">${evaluation.overallRating}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="evaluation-time">
+                    ${this.formatRelativeTime(evaluation.updatedAt)}
+                </div>
+            </div>
+        `).join('');
     }
-    
-    // クイックアクション
-    this.container.addEventListener('click', (event) => {
-      const actionButton = event.target.closest('[data-action]');
-      if (actionButton) {
-        event.preventDefault();
-        const action = actionButton.getAttribute('data-action');
-        this.handleQuickAction(action);
-      }
-      
-      const routeButton = event.target.closest('[data-route]');
-      if (routeButton) {
-        event.preventDefault();
-        const route = routeButton.getAttribute('data-route');
-        this.app.emit('navigation:request', { route });
-      }
-    });
-  }
 
-  /**
-   * ダッシュボードの更新
-   */
-  async refreshDashboard() {
-    try {
-      this.log('Refreshing dashboard...');
-      
-      // 更新ボタンを無効化
-      if (this.elements.refreshBtn) {
-        this.elements.refreshBtn.disabled = true;
-        this.elements.refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>更新中';
-      }
-      
-      // データを再読み込み
-      await this.loadDashboardData();
-      
-      // 表示を更新
-      await this.updateDisplays();
-      
-      this.log('Dashboard refreshed successfully');
-      
-    } catch (error) {
-      this.log('Error refreshing dashboard:', error);
-      this.showError('更新に失敗しました', error.message);
-    } finally {
-      // 更新ボタンを有効化
-      if (this.elements.refreshBtn) {
-        this.elements.refreshBtn.disabled = false;
-        this.elements.refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> 更新';
-      }
+    renderUpcomingDeadlines() {
+        const container = document.getElementById('upcoming-deadlines');
+        const urgentCount = document.getElementById('urgent-count');
+        
+        if (!container) return;
+
+        const urgentDeadlines = this.upcomingDeadlines.filter(d => d.priority === 'high');
+        if (urgentCount) {
+            urgentCount.textContent = urgentDeadlines.length;
+            urgentCount.style.display = urgentDeadlines.length > 0 ? 'inline' : 'none';
+        }
+
+        if (this.upcomingDeadlines.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="icon-calendar"></i>
+                    <p>期限の迫った評価はありません</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = this.upcomingDeadlines.map(deadline => `
+            <div class="deadline-item priority-${deadline.priority}">
+                <div class="deadline-info">
+                    <h4>${deadline.title}</h4>
+                    <p class="deadline-date">${this.formatDate(deadline.deadline)}</p>
+                </div>
+                <div class="deadline-countdown">
+                    <span class="days-remaining">${deadline.remainingDays}日</span>
+                    <span class="remaining-label">残り</span>
+                </div>
+            </div>
+        `).join('');
     }
-  }
 
-  /**
-   * 評価開始処理
-   */
-  startEvaluation() {
-    this.log('Starting evaluation...');
-    this.app.emit('evaluation:start');
-  }
-
-  /**
-   * 評価アクション処理
-   */
-  handleEvaluationAction() {
-    this.log('Handling evaluation action...');
-    // 現在の評価状況に応じてアクションを実行
-    this.app.emit('evaluation:action');
-  }
-
-  /**
-   * クイックアクション処理
-   */
-  handleQuickAction(action) {
-    this.log('Quick action:', action);
-    
-    switch (action) {
-      case 'add-user':
-        this.app.emit('user:add');
-        break;
-      case 'add-period':
-        this.app.emit('period:add');
-        break;
-      case 'export-data':
-        this.app.emit('data:export');
-        break;
-      default:
-        this.log('Unknown quick action:', action);
+    renderCharts() {
+        // 評価進捗チャート
+        this.renderProgressChart();
+        
+        // 評価分布チャート
+        this.renderDistributionChart();
     }
-  }
 
-  /**
-   * 自動リフレッシュの開始
-   */
-  startAutoRefresh() {
-    if (this.refreshInterval) {
-      clearInterval(this.refreshInterval);
+    renderProgressChart() {
+        const canvas = document.getElementById('evaluation-progress-chart');
+        if (!canvas) return;
+
+        // Chart.jsが利用可能かチェック
+        if (typeof Chart === 'undefined') {
+            canvas.parentElement.innerHTML = '<p>チャートライブラリが読み込まれていません</p>';
+            return;
+        }
+
+        const ctx = canvas.getContext('2d');
+        
+        // モックデータ
+        const chartData = {
+            labels: ['1月', '2月', '3月', '4月', '5月', '6月'],
+            datasets: [{
+                label: '完了した評価',
+                data: [12, 19, 15, 25, 22, 30],
+                borderColor: '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                fill: true
+            }, {
+                label: '未完了の評価',
+                data: [3, 5, 8, 6, 4, 2],
+                borderColor: '#FF9800',
+                backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                fill: true
+            }]
+        };
+
+        new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
     }
-    
-    this.refreshInterval = setInterval(() => {
-      this.refreshDashboard();
-    }, this.autoRefreshInterval);
-    
-    this.log('Auto refresh started');
-  }
 
-  /**
-   * 自動リフレッシュの停止
-   */
-  stopAutoRefresh() {
-    if (this.refreshInterval) {
-      clearInterval(this.refreshInterval);
-      this.refreshInterval = null;
-      this.log('Auto refresh stopped');
+    renderDistributionChart() {
+        const canvas = document.getElementById('evaluation-distribution-chart');
+        if (!canvas) return;
+
+        if (typeof Chart === 'undefined') {
+            canvas.parentElement.innerHTML = '<p>チャートライブラリが読み込まれていません</p>';
+            return;
+        }
+
+        const ctx = canvas.getContext('2d');
+        
+        const chartData = {
+            labels: ['5.0', '4.0-4.9', '3.0-3.9', '2.0-2.9', '1.0-1.9'],
+            datasets: [{
+                data: [25, 45, 20, 8, 2],
+                backgroundColor: [
+                    '#4CAF50',
+                    '#8BC34A',
+                    '#FFC107',
+                    '#FF9800',
+                    '#F44336'
+                ]
+            }]
+        };
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: chartData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
     }
-  }
 
-  // === ユーティリティメソッド === //
+    setupEventListeners() {
+        // 更新ボタン
+        document.getElementById('refresh-dashboard')?.addEventListener('click', () => {
+            this.render();
+        });
 
-  /**
-   * 期間の日付フォーマット
-   */
-  formatPeriodDates(period) {
-    const startDate = new Date(period.start_date).toLocaleDateString('ja-JP');
-    const endDate = new Date(period.end_date).toLocaleDateString('ja-JP');
-    return `${startDate} 〜 ${endDate}`;
-  }
+        // 新規評価ボタン
+        document.getElementById('new-evaluation-btn')?.addEventListener('click', () => {
+            if (window.router) {
+                window.router.navigate('/evaluations/new');
+            }
+        });
 
-  /**
-   * 日付フォーマット
-   */
-  formatDate(dateString) {
-    return new Date(dateString).toLocaleDateString('ja-JP');
-  }
+        // すべて表示リンク
+        document.getElementById('view-all-evaluations')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.router) {
+                window.router.navigate('/evaluations');
+            }
+        });
 
-  /**
-   * ステータス情報の取得
-   */
-  getStatusInfo(status) {
-    const statusMap = {
-      draft: { label: '下書き', class: 'status-draft' },
-      submitted: { label: '提出済', class: 'status-submitted' },
-      approved_by_evaluator: { label: '一次承認済', class: 'status-approved-evaluator' },
-      approved_by_admin: { label: '評価完了', class: 'status-approved-admin' }
-    };
-    
-    return statusMap[status] || { label: status, class: 'status-unknown' };
-  }
+        // クイックアクション
+        document.getElementById('start-evaluation')?.addEventListener('click', () => {
+            if (window.router) {
+                window.router.navigate('/evaluations/new');
+            }
+        });
 
-  /**
-   * お知らせアイコンの取得
-   */
-  getAnnouncementIcon(type) {
-    const iconMap = {
-      info: 'info-circle',
-      warning: 'exclamation-triangle',
-      success: 'check-circle',
-      danger: 'times-circle'
-    };
-    return iconMap[type] || 'info-circle';
-  }
+        document.getElementById('view-reports')?.addEventListener('click', () => {
+            if (window.router) {
+                window.router.navigate('/reports');
+            }
+        });
 
-  /**
-   * スケジュールアイコンの取得
-   */
-  getScheduleIcon(type) {
-    const iconMap = {
-      meeting: 'users',
-      deadline: 'clock',
-      review: 'clipboard-check'
-    };
-    return iconMap[type] || 'calendar';
-  }
+        document.getElementById('manage-users')?.addEventListener('click', () => {
+            if (window.router) {
+                window.router.navigate('/users');
+            }
+        });
 
-  /**
-   * ローディング表示
-   */
-  showLoading() {
-    if (this.container) {
-      this.container.innerHTML = `
-        <div class="d-flex justify-content-center align-items-center" style="min-height: 400px;">
-          <div class="loading-spinner">
-            <div class="spinner-border text-primary me-3"></div>
-            <span>ダッシュボードを読み込んでいます...</span>
-          </div>
-        </div>
-      `;
+        document.getElementById('export-data')?.addEventListener('click', () => {
+            this.exportDashboardData();
+        });
+
+        // 最近の評価アイテムクリック
+        document.addEventListener('click', (e) => {
+            const evaluationItem = e.target.closest('.recent-evaluation-item');
+            if (evaluationItem) {
+                const evaluationId = evaluationItem.dataset.evaluationId;
+                if (window.router && evaluationId) {
+                    window.router.navigate(`/evaluations/${evaluationId}`);
+                }
+            }
+        });
     }
-  }
 
-  /**
-   * エラー表示
-   */
-  showError(title, message) {
-    if (this.container) {
-      this.container.innerHTML = `
-        <div class="alert alert-danger" role="alert">
-          <h4 class="alert-heading">${title}</h4>
-          <p>${message}</p>
-          <hr>
-          <button class="btn btn-outline-danger" onclick="location.reload()">
-            <i class="fas fa-redo me-1"></i>ページを再読み込み
-          </button>
-        </div>
-      `;
+    startAutoRefresh() {
+        // 5分毎に自動更新
+        this.refreshInterval = setInterval(() => {
+            this.loadDashboardData().then(() => {
+                this.populateData();
+            });
+        }, 5 * 60 * 1000);
     }
-  }
 
-  /**
-   * ログ出力
-   */
-  log(message, data = null) {
-    if (this.debug) {
-      console.log(`[Dashboard] ${message}`, data || '');
+    stopAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+            this.refreshInterval = null;
+        }
     }
-  }
 
-  /**
-   * 未保存データの確認
-   */
-  hasUnsavedData() {
-    // ダッシュボードには未保存データはない
-    return false;
-  }
+    async exportDashboardData() {
+        try {
+            const data = {
+                stats: this.statsData,
+                recentEvaluations: this.recentEvaluations,
+                upcomingDeadlines: this.upcomingDeadlines,
+                exportedAt: new Date().toISOString()
+            };
 
-  /**
-   * コントローラーの破棄
-   */
-  destroy() {
-    this.log('Destroying dashboard controller...');
-    
-    // 自動リフレッシュを停止
-    this.stopAutoRefresh();
-    
-    // コンテナをクリア
-    if (this.container) {
-      this.container.innerHTML = '';
+            const blob = new Blob([JSON.stringify(data, null, 2)], {
+                type: 'application/json'
+            });
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dashboard-data-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            window.notification?.show('ダッシュボードデータをエクスポートしました', 'success');
+        } catch (error) {
+            console.error('Export failed:', error);
+            window.notification?.show('エクスポートに失敗しました', 'error');
+        }
     }
-    
-    this.log('Dashboard controller destroyed');
-  }
-};
 
-// デバッグ用
-if (EvaluationApp.Constants && EvaluationApp.Constants.APP.DEBUG) {
-  console.log('Dashboard controller loaded');
+    // ユーティリティメソッド
+    getStatusDisplayName(status) {
+        const statusNames = {
+            draft: '下書き',
+            pending: '未完了',
+            submitted: '提出済み',
+            approved: '承認済み',
+            completed: '完了'
+        };
+        return statusNames[status] || status;
+    }
+
+    renderStars(rating) {
+        const stars = [];
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+
+        for (let i = 0; i < fullStars; i++) {
+            stars.push('<i class="icon-star-filled"></i>');
+        }
+
+        if (hasHalfStar) {
+            stars.push('<i class="icon-star-half"></i>');
+        }
+
+        const emptyStars = 5 - Math.ceil(rating);
+        for (let i = 0; i < emptyStars; i++) {
+            stars.push('<i class="icon-star"></i>');
+        }
+
+        return stars.join('');
+    }
+
+    formatRelativeTime(dateString) {
+        if (!dateString) return '';
+
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+
+        if (diffInMinutes < 1) {
+            return 'たった今';
+        } else if (diffInMinutes < 60) {
+            return `${diffInMinutes}分前`;
+        } else if (diffInMinutes < 1440) {
+            return `${Math.floor(diffInMinutes / 60)}時間前`;
+        } else if (diffInMinutes < 10080) {
+            return `${Math.floor(diffInMinutes / 1440)}日前`;
+        } else {
+            return date.toLocaleDateString('ja-JP');
+        }
+    }
+
+    formatDate(dateString) {
+        if (!dateString) return '';
+        
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ja-JP', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    showLoading() {
+        const loadingIndicator = document.getElementById('loading-indicator');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'flex';
+        }
+    }
+
+    hideLoading() {
+        const loadingIndicator = document.getElementById('loading-indicator');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+    }
+
+    showError(message) {
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.innerHTML = `
+                <div class="error-page">
+                    <div class="error-icon">
+                        <i class="icon-alert-circle"></i>
+                    </div>
+                    <h2>エラー</h2>
+                    <p>${message}</p>
+                    <button onclick="window.dashboard.render()" class="btn-primary">
+                        再試行
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    // クリーンアップ
+    destroy() {
+        this.stopAutoRefresh();
+        
+        // イベントリスナーの削除
+        document.removeEventListener('click', this.handleClick);
+    }
+
+    // デバッグ用メソッド
+    debug() {
+        return {
+            statsData: this.statsData,
+            recentEvaluations: this.recentEvaluations,
+            upcomingDeadlines: this.upcomingDeadlines,
+            refreshInterval: this.refreshInterval !== null
+        };
+    }
 }
+
+// グローバルインスタンス
+window.dashboard = new DashboardController();
