@@ -4,216 +4,762 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>建設業評価システム</title>
-    <meta name="description" content="建設業向け従業員評価管理システム">
-    
-    <!-- CSS読み込み -->
-    <link rel="stylesheet" href="assets/css/variables.css">
-    <link rel="stylesheet" href="assets/css/main.css">
-    <link rel="stylesheet" href="assets/css/components.css">
-    <link rel="stylesheet" href="assets/css/responsive.css">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
+    <style>
+        /* 基本スタイル */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* ヘッダー */
+        .app-header {
+            background: #1976d2;
+            color: white;
+            padding: 0 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 64px;
+        }
+        
+        .logo h1 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 0;
+        }
+        
+        .nav-link {
+            display: block;
+            padding: 20px 24px;
+            color: white;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .user-menu {
+            position: relative;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .user-info:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .user-role {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        /* メインコンテンツ */
+        .main-content {
+            flex: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 20px;
+            width: 100%;
+        }
+        
+        /* ページ共通 */
+        .page {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .page-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1976d2;
+        }
+        
+        .page-content {
+            padding: 32px;
+        }
+        
+        /* ボタン */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+        
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #eeeeee;
+        }
+        
+        /* ログインページ */
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1976d2, #42a5f5);
+        }
+        
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .login-header h1 {
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+        
+        .demo-info {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        
+        .demo-accounts {
+            margin-top: 12px;
+        }
+        
+        .demo-account {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+        }
+        
+        /* 統計カード */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* テーブル */
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th,
+        .table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        /* 通知 */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 20px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: #4caf50;
+        }
+        
+        .notification.error {
+            background: #f44336;
+        }
+        
+        .notification.info {
+            background: #2196f3;
+        }
+        
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                height: auto;
+                padding: 12px 0;
+            }
+            
+            .nav-menu {
+                margin-top: 12px;
+            }
+            
+            .main-content {
+                padding: 16px 12px;
+            }
+            
+            .login-container {
+                margin: 20px;
+                padding: 24px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* ローディング要素を隠す */
+        #loading-indicator,
+        .loading-overlay {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
-    <!-- ローディングインジケーター -->
-    <div id="loading-indicator" class="loading-overlay">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">読み込み中...</div>
-    </div>
-
-    <!-- メインアプリケーション -->
-    <div id="app" class="app-container">
-        <!-- ナビゲーションヘッダー -->
-        <header id="app-header" class="app-header">
+    <div class="app-container">
+        <!-- ヘッダー（ログイン時のみ表示） -->
+        <header id="app-header" class="app-header" style="display: none;">
             <div class="header-content">
                 <div class="logo">
-                    <h1>建設業評価システム</h1>
+                    <h1>🏗️ 建設業評価システム</h1>
                 </div>
-                <nav id="main-navigation" class="main-navigation">
-                    <!-- ナビゲーションメニューは動的に生成 -->
+                <nav>
+                    <ul class="nav-menu" id="nav-menu">
+                        <!-- 動的に生成 -->
+                    </ul>
                 </nav>
                 <div class="user-menu">
                     <div class="user-info" id="user-info">
-                        <!-- ユーザー情報は動的に生成 -->
+                        <!-- 動的に生成 -->
                     </div>
                 </div>
             </div>
         </header>
 
-        <!-- ブレッドクラム -->
-        <div id="breadcrumbs" class="breadcrumbs">
-            <!-- ブレッドクラムは動的に生成 -->
-        </div>
-
         <!-- メインコンテンツ -->
         <main id="main-content" class="main-content">
-            <!-- ページコンテンツは動的に生成 -->
-            <div class="welcome-screen">
-                <h2>建設業評価システムへようこそ</h2>
-                <p>システムを初期化しています...</p>
-            </div>
-        </main>
-
-        <!-- フッター -->
-        <footer class="app-footer">
-            <div class="footer-content">
-                <p>&copy; 2025 建設業評価システム. All rights reserved.</p>
-            </div>
-        </footer>
-    </div>
-
-    <!-- JavaScript読み込み（依存関係順に読み込み） -->
-    
-    <!-- 1. ユーティリティと定数 -->
-    <script src="assets/js/utils/constants.js"></script>
-    
-    <!-- 2. データ -->
-    <script src="assets/js/data/mock-data.js"></script>
-    
-    <!-- 3. コア機能 -->
-    <script src="assets/js/core/auth.js"></script>
-    <script src="assets/js/core/api.js"></script>
-    
-    <!-- 4. コンポーネント -->
-    <script src="assets/js/components/notification.js"></script>
-    <script src="assets/js/components/navigation.js"></script>
-    <script src="assets/js/components/evaluation-form.js"></script>
-    
-    <!-- 5. ページコントローラー -->
-    <script src="assets/js/pages/dashboard.js"></script>
-    <script src="assets/js/pages/evaluations.js"></script>
-    <script src="assets/js/pages/users.js"></script>
-    
-    <!-- 6. ルーター -->
-    <script src="assets/js/core/router.js"></script>
-    
-    <!-- 7. メインアプリケーション（最後に読み込み） -->
-    <script src="assets/js/core/app.js"></script>
-
-    <!-- アプリケーション初期化 -->
-    <script>
-        // グローバルエラーハンドリング
-        window.addEventListener('error', function(e) {
-            console.error('Global error:', e.error);
-            console.error('Error at:', e.filename, 'line:', e.lineno, 'col:', e.colno);
-            
-            // エラー表示
-            const mainContent = document.getElementById('main-content');
-            if (mainContent) {
-                mainContent.innerHTML = `
-                    <div class="error-page">
-                        <h2>❌ アプリケーションエラー</h2>
-                        <p><strong>エラー:</strong> ${e.error?.message || ' 不明なエラー'}</p>
-                        <p><strong>ファイル:</strong> ${e.filename || '不明'}</p>
-                        <p><strong>行:</strong> ${e.lineno || '?'}</p>
-                        <button onclick="location.reload()" class="btn-primary">再読み込み</button>
+            <!-- 初期状態：ログインページ -->
+            <div class="login-page">
+                <div class="login-container">
+                    <div class="login-header">
+                        <h1>🏗️ 建設業評価システム</h1>
+                        <p>システムにログインしてください</p>
                     </div>
-                `;
-            }
-        });
-
-        window.addEventListener('unhandledrejection', function(e) {
-            console.error('Unhandled promise rejection:', e.reason);
-        });
-
-        // DOMContentLoaded後にアプリを初期化
-        document.addEventListener('DOMContentLoaded', function() {
-            try {
-                console.log('DOM loaded, checking dependencies...');
-                
-                // 必要なオブジェクトの存在確認
-                const requiredObjects = [
-                    'window.AuthManager',
-                    'window.ApiClient', 
-                    'window.notification',
-                    'window.navigation',
-                    'window.dashboard',
-                    'window.evaluations',
-                    'window.users',
-                    'window.router'
-                ];
-                
-                const missingObjects = [];
-                
-                requiredObjects.forEach(objPath => {
-                    const keys = objPath.split('.');
-                    let current = window;
-                    for (let i = 1; i < keys.length; i++) {
-                        if (!current[keys[i]]) {
-                            missingObjects.push(objPath);
-                            break;
-                        }
-                        current = current[keys[i]];
-                    }
-                });
-                
-                if (missingObjects.length > 0) {
-                    throw new Error(`Missing required objects: ${missingObjects.join(', ')}`);
-                }
-                
-                console.log('All dependencies loaded successfully');
-                
-                // アプリケーション初期化
-                if (typeof window.App !== 'undefined') {
-                    console.log('Initializing main app...');
-                    window.app = new window.App();
-                    console.log('App initialized successfully');
-                } else {
-                    throw new Error('App class not found. Check if app.js is loaded correctly.');
-                }
-                
-            } catch (error) {
-                console.error('App initialization failed:', error);
-                
-                // ローディングを隠す
-                const loadingIndicator = document.getElementById('loading-indicator');
-                if (loadingIndicator) {
-                    loadingIndicator.style.display = 'none';
-                }
-                
-                // エラー表示
-                const mainContent = document.getElementById('main-content');
-                if (mainContent) {
-                    mainContent.innerHTML = `
-                        <div class="error-page">
-                            <h2>🚨 初期化エラー</h2>
-                            <p><strong>問題:</strong> ${error.message}</p>
-                            <div class="error-details">
-                                <h3>確認事項:</h3>
-                                <ul>
-                                    <li>すべてのJavaScriptファイルが正しく配置されているか</li>
-                                    <li>ファイル名が正確か（大文字小文字含む）</li>
-                                    <li>ネットワーク接続に問題がないか</li>
-                                </ul>
+                    
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="email">メールアドレス</label>
+                            <input type="email" id="email" name="email" 
+                                   value="admin@company.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">パスワード</label>
+                            <input type="password" id="password" name="password" 
+                                   value="password123" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            ログイン
+                        </button>
+                    </form>
+                    
+                    <div class="demo-info">
+                        <strong>🚀 デモアカウント</strong>
+                        <div class="demo-accounts">
+                            <div class="demo-account">
+                                <strong>管理者:</strong> admin@company.com / password123
                             </div>
-                            <div class="error-actions">
-                                <button onclick="location.reload()" class="btn-primary">再読み込み</button>
-                                <button onclick="window.open('debug.html', '_blank')" class="btn-secondary">ファイルチェック</button>
+                            <div class="demo-account">
+                                <strong>マネージャー:</strong> manager@company.com / password123
+                            </div>
+                            <div class="demo-account">
+                                <strong>主任:</strong> supervisor@company.com / password123
                             </div>
                         </div>
-                    `;
-                }
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 通知コンテナ -->
+    <div id="notification-container"></div>
+
+    <script>
+        console.log('🚀 Simple evaluation system started');
+        
+        // アプリケーション状態
+        const app = {
+            currentUser: null,
+            currentPage: 'login',
+            
+            // 模擬データ
+            mockData: {
+                users: [
+                    { id: '1', email: 'admin@company.com', password: 'password123', name: '田中 太郎', role: 'admin' },
+                    { id: '2', email: 'manager@company.com', password: 'password123', name: '佐藤 花子', role: 'manager' },
+                    { id: '3', email: 'supervisor@company.com', password: 'password123', name: '鈴木 一郎', role: 'supervisor' }
+                ],
+                evaluations: [
+                    { id: '1', subordinate: '山田 太郎', evaluator: '田中 太郎', status: 'completed', rating: 4.5, updatedAt: '2025-06-01' },
+                    { id: '2', subordinate: '佐藤 次郎', evaluator: '佐藤 花子', status: 'pending', rating: null, updatedAt: '2025-06-02' },
+                    { id: '3', subordinate: '鈴木 三郎', evaluator: '鈴木 一郎', status: 'submitted', rating: 3.8, updatedAt: '2025-06-03' }
+                ]
             }
+        };
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ DOM loaded');
+            setupEventListeners();
         });
         
-        // デバッグ情報表示（開発用）
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '') {
-            console.log('🔧 Development mode enabled');
-            window.DEBUG_MODE = true;
-            
-            // 5秒後にデバッグ情報を表示
-            setTimeout(() => {
-                console.log('📊 Debug Info:', {
-                    auth: typeof window.AuthManager,
-                    api: typeof window.ApiClient,
-                    notification: typeof window.notification,
-                    navigation: typeof window.navigation,
-                    router: typeof window.router,
-                    app: typeof window.app
-                });
-            }, 5000);
+        function setupEventListeners() {
+            // ログインフォーム
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', handleLogin);
+                console.log('✅ Login form listener added');
+            }
         }
+        
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            console.log('🔐 Login attempt:', email);
+            
+            // 模擬認証
+            const user = app.mockData.users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                app.currentUser = user;
+                showNotification(`${user.name}さん、おかえりなさい！`, 'success');
+                console.log('✅ Login successful:', user.name);
+                
+                setTimeout(() => {
+                    showDashboard();
+                }, 1000);
+            } else {
+                showNotification('ログインに失敗しました', 'error');
+                console.log('❌ Login failed');
+            }
+        }
+        
+        function showDashboard() {
+            console.log('🏠 Showing dashboard');
+            app.currentPage = 'dashboard';
+            
+            // ヘッダーを表示
+            const header = document.getElementById('app-header');
+            header.style.display = 'block';
+            
+            // ナビゲーションメニューを構築
+            buildNavigation();
+            
+            // ダッシュボードコンテンツを表示
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = `
+                <div class="page">
+                    <div class="page-header">
+                        <h1 class="page-title">📊 ダッシュボード</h1>
+                        <button class="btn btn-primary" onclick="showEvaluations()">
+                            📋 評価一覧
+                        </button>
+                    </div>
+                    <div class="page-content">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">${app.mockData.evaluations.length}</div>
+                                <div class="stat-label">総評価数</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${app.mockData.evaluations.filter(e => e.status === 'pending').length}</div>
+                                <div class="stat-label">未完了</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${app.mockData.evaluations.filter(e => e.status === 'completed').length}</div>
+                                <div class="stat-label">完了済み</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">4.2</div>
+                                <div class="stat-label">平均評価</div>
+                            </div>
+                        </div>
+                        
+                        <h3>📈 最近の活動</h3>
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>評価対象者</th>
+                                        <th>評価者</th>
+                                        <th>ステータス</th>
+                                        <th>更新日</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${app.mockData.evaluations.map(evaluation => `
+                                        <tr>
+                                            <td>${evaluation.subordinate}</td>
+                                            <td>${evaluation.evaluator}</td>
+                                            <td>${getStatusDisplayName(evaluation.status)}</td>
+                                            <td>${evaluation.updatedAt}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showEvaluations() {
+            console.log('📋 Showing evaluations');
+            app.currentPage = 'evaluations';
+            
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = `
+                <div class="page">
+                    <div class="page-header">
+                        <h1 class="page-title">📋 評価一覧</h1>
+                        <div>
+                            <button class="btn btn-secondary" onclick="showDashboard()">
+                                🏠 ダッシュボード
+                            </button>
+                            <button class="btn btn-primary" onclick="addNewEvaluation()">
+                                ➕ 新規評価
+                            </button>
+                        </div>
+                    </div>
+                    <div class="page-content">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>評価対象者</th>
+                                        <th>評価者</th>
+                                        <th>評価点</th>
+                                        <th>ステータス</th>
+                                        <th>更新日</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${app.mockData.evaluations.map(evaluation => `
+                                        <tr>
+                                            <td>${evaluation.id}</td>
+                                            <td>${evaluation.subordinate}</td>
+                                            <td>${evaluation.evaluator}</td>
+                                            <td>${evaluation.rating ? evaluation.rating + '/5' : '未評価'}</td>
+                                            <td>${getStatusDisplayName(evaluation.status)}</td>
+                                            <td>${evaluation.updatedAt}</td>
+                                            <td>
+                                                <button class="btn btn-secondary" onclick="viewEvaluation('${evaluation.id}')">
+                                                    👁️ 表示
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showUsers() {
+            console.log('👥 Showing users');
+            app.currentPage = 'users';
+            
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = `
+                <div class="page">
+                    <div class="page-header">
+                        <h1 class="page-title">👥 ユーザー管理</h1>
+                        <button class="btn btn-secondary" onclick="showDashboard()">
+                            🏠 ダッシュボード
+                        </button>
+                    </div>
+                    <div class="page-content">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>名前</th>
+                                        <th>メールアドレス</th>
+                                        <th>役職</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${app.mockData.users.map(user => `
+                                        <tr>
+                                            <td>${user.id}</td>
+                                            <td>${user.name}</td>
+                                            <td>${user.email}</td>
+                                            <td>${getRoleDisplayName(user.role)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function buildNavigation() {
+            const navMenu = document.getElementById('nav-menu');
+            const userInfo = document.getElementById('user-info');
+            
+            if (navMenu) {
+                navMenu.innerHTML = `
+                    <li><a href="#" class="nav-link" onclick="showDashboard()">📊 ダッシュボード</a></li>
+                    <li><a href="#" class="nav-link" onclick="showEvaluations()">📋 評価一覧</a></li>
+                    ${app.currentUser.role === 'admin' ? '<li><a href="#" class="nav-link" onclick="showUsers()">👥 ユーザー管理</a></li>' : ''}
+                `;
+            }
+            
+            if (userInfo) {
+                userInfo.innerHTML = `
+                    <div class="user-avatar">${app.currentUser.name.charAt(0)}</div>
+                    <div class="user-details">
+                        <div class="user-name">${app.currentUser.name}</div>
+                        <div class="user-role">${getRoleDisplayName(app.currentUser.role)}</div>
+                    </div>
+                    <button onclick="logout()" style="margin-left: 12px; background: none; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+                        ログアウト
+                    </button>
+                `;
+            }
+        }
+        
+        function logout() {
+            console.log('🚪 Logging out');
+            app.currentUser = null;
+            app.currentPage = 'login';
+            
+            // ヘッダーを隠す
+            document.getElementById('app-header').style.display = 'none';
+            
+            // ログインページに戻る
+            location.reload();
+        }
+        
+        // ユーティリティ関数
+        function getStatusDisplayName(status) {
+            const statusNames = {
+                draft: '下書き',
+                pending: '未完了',
+                submitted: '提出済み',
+                completed: '完了'
+            };
+            return statusNames[status] || status;
+        }
+        
+        function getRoleDisplayName(role) {
+            const roleNames = {
+                admin: '管理者',
+                manager: 'マネージャー',
+                supervisor: '主任'
+            };
+            return roleNames[role] || role;
+        }
+        
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    container.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+        
+        // プレースホルダー関数
+        function addNewEvaluation() {
+            showNotification('新規評価機能は開発中です', 'info');
+        }
+        
+        function viewEvaluation(id) {
+            showNotification(`評価 ${id} の詳細表示機能は開発中です`, 'info');
+        }
+        
+        console.log('✅ Simple evaluation system ready');
     </script>
 </body>
 </html>
