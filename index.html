@@ -1,4 +1,29 @@
-<!DOCTYPE html>
+function buildNavigation() {
+            const navMenu = document.getElementById('nav-menu');
+            const userInfo = document.getElementById('user-info');
+            
+            if (navMenu) {
+                navMenu.innerHTML = `
+                    <li><a href="#" class="nav-link ${app.currentPage === 'dashboard' ? 'active' : ''}" onclick="showDashboard()">${i18n.t('nav.dashboard')}</a></li>
+                    <li><a href="#" class="nav-link ${app.currentPage === 'evaluations' ? 'active' : ''}" onclick="showEvaluations()">${i18n.t('nav.evaluations')}</a></li>
+                `;
+            }
+            
+            if (userInfo) {
+                userInfo.innerHTML = `
+                    <div class="user-avatar">${app.currentUser.name.charAt(0)}</div>
+                    <div class="user-details">
+                        <div class="user-name">${app.currentUser.name}</div>
+                        <div class="user-role">管理者</div>
+                    </div>
+                    <div class="language-selector">
+                        <select onchange="i18n.setLanguage(this.value)">
+                            ${Object.entries(i18n.languages).map(([code, lang]) => 
+                                `<option value="${code}" ${i18n.currentLanguage === code ? 'selected' : ''}>${lang.flag} ${lang.name}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    <button onclick="logout()" style="margin-left: 12px; background: none; border: <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -560,7 +585,26 @@
             border-radius: 4px;
         }
         
-        /* レスポンシブ */
+        /* 言語選択ドロップダウン */
+        .language-selector {
+            position: relative;
+            margin-left: 16px;
+        }
+        
+        .language-selector select {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .language-selector select option {
+            background: #1976d2;
+            color: white;
+        }
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -904,11 +948,17 @@
             updateUI() {
                 // ページを再描画して新しい言語を適用
                 if (app.currentUser) {
-                    if (app.currentPage === 'dashboard') {
+                    // 現在のページ状態を保持して再描画
+                    const currentPage = app.currentPage;
+                    if (currentPage === 'dashboard') {
                         showDashboard();
-                    } else if (app.currentPage === 'evaluations') {
+                    } else if (currentPage === 'evaluations') {
                         showEvaluations();
+                    } else if (currentPage === 'new-evaluation') {
+                        showNewEvaluationForm();
                     }
+                    // ナビゲーションも更新
+                    buildNavigation();
                 } else {
                     // ログインページを更新
                     updateLoginPage();
@@ -1213,48 +1263,48 @@
             breadcrumbs.style.display = 'block';
             
             buildNavigation();
-            updateBreadcrumbs([{ label: 'ダッシュボード', path: '/dashboard' }]);
+            updateBreadcrumbs([{ label: i18n.t('nav.dashboard'), path: '/dashboard' }]);
             
             const mainContent = document.getElementById('main-content');
             mainContent.innerHTML = `
                 <div class="page">
                     <div class="page-header">
-                        <h1 class="page-title">📊 ダッシュボード</h1>
+                        <h1 class="page-title">${i18n.t('dashboard.title')}</h1>
                         <button class="btn btn-primary" onclick="showEvaluations()">
-                            📋 評価一覧
+                            ${i18n.t('dashboard.view_evaluations')}
                         </button>
                     </div>
                     <div class="page-content">
                         <div class="stats-grid">
                             <div class="stat-card">
                                 <div class="stat-number">${app.mockData.evaluations.length}</div>
-                                <div class="stat-label">総評価数</div>
+                                <div class="stat-label">${i18n.t('dashboard.total_evaluations')}</div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-number">1</div>
-                                <div class="stat-label">完了済み</div>
+                                <div class="stat-label">${i18n.t('dashboard.completed')}</div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-number">4.5</div>
-                                <div class="stat-label">平均評価</div>
+                                <div class="stat-label">${i18n.t('dashboard.average_rating')}</div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-number">5</div>
-                                <div class="stat-label">評価項目数</div>
+                                <div class="stat-label">${i18n.t('dashboard.evaluation_items')}</div>
                             </div>
                         </div>
                         
-                        <h3>📈 最近の活動</h3>
+                        <h3>${i18n.t('dashboard.recent_activity')}</h3>
                         <div class="table-container">
                             <table class="table">
                                 <thead>
                                     <tr>
-                                        <th>評価対象者</th>
-                                        <th>評価者</th>
-                                        <th>評価期間</th>
-                                        <th>ステータス</th>
-                                        <th>更新日</th>
-                                        <th>操作</th>
+                                        <th>${i18n.t('table.target')}</th>
+                                        <th>${i18n.t('table.evaluator')}</th>
+                                        <th>${i18n.t('table.period')}</th>
+                                        <th>${i18n.t('table.status')}</th>
+                                        <th>${i18n.t('table.updated')}</th>
+                                        <th>${i18n.t('table.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1267,7 +1317,7 @@
                                             <td>${evaluation.updatedAt}</td>
                                             <td>
                                                 <button class="btn btn-secondary" onclick="viewEvaluation('${evaluation.id}')">
-                                                    👁️ 詳細
+                                                    ${i18n.t('action.view_detail')}
                                                 </button>
                                             </td>
                                         </tr>
@@ -1284,21 +1334,21 @@
             console.log('📋 Showing evaluations');
             app.currentPage = 'evaluations';
             updateBreadcrumbs([
-                { label: 'ダッシュボード', path: '/dashboard' },
-                { label: '評価一覧', path: '/evaluations' }
+                { label: i18n.t('nav.dashboard'), path: '/dashboard' },
+                { label: i18n.t('nav.evaluations'), path: '/evaluations' }
             ]);
             
             const mainContent = document.getElementById('main-content');
             mainContent.innerHTML = `
                 <div class="page">
                     <div class="page-header">
-                        <h1 class="page-title">📋 評価一覧</h1>
+                        <h1 class="page-title">${i18n.t('evaluation.list_title')}</h1>
                         <div>
                             <button class="btn btn-secondary" onclick="showDashboard()">
-                                🏠 ダッシュボード
+                                ${i18n.t('action.dashboard')}
                             </button>
                             <button class="btn btn-primary" onclick="showNewEvaluationForm()">
-                                ➕ 新規評価
+                                ${i18n.t('action.new_evaluation')}
                             </button>
                         </div>
                     </div>
@@ -1307,14 +1357,14 @@
                             <table class="table">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>評価対象者</th>
-                                        <th>評価者</th>
-                                        <th>評価期間</th>
-                                        <th>総合評価</th>
-                                        <th>ステータス</th>
-                                        <th>更新日</th>
-                                        <th>操作</th>
+                                        <th>${i18n.t('table.id')}</th>
+                                        <th>${i18n.t('table.target')}</th>
+                                        <th>${i18n.t('table.evaluator')}</th>
+                                        <th>${i18n.t('table.period')}</th>
+                                        <th>${i18n.t('table.rating')}</th>
+                                        <th>${i18n.t('table.status')}</th>
+                                        <th>${i18n.t('table.updated')}</th>
+                                        <th>${i18n.t('table.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1329,7 +1379,7 @@
                                             <td>${evaluation.updatedAt}</td>
                                             <td>
                                                 <button class="btn btn-secondary" onclick="viewEvaluation('${evaluation.id}')">
-                                                    👁️ 詳細
+                                                    ${i18n.t('action.view_detail')}
                                                 </button>
                                             </td>
                                         </tr>
@@ -1344,29 +1394,30 @@
         
         function showNewEvaluationForm() {
             console.log('📝 Showing new evaluation form');
+            app.currentPage = 'new-evaluation';
             updateBreadcrumbs([
-                { label: 'ダッシュボード', path: '/dashboard' },
-                { label: '評価一覧', path: '/evaluations' },
-                { label: '新規評価', path: '/evaluations/new' }
+                { label: i18n.t('nav.dashboard'), path: '/dashboard' },
+                { label: i18n.t('nav.evaluations'), path: '/evaluations' },
+                { label: i18n.t('evaluation.new_title'), path: '/evaluations/new' }
             ]);
             
             const mainContent = document.getElementById('main-content');
             mainContent.innerHTML = `
                 <div class="page">
                     <div class="page-header">
-                        <h1 class="page-title">📝 新規評価作成</h1>
+                        <h1 class="page-title">${i18n.t('evaluation.new_title')}</h1>
                         <button class="btn btn-secondary" onclick="showEvaluations()">
-                            ← 評価一覧に戻る
+                            ${i18n.t('action.back')}
                         </button>
                     </div>
                     <div class="page-content">
                         <form class="evaluation-form" id="new-evaluation-form">
                             <div class="form-section">
-                                <h3>📋 基本情報</h3>
+                                <h3>${i18n.t('evaluation.basic_info')}</h3>
                                 <div class="form-group">
-                                    <label for="evaluation-period">評価期間</label>
+                                    <label for="evaluation-period">${i18n.t('form.period')}</label>
                                     <select id="evaluation-period" required>
-                                        <option value="">評価期間を選択</option>
+                                        <option value="">${i18n.t('form.select_period')}</option>
                                         <option value="2025-Q1">2025年第1四半期</option>
                                         <option value="2025-Q2">2025年第2四半期</option>
                                         <option value="2025-Q3">2025年第3四半期</option>
@@ -1374,9 +1425,9 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="subordinate-select">評価対象者</label>
+                                    <label for="subordinate-select">${i18n.t('form.target')}</label>
                                     <select id="subordinate-select" required>
-                                        <option value="">対象者を選択</option>
+                                        <option value="">${i18n.t('form.select_target')}</option>
                                         <option value="山田 太郎">山田 太郎 (作業員)</option>
                                         <option value="佐藤 次郎">佐藤 次郎 (作業員)</option>
                                         <option value="鈴木 三郎">鈴木 三郎 (作業員)</option>
@@ -1386,13 +1437,13 @@
                             </div>
                             
                             <div class="form-section">
-                                <h3>⭐ 項目別評価</h3>
+                                <h3>${i18n.t('evaluation.ratings')}</h3>
                                 <div class="rating-input-group">
                                     ${app.mockData.evaluationCategories.map(category => `
                                         <div class="rating-input-item">
                                             <div class="rating-input-label">
-                                                <strong>${category.name}</strong>
-                                                <small>${category.description}</small>
+                                                <strong>${category.name()}</strong>
+                                                <small>${category.description()}</small>
                                             </div>
                                             <div class="rating-input-controls">
                                                 <input 
@@ -1406,14 +1457,14 @@
                                                     onchange="updateRatingDisplay('${category.id}')"
                                                     oninput="updateRatingDisplay('${category.id}')"
                                                 >
-                                                <div class="rating-display" id="display-${category.id}">未入力</div>
+                                                <div class="rating-display" id="display-${category.id}">${i18n.t('form.not_entered')}</div>
                                             </div>
                                         </div>
                                     `).join('')}
                                 </div>
                                 
                                 <div class="evaluation-chart" style="margin-top: 24px;">
-                                    <h4 style="text-align: center; margin-bottom: 20px; color: #1976d2;">📊 評価チャート（リアルタイム更新）</h4>
+                                    <h4 style="text-align: center; margin-bottom: 20px; color: #1976d2;">${i18n.t('evaluation.chart_realtime')}</h4>
                                     <div class="chart-container">
                                         <div id="evaluation-radar-chart" class="pentagon-chart"></div>
                                     </div>
@@ -1421,29 +1472,29 @@
                             </div>
                             
                             <div class="form-section">
-                                <h3>💭 詳細コメント</h3>
+                                <h3>${i18n.t('evaluation.comments')}</h3>
                                 ${app.mockData.evaluationCategories.map(category => `
                                     <div class="form-group">
-                                        <label for="comment-${category.id}">${category.name}について</label>
-                                        <textarea id="comment-${category.id}" placeholder="${category.name}に関するコメントを入力してください"></textarea>
+                                        <label for="comment-${category.id}">${category.name()}について</label>
+                                        <textarea id="comment-${category.id}" placeholder="${category.name()}に関するコメントを入力してください"></textarea>
                                     </div>
                                 `).join('')}
                             </div>
                             
                             <div class="form-section">
-                                <h3>📝 総合評価</h3>
+                                <h3>${i18n.t('evaluation.overall')}</h3>
                                 <div class="form-group">
-                                    <label for="overall-comment">総合コメント</label>
-                                    <textarea id="overall-comment" placeholder="総合的な評価コメントを入力してください" rows="4"></textarea>
+                                    <label for="overall-comment">${i18n.t('form.overall_comment')}</label>
+                                    <textarea id="overall-comment" placeholder="${i18n.t('form.overall_comment_placeholder')}" rows="4"></textarea>
                                 </div>
                             </div>
                             
                             <div style="text-align: center; margin-top: 32px;">
                                 <button type="button" class="btn btn-secondary" onclick="showEvaluations()" style="margin-right: 12px;">
-                                    キャンセル
+                                    ${i18n.t('form.cancel')}
                                 </button>
                                 <button type="submit" class="btn btn-success">
-                                    💾 評価を保存
+                                    ${i18n.t('form.save')}
                                 </button>
                             </div>
                         </form>
@@ -1477,7 +1528,7 @@
             const value = parseFloat(input.value);
             
             if (isNaN(value) || value < 1 || value > 5) {
-                display.textContent = '未入力';
+                display.textContent = i18n.t('form.not_entered');
                 display.style.color = '#666';
             } else {
                 display.textContent = `${value}/5`;
@@ -1512,7 +1563,7 @@
             const overallComment = document.getElementById('overall-comment').value;
             
             if (!period || !subordinate) {
-                showNotification('評価期間と対象者を選択してください', 'error');
+                showNotification(i18n.t('message.select_period_target'), 'error');
                 return;
             }
             
@@ -1528,7 +1579,7 @@
             });
             
             if (!hasRatings) {
-                showNotification('少なくとも1つの評価項目を入力してください', 'error');
+                showNotification(i18n.t('message.enter_rating'), 'error');
                 return;
             }
             
@@ -1553,7 +1604,7 @@
             
             app.mockData.evaluations.push(newEvaluation);
             
-            showNotification('評価を保存しました！', 'success');
+            showNotification(i18n.t('message.saved'), 'success');
             
             setTimeout(() => {
                 showEvaluations();
@@ -1682,8 +1733,8 @@
             
             if (navMenu) {
                 navMenu.innerHTML = `
-                    <li><a href="#" class="nav-link ${app.currentPage === 'dashboard' ? 'active' : ''}" onclick="showDashboard()">📊 ダッシュボード</a></li>
-                    <li><a href="#" class="nav-link ${app.currentPage === 'evaluations' ? 'active' : ''}" onclick="showEvaluations()">📋 評価一覧</a></li>
+                    <li><a href="#" class="nav-link ${app.currentPage === 'dashboard' ? 'active' : ''}" onclick="showDashboard()">${i18n.t('nav.dashboard')}</a></li>
+                    <li><a href="#" class="nav-link ${app.currentPage === 'evaluations' ? 'active' : ''}" onclick="showEvaluations()">${i18n.t('nav.evaluations')}</a></li>
                 `;
             }
             
@@ -1694,8 +1745,15 @@
                         <div class="user-name">${app.currentUser.name}</div>
                         <div class="user-role">管理者</div>
                     </div>
+                    <div class="language-selector">
+                        <select onchange="i18n.setLanguage(this.value)">
+                            ${Object.entries(i18n.languages).map(([code, lang]) => 
+                                `<option value="${code}" ${i18n.currentLanguage === code ? 'selected' : ''}>${lang.flag} ${lang.name}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
                     <button onclick="logout()" style="margin-left: 12px; background: none; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer;">
-                        ログアウト
+                        ${i18n.t('nav.logout')}
                     </button>
                 `;
             }
