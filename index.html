@@ -8,6 +8,7 @@
     
     <!-- Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/3.9.1/chart.min.js"></script>
+    
     <style>
         /* 基本スタイル */
         * {
@@ -173,109 +174,23 @@
             padding: 32px;
         }
         
-        /* ボタン */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
+        /* 評価フォーム */
+        .evaluation-form {
+            max-width: 800px;
+            margin: 0 auto;
         }
         
-        .btn-primary {
-            background: #1976d2;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #1565c0;
-        }
-        
-        .btn-secondary {
-            background: #f5f5f5;
-            color: #333;
-        }
-        
-        .btn-secondary:hover {
-            background: #eeeeee;
-        }
-        
-        .btn-success {
-            background: #4caf50;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #45a049;
-        }
-        
-        /* ログインページ */
-        .login-page {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #1976d2, #42a5f5);
-        }
-        
-        .login-container {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-        }
-        
-        .login-header {
-            text-align: center;
+        .form-section {
             margin-bottom: 32px;
+            padding: 24px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
         }
         
-        .login-header h1 {
+        .form-section h3 {
             color: #1976d2;
-            margin-bottom: 8px;
-        }
-        
-        /* フォーム */
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 500;
-            color: #555;
-        }
-        
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.2s;
-        }
-        
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #1976d2;
-        }
-        
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
+            margin-bottom: 16px;
+            font-size: 18px;
         }
         
         /* 評価チャート */
@@ -397,6 +312,111 @@
             font-weight: 600;
         }
         
+        /* ボタン */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: #1976d2;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1565c0;
+        }
+        
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #eeeeee;
+        }
+        
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #45a049;
+        }
+        
+        /* ログインページ */
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1976d2, #42a5f5);
+        }
+        
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .login-header h1 {
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+        
+        /* フォーム */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
         /* 統計カード */
         .stats-grid {
             display: grid;
@@ -505,63 +525,6 @@
             border-radius: 4px;
         }
         
-        /* モーダル */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        
-        .modal-content {
-            background: white;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .modal-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #e0e0e0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .modal-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #1976d2;
-        }
-        
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
-        }
-        
-        .modal-body {
-            padding: 24px;
-        }
-        
-        .modal-footer {
-            padding: 20px 24px;
-            border-top: 1px solid #e0e0e0;
-            display: flex;
-            justify-content: flex-end;
-            gap: 12px;
-        }
-        
         /* レスポンシブ */
         @media (max-width: 768px) {
             .header-content {
@@ -593,11 +556,6 @@
                 align-items: flex-start;
             }
             
-            .modal-content {
-                width: 95%;
-                margin: 20px;
-            }
-            
             .evaluation-summary {
                 grid-template-columns: 1fr;
                 gap: 20px;
@@ -613,12 +571,6 @@
                 justify-content: space-between;
                 width: 100%;
             }
-        }
-        
-        /* ローディング要素を隠す */
-        #loading-indicator,
-        .loading-overlay {
-            display: none !important;
         }
     </style>
 </head>
@@ -704,7 +656,7 @@
     <div id="notification-container"></div>
 
     <script>
-        console.log('🚀 Enhanced evaluation system started');
+        console.log('🚀 Building evaluation system started');
         
         // アプリケーション状態
         const app = {
@@ -830,7 +782,6 @@
         });
         
         function setupEventListeners() {
-            // ログインフォーム
             const loginForm = document.getElementById('login-form');
             if (loginForm) {
                 loginForm.addEventListener('submit', handleLogin);
@@ -846,12 +797,11 @@
             
             console.log('🔐 Login attempt:', email);
             
-            // 模擬認証
             const user = app.mockData.users.find(u => u.email === email && u.password === password);
             
             if (user) {
                 app.currentUser = user;
-                showNotification(`${user.name}さん、おかえりなさい！`, 'success');
+                showNotification(user.name + 'さん、おかえりなさい！', 'success');
                 console.log('✅ Login successful:', user.name);
                 
                 setTimeout(() => {
@@ -867,17 +817,14 @@
             console.log('🏠 Showing dashboard');
             app.currentPage = 'dashboard';
             
-            // ヘッダーとブレッドクラムを表示
             const header = document.getElementById('app-header');
             const breadcrumbs = document.getElementById('breadcrumbs');
             header.style.display = 'block';
             breadcrumbs.style.display = 'block';
             
-            // ナビゲーションメニューを構築
             buildNavigation();
             updateBreadcrumbs([{ label: 'ダッシュボード', path: '/dashboard' }]);
             
-            // ダッシュボードコンテンツを表示
             const mainContent = document.getElementById('main-content');
             mainContent.innerHTML = `
                 <div class="page">
@@ -915,67 +862,6 @@
                                         <th>評価対象者</th>
                                         <th>評価者</th>
                                         <th>評価期間</th>
-                                        <th>ステータス</th>
-                                        <th>更新日</th>
-                                        <th>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${app.mockData.evaluations.map(evaluation => `
-                                        <tr>
-                                            <td>${evaluation.subordinate}</td>
-                                            <td>${evaluation.evaluator}</td>
-                                            <td>${evaluation.period}</td>
-                                            <td>${getStatusDisplayName(evaluation.status)}</td>
-                                            <td>${evaluation.updatedAt}</td>
-                                            <td>
-                                                <button class="btn btn-secondary" onclick="viewEvaluation('${evaluation.id}')">
-                                                    👁️ 詳細
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function showEvaluations() {
-            console.log('📋 Showing evaluations');
-            app.currentPage = 'evaluations';
-            updateBreadcrumbs([
-                { label: 'ダッシュボード', path: '/dashboard' },
-                { label: '評価一覧', path: '/evaluations' }
-            ]);
-            
-            const mainContent = document.getElementById('main-content');
-            mainContent.innerHTML = `
-                <div class="page">
-                    <div class="page-header">
-                        <h1 class="page-title">📋 評価一覧</h1>
-                        <div>
-                            <button class="btn btn-secondary" onclick="showDashboard()">
-                                🏠 ダッシュボード
-                            </button>
-                            <button class="btn btn-primary" onclick="showNewEvaluationForm()">
-                                ➕ 新規評価
-                            </button>
-                        </div>
-                    </div>
-                    <div class="page-content">
-                        <div class="table-container">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>評価対象者</th>
-                                        <th>評価者</th>
-                                        <th>評価期間</th>
-                                        <th>総合評価</th>
-                                        <th>進捗</th>
                                         <th>ステータス</th>
                                         <th>更新日</th>
                                         <th>操作</th>
@@ -1173,11 +1059,9 @@
                 </div>
             `;
             
-            // フォームイベントリスナー追加
             const form = document.getElementById('new-evaluation-form');
             form.addEventListener('submit', handleSaveEvaluation);
             
-            // レーダーチャート初期化
             initializeRadarChart();
         }
         
@@ -1185,7 +1069,6 @@
             const ctx = document.getElementById('evaluation-radar-chart');
             if (!ctx) return;
             
-            // 既存のチャートがあれば削除
             if (window.evaluationChart) {
                 window.evaluationChart.destroy();
             }
@@ -1258,13 +1141,11 @@
                 display.textContent = `${value}/5`;
                 display.style.color = '#1976d2';
                 
-                // 星表示を追加
                 const stars = '⭐'.repeat(Math.floor(value));
                 const halfStar = (value % 1 >= 0.5) ? '⭐' : '';
                 display.innerHTML = `${value}/5<br><small>${stars}${halfStar}</small>`;
             }
             
-            // チャートを更新
             updateRadarChart();
         }
         
@@ -1279,17 +1160,7 @@
             });
             
             window.evaluationChart.data.datasets[0].data = newData;
-            window.evaluationChart.update('none'); // アニメーションなしで即座に更新
-        }
-        
-        function setRating(category, rating) {
-            // 星評価は削除され、数値入力のみ使用
-            // この関数は後方互換性のために残す
-            const input = document.getElementById(`rating-${category}`);
-            if (input) {
-                input.value = rating;
-                updateRatingDisplay(category);
-            }
+            window.evaluationChart.update('none');
         }
         
         function handleSaveEvaluation(e) {
@@ -1305,7 +1176,6 @@
                 return;
             }
             
-            // 評価値を収集
             const ratings = {};
             let hasRatings = false;
             app.mockData.evaluationCategories.forEach(category => {
@@ -1322,7 +1192,6 @@
                 return;
             }
             
-            // コメントを収集
             const comments = {};
             app.mockData.evaluationCategories.forEach(category => {
                 const comment = document.getElementById(`comment-${category.id}`).value;
@@ -1331,11 +1200,9 @@
                 }
             });
             
-            // 総合評価を計算
             const totalRating = Object.values(ratings).reduce((sum, rating) => sum + rating, 0);
             const avgRating = totalRating / Object.keys(ratings).length || 0;
             
-            // 新しい評価を作成
             const newEvaluation = {
                 id: (app.mockData.evaluations.length + 1).toString(),
                 subordinate: subordinate,
@@ -1353,7 +1220,6 @@
                 createdAt: new Date().toISOString().split('T')[0]
             };
             
-            // データに追加
             app.mockData.evaluations.push(newEvaluation);
             
             showNotification('評価を保存しました！', 'success');
@@ -1416,7 +1282,6 @@
                                 </div>
                             </div>
                             
-                            <!-- 五角形評価チャート -->
                             <div class="evaluation-chart">
                                 <h4 style="text-align: center; margin-bottom: 20px; color: #1976d2;">📊 評価チャート</h4>
                                 <div class="chart-container">
@@ -1484,7 +1349,6 @@
                 </div>
             `;
             
-            // 詳細表示用レーダーチャートを初期化
             setTimeout(() => {
                 initializeDetailRadarChart(evaluation);
             }, 100);
@@ -1494,7 +1358,6 @@
             const ctx = document.getElementById('detail-radar-chart');
             if (!ctx) return;
             
-            // 既存のチャートがあれば削除
             if (window.detailChart) {
                 window.detailChart.destroy();
             }
@@ -1561,45 +1424,6 @@
                     }
                 }
             });
-        }                                                        `).join('')}
-                                </div>
-                            </div>
-                            
-                            ${Object.keys(evaluation.comments).length > 0 ? `
-                                <div class="form-section">
-                                    <h3>💭 詳細コメント</h3>
-                                    ${app.mockData.evaluationCategories.map(category => 
-                                        evaluation.comments[category.id] ? `
-                                            <div class="form-group">
-                                                <label><strong>${category.name}</strong></label>
-                                                <div style="padding:12px;background:#f8f9fa;border-radius:4px;">${evaluation.comments[category.id]}</div>
-                                            </div>
-                                        ` : ''
-                                    ).join('')}
-                                </div>
-                            ` : ''}
-                            
-                            ${evaluation.overallComment || evaluation.improvementSuggestions ? `
-                                <div class="form-section">
-                                    <h3>📝 総合評価</h3>
-                                    ${evaluation.overallComment ? `
-                                        <div class="form-group">
-                                            <label><strong>総合コメント</strong></label>
-                                            <div style="padding:12px;background:#f8f9fa;border-radius:4px;">${evaluation.overallComment}</div>
-                                        </div>
-                                    ` : ''}
-                                    ${evaluation.improvementSuggestions ? `
-                                        <div class="form-group">
-                                            <label><strong>改善提案</strong></label>
-                                            <div style="padding:12px;background:#f8f9fa;border-radius:4px;">${evaluation.improvementSuggestions}</div>
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                </div>
-            `;
         }
         
         function editEvaluation(id) {
@@ -1657,11 +1481,9 @@
             app.currentUser = null;
             app.currentPage = 'login';
             
-            // ヘッダーとブレッドクラムを隠す
             document.getElementById('app-header').style.display = 'none';
             document.getElementById('breadcrumbs').style.display = 'none';
             
-            // ログインページに戻る
             location.reload();
         }
         
@@ -1734,7 +1556,68 @@
             }, 3000);
         }
         
-        console.log('✅ Enhanced evaluation system ready');
+        console.log('✅ Building evaluation system ready');
     </script>
 </body>
-</html>
+</html>>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${app.mockData.evaluations.map(evaluation => `
+                                        <tr>
+                                            <td>${evaluation.subordinate}</td>
+                                            <td>${evaluation.evaluator}</td>
+                                            <td>${evaluation.period}</td>
+                                            <td>${getStatusDisplayName(evaluation.status)}</td>
+                                            <td>${evaluation.updatedAt}</td>
+                                            <td>
+                                                <button class="btn btn-secondary" onclick="viewEvaluation('${evaluation.id}')">
+                                                    👁️ 詳細
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function showEvaluations() {
+            console.log('📋 Showing evaluations');
+            app.currentPage = 'evaluations';
+            updateBreadcrumbs([
+                { label: 'ダッシュボード', path: '/dashboard' },
+                { label: '評価一覧', path: '/evaluations' }
+            ]);
+            
+            const mainContent = document.getElementById('main-content');
+            mainContent.innerHTML = `
+                <div class="page">
+                    <div class="page-header">
+                        <h1 class="page-title">📋 評価一覧</h1>
+                        <div>
+                            <button class="btn btn-secondary" onclick="showDashboard()">
+                                🏠 ダッシュボード
+                            </button>
+                            <button class="btn btn-primary" onclick="showNewEvaluationForm()">
+                                ➕ 新規評価
+                            </button>
+                        </div>
+                    </div>
+                    <div class="page-content">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>評価対象者</th>
+                                        <th>評価者</th>
+                                        <th>評価期間</th>
+                                        <th>総合評価</th>
+                                        <th>進捗</th>
+                                        <th>ステータス</th>
+                                        <th>更新日</th>
+                                        <th
