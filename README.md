@@ -1,52 +1,67 @@
-# 評価システム（Local Edition）
+# 評価ツール
 
-> 企業向け人事評価管理システム - ローカル環境対応版
+建設業向け従業員評価管理システム
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)
-![Bootstrap](https://img.shields.io/badge/Bootstrap-7952B3?logo=bootstrap&logoColor=white)
+## 概要
 
-## 📋 概要
+このシステムは建設業の特性に合わせて設計された従業員評価管理ツールです。現場作業員、営業、管理者それぞれの役職に応じた評価項目を設定し、効率的な人事評価プロセスを支援します。
 
-評価システムは、企業の人事評価プロセスを効率化・透明化するWebアプリケーションです。ローカル環境で動作し、ブラウザのストレージ機能を使用してデータを管理します。
+## 主な機能
 
-### 主な特徴
+### 📊 評価管理
+- **定量評価**: 技術スキルや業績の数値化
+- **定性評価**: 目標設定と達成度評価
+- **多段階承認**: 評価者→管理者の承認フロー
+- **レポート出力**: 詳細な評価レポートの生成
 
-- 🏢 **マルチテナント対応**: 複数企業の設定に対応
-- 👥 **役割ベース管理**: 管理者、評価者、従業員の権限制御
-- 📊 **定量・定性評価**: 数値評価と目標設定評価の両方をサポート
-- 📈 **可視化レポート**: Chart.jsによる評価結果の視覚化
-- 📱 **レスポンシブデザイン**: モバイル・タブレット対応
-- 🔒 **ローカル保存**: ブラウザのIndexedDBによる安全なローカル保存
-- 🎨 **テーマ切り替え**: 業界・企業に応じたカスタムテーマ
+### 👥 ユーザー管理
+- **役割ベース**: 管理者、評価者、従業員の権限管理
+- **階層構造**: 評価者と被評価者の関係設定
+- **カスタムフィールド**: 企業固有の項目追加
 
-## 🚀 クイックスタート
+### ⚙️ 設定管理
+- **評価期間**: 半期・年次などの評価期間設定
+- **評価項目**: 役職別の評価カテゴリ管理
+- **評価基準**: レベル別の評価基準定義
 
-### 前提条件
+### 📈 ダッシュボード
+- **進捗管理**: 評価の提出・承認状況
+- **統計表示**: チャートによる可視化
+- **通知機能**: 評価期限や承認待ちの通知
 
-- モダンな Web ブラウザ（Chrome, Firefox, Safari, Edge）
-- ローカルWebサーバー（推奨）または静的ファイル対応ブラウザ
+## 技術スタック
 
-### インストール
+- **フロントエンド**: HTML5, CSS3, JavaScript (ES6+)
+- **UIフレームワーク**: Bootstrap 5
+- **チャート**: Chart.js
+- **アイコン**: Font Awesome
+- **モジュール**: ES6 Modules
+
+## セットアップ
+
+### 必要要件
+
+- モダンブラウザ（Chrome 90+, Firefox 88+, Safari 14+, Edge 90+）
+- Webサーバー（開発時は Live Server 等）
+
+### インストール手順
 
 1. **リポジトリのクローン**
    ```bash
-   git clone https://github.com/yourusername/evaluation-system.git
-   cd evaluation-system
+   git clone https://github.com/your-username/evaluation-tool.git
+   cd evaluation-tool
    ```
 
-2. **ローカルサーバーの起動**（推奨）
+2. **開発サーバーの起動**
    ```bash
-   # Python 3を使用する場合
+   # VS Code の Live Server 拡張機能を使用する場合
+   # index.html を右クリック → "Open with Live Server"
+   
+   # Python を使用する場合
    python -m http.server 8000
    
-   # Node.jsを使用する場合
-   npx http-server .
-   
-   # VSCodeのLive Server拡張を使用することも可能
+   # Node.js を使用する場合
+   npx serve .
    ```
 
 3. **ブラウザでアクセス**
@@ -54,170 +69,196 @@
    http://localhost:8000
    ```
 
-### 初期設定
-
-1. `index.html` にアクセス
-2. 企業を選択（またはカスタム企業を作成）
-3. サンプルユーザーでログイン（設定により自動生成）
-
-## 📁 プロジェクト構造（MVP版）
+### ディレクトリ構成
 
 ```
-evaluation-system/
-├── index.html                    # ランディングページ・企業選択
-├── app.html                      # メインアプリケーション
-├── README.md                     # このファイル
-├── LICENSE                       # ライセンス
-├── assets/                       # 静的ファイル
+evaluation-tool/
+├── index.html                 # メインエントリーポイント
+├── README.md                  # プロジェクト説明
+├── 
+├── assets/
 │   ├── css/
-│   │   ├── main.css              # メインスタイル（統合版）
-│   │   └── themes/
-│   │       └── default.css       # デフォルトテーマ
+│   │   ├── variables.css      # CSS変数定義
+│   │   ├── main.css          # メインスタイル
+│   │   ├── components.css    # コンポーネント用スタイル
+│   │   └── responsive.css    # レスポンシブ対応
+│   │
 │   ├── js/
-│   │   ├── app.js                # メインアプリケーション
-│   │   ├── core/
-│   │   │   ├── database.js       # データ永続化
-│   │   │   ├── auth.js           # 認証シミュレーション
-│   │   │   └── router.js         # ページルーティング
-│   │   ├── components/
-│   │   │   ├── dashboard.js      # ダッシュボード
-│   │   │   ├── evaluation.js     # 評価機能
-│   │   │   ├── user-management.js # ユーザー管理
-│   │   │   └── settings.js       # 設定管理
-│   │   └── utils/
-│   │       ├── validation.js     # バリデーション
-│   │       └── date.js          # 日付操作
-│   └── images/                   # 画像ファイル
-│       └── logo.png              # ロゴ
-└── config/                       # 設定ファイル
-    ├── app-config.js            # アプリケーション設定
-    ├── evaluation-config.js     # 評価項目設定（モックデータ含む）
-    └── tenant-config.js         # 企業別設定
+│   │   ├── core/             # コア機能
+│   │   │   ├── app.js        # メインアプリケーション
+│   │   │   ├── auth.js       # 認証管理
+│   │   │   ├── api.js        # API通信
+│   │   │   └── router.js     # ページルーティング
+│   │   │
+│   │   ├── components/       # UIコンポーネント
+│   │   ├── pages/           # ページコントローラー
+│   │   ├── data/           # データ管理
+│   │   └── utils/          # ユーティリティ
+│   │
+│   └── images/             # 画像ファイル
+│
+├── pages/                  # HTMLテンプレート
+├── components/            # 再利用可能コンポーネント
+├── docs/                 # ドキュメント
+└── examples/            # サンプルデータ
 ```
 
-## 🔧 主な機能
+## 使用方法
 
-### 1. ダッシュボード
-- 現在の評価期間表示
-- 自己評価の進捗状況
-- 最近の評価一覧
-- 評価対象者の概要（評価者向け）
+### 基本的な流れ
 
-### 2. 評価管理
-- **定量評価**: 技術スキル、営業成績等の数値評価
-- **定性評価**: 目標設定と達成度評価（ウェイト配分可能）
-- **下書き保存**: 途中保存機能
-- **承認ワークフロー**: 評価者→管理者の2段階承認
+1. **ログイン**: デモモードでは自動ログイン
+2. **評価入力**: 自己評価の実施
+3. **評価承認**: 評価者による確認・承認
+4. **レポート確認**: 評価結果の閲覧
 
-### 3. ユーザー管理
-- ユーザーの追加・編集・削除
-- 役割ベースのアクセス制御
-- 評価者の割り当て
+### 役職別の機能
 
-### 4. 設定管理
-- 評価期間の管理
-- 評価カテゴリの設定
-- 役職別評価項目のカスタマイズ
+#### 従業員
+- 自己評価の入力・提出
+- 評価結果の確認
+- 過去の評価履歴の閲覧
 
-### 5. レポート機能
-- 期間別評価推移
-- レーダーチャートによる可視化
-- 評価結果の比較分析
+#### 評価者
+- 部下の評価確認・承認
+- 評価コメントの入力
+- 評価対象者の管理
 
-## 🎨 テーマ・カスタマイズ
+#### 管理者
+- 全体の評価状況確認
+- ユーザー管理
+- システム設定
 
-### 事前定義テーマ
-- **Default**: 一般企業向けの標準テーマ
+## 開発
 
-### カスタムテーマの作成（将来拡張）
-1. `assets/css/themes/` にCSSファイルを作成
-2. `config/tenant-config.js` でテーマを指定
-3. CSS変数を使用した色・スタイルの調整
+### コーディング規約
 
-## 👥 ユーザー権限
+- **JavaScript**: ES6+ モジュール形式
+- **CSS**: BEM命名規則
+- **HTML**: セマンティックHTML5
 
-| 機能 | 従業員 | 評価者 | 管理者 |
-|------|--------|--------|--------|
-| 自己評価入力 | ✅ | ✅ | ✅ |
-| 部下の評価確認 | ❌ | ✅ | ✅ |
-| 評価の承認 | ❌ | ✅ | ✅ |
-| ユーザー管理 | ❌ | ❌ | ✅ |
-| システム設定 | ❌ | ❌ | ✅ |
-| レポート閲覧 | 自分のみ | 部下含む | 全体 |
+### ファイル命名規則
 
-## 🔄 Firebase移行対応
+- **JavaScript**: kebab-case (例: `evaluation-form.js`)
+- **CSS**: kebab-case (例: `main.css`)
+- **HTML**: kebab-case (例: `dashboard.html`)
 
-このローカル版は、将来的なFirebase移行を考慮した設計となっています。
+### 新機能の追加
 
-### 移行対応の特徴
-- データアクセス層の抽象化
-- 認証機能の抽象化
-- 設定の外部化
-- 非同期処理の一貫性
+1. **コンポーネント作成**
+   ```javascript
+   // assets/js/components/new-component.js
+   EvaluationApp.NewComponent = class {
+     constructor() {
+       // 初期化処理
+     }
+   }
+   ```
 
-### 移行時の変更範囲
-- **変更が必要**: データサービス実装、認証実装
-- **変更不要**: UIコンポーネント、ビジネスロジック、CSS
+2. **CSS追加**
+   ```css
+   /* assets/css/components.css */
+   .new-component {
+     /* スタイル定義 */
+   }
+   ```
 
-## 🛠️ 開発
+3. **index.html に追加**
+   ```html
+   <script src="assets/js/components/new-component.js"></script>
+   ```
 
-### 前提条件
-- 現代的なブラウザ
+## カスタマイズ
 
-### ローカル開発
-```bash
-# 開発サーバーの起動（例）
-python -m http.server 8000
+### 色テーマの変更
 
-# または
-npx http-server .
+`assets/css/variables.css` でカラーパレットを変更：
+
+```css
+:root {
+  --color-primary: #001350;     /* メインカラー */
+  --color-secondary: #6c757d;   /* セカンダリカラー */
+  /* その他の色設定... */
+}
 ```
 
-### 開発ガイドライン
-- ES6+ の JavaScript を使用
-- BEM 命名規則でCSS設計
-- モジュール単位での実装
-- 移行性を考慮した抽象化レイヤー
+### 評価項目の追加
 
-## 📚 ドキュメント
+`assets/js/data/evaluation-criteria.js` で評価項目を追加：
 
-- [セットアップガイド](docs/SETUP.md) - 詳細な設定手順（将来追加）
-- [ユーザーガイド](docs/USER_GUIDE.md) - 機能の使い方（将来追加）
-- [カスタマイズガイド](docs/CUSTOMIZATION.md) - 企業向けカスタマイズ（将来追加）
+```javascript
+EvaluationApp.MockData.categories.push({
+  id: 8,
+  name: '新しいカテゴリ',
+  position_type: ['現場作業員'],
+  weight: 10,
+  items: [
+    { id: 51, name: '新しい評価項目' }
+  ]
+});
+```
 
-## 🐛 バグ報告・機能要望
+## トラブルシューティング
 
-Issues や Pull Requests は GitHub で受け付けています。
+### よくある問題
 
-### 報告時の情報
-- ブラウザとバージョン
-- 再現手順
-- 期待される動作
-- 実際の動作
+1. **ページが表示されない**
+   - ブラウザの開発者ツールでコンソールエラーを確認
+   - ファイルパスが正しいか確認
 
-## 📄 ライセンス
+2. **スタイルが適用されない**
+   - CSSファイルの読み込み順序を確認
+   - ブラウザキャッシュをクリア
 
-このプロジェクトは [MIT License](LICENSE) の下でライセンスされています。
+3. **JavaScript エラー**
+   - すべての依存関係が正しく読み込まれているか確認
+   - コンソールでエラー詳細を確認
 
-## 🤝 貢献
+### デバッグ方法
 
-1. このリポジトリをフォーク
-2. 機能ブランチを作成 (`git checkout -b feature/amazing-feature`)
-3. 変更をコミット (`git commit -m 'Add some amazing feature'`)
+```javascript
+// デバッグモードの有効化
+EvaluationApp.Constants.APP.DEBUG = true;
+
+// アプリケーション情報の確認
+console.log(window.evaluationApp.getInfo());
+```
+
+## ライセンス
+
+このプロジェクトは MIT ライセンスの下で公開されています。詳細は [LICENSE](LICENSE) ファイルを参照してください。
+
+## 貢献
+
+プロジェクトへの貢献を歓迎します！
+
+1. フォークする
+2. フィーチャーブランチを作成 (`git checkout -b feature/amazing-feature`)
+3. 変更をコミット (`git commit -m 'Add amazing feature'`)
 4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
-5. Pull Request を作成
+5. プルリクエストを作成
 
-## 📞 サポート
+## サポート
 
-- GitHub Issues: [Issues](https://github.com/yourusername/evaluation-system/issues)
-- ドキュメント: [Wiki](https://github.com/yourusername/evaluation-system/wiki)
+問題や質問がある場合は、[Issues](https://github.com/your-username/evaluation-tool/issues) ページで報告してください。
 
-## 🔗 関連リンク
+## 作者
 
-- [Chart.js](https://www.chartjs.org/) - グラフ描画ライブラリ
-- [Bootstrap](https://getbootstrap.com/) - CSSフレームワーク
-- [Font Awesome](https://fontawesome.com/) - アイコンライブラリ
+- **作成者名** - [GitHub](https://github.com/your-username)
+
+## 更新履歴
+
+### v1.0.0 (2024-12-XX)
+- 初期リリース
+- 基本的な評価機能の実装
+- ユーザー管理機能
+- レポート機能
 
 ---
 
-**Built with ❤️ for modern businesses**
+## 関連リンク
+
+- [プロジェクトホームページ](https://your-username.github.io/evaluation-tool)
+- [API ドキュメント](docs/api-reference.md)
+- [ユーザーガイド](docs/user-guide.md)
+- [開発者ガイド](docs/development.md)
