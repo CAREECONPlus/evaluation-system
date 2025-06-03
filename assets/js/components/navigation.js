@@ -1,602 +1,364 @@
 /**
- * Navigation Component - 評価ツール
- * メインナビゲーションバーを管理するクラス
+ * ナビゲーションシステム
+ * ヘッダーメニューとユーザー情報の表示管理
  */
-
-EvaluationApp = EvaluationApp || {};
-
-/**
- * ナビゲーションクラス
- */
-EvaluationApp.Navigation = class {
-  constructor(container, authManager = null) {
-    this.container = container;
-    this.auth = authManager;
-    this.currentRoute = null;
-    this.debug = EvaluationApp.Constants.APP.DEBUG;
-    
-    // ナビゲーション項目の定義
-    this.navigationItems = this.getNavigationItems();
-    
-    // イベントリスナー
-    this.clickHandlers = new Map();
-    
-    this.log('Navigation component initialized');
-  }
-
-  /**
-   * ナビゲーション項目の定義
-   */
-  getNavigationItems() {
-    return [
-      {
-        id: 'dashboard',
-        label: 'ダッシュボード',
-        icon: 'fas fa-home',
-        route: EvaluationApp.Constants.ROUTES.DASHBOARD,
-        roles: ['admin', 'evaluator', 'employee'],
-        order: 1
-      },
-      {
-        id: 'evaluations',
-        label: '評価一覧',
-        icon: 'fas fa-clipboard-list',
-        route: EvaluationApp.Constants.ROUTES.EVALUATIONS,
-        roles: ['admin', 'evaluator', 'employee'],
-        order: 2
-      },
-      {
-        id: 'subordinates',
-        label: '評価対象者',
-        icon: 'fas fa-users',
-        route: EvaluationApp.Constants.ROUTES.SUBORDINATES,
-        roles: ['admin', 'evaluator'],
-        order: 3,
-        requiresEvaluator: true
-      },
-      {
-        id: 'users',
-        label: 'ユーザー管理',
-        icon: 'fas fa-user-cog',
-        route: EvaluationApp.Constants.ROUTES.USERS,
-        roles: ['admin'],
-        order: 4,
-        adminOnly: true
-      },
-      {
-        id: 'settings',
-        label: '設定',
-        icon: 'fas fa-cog',
-        route: EvaluationApp.Constants.ROUTES.SETTINGS,
-        roles: ['admin'],
-        order: 5,
-        adminOnly: true
-      }
-    ];
-  }
-
-  /**
-   * ナビゲーションの描画
-   */
-  async render() {
-    if (!this.container) {
-      throw new Error('Navigation container not found');
+class NavigationManager {
+    constructor() {
+        this.currentUser = null;
+        this.menuItems = [];
+        this.isMenuOpen = false;
+        
+        console.log('Navigation manager initialized');
     }
 
-    // 現在のユーザー情報を取得
-    const currentUser = this.auth ? this.auth.getCurrentUser() : null;
-    
-    // ナビゲーションHTMLの構築
-    const navHTML = this.buildNavigationHTML(currentUser);
-    
-    // コンテナに挿入
-    this.container.innerHTML = navHTML;
-    
-    // イベントリスナーの設定
-    this.setupEventListeners();
-    
-    this.log('Navigation rendered');
-  }
+    render() {
+        this.currentUser = window.auth?.getCurrentUser();
+        this.setupMenuItems();
+        this.renderHeader();
+        this.setupEventListeners();
+    }
 
-  /**
-   * ナビゲーションHTMLの構築
-   */
-  buildNavigationHTML(currentUser) {
-    const brandName = EvaluationApp.Constants.APP.NAME;
-    const isAuthenticated = currentUser !== null;
-    
-    // 表示可能なナビゲーション項目をフィルタリング
-    const visibleItems = this.getVisibleNavigationItems(currentUser);
-    
-    return `
-      <div class="container-fluid">
-        <!-- ブランド -->
-        <a class="navbar-brand" href="#" data-route="dashboard">
-          <i class="fas fa-chart-line me-2"></i>
-          ${brandName}
-        </a>
-        
-        <!-- ハンバーガーメニューボタン -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        
-        <!-- ナビゲーションコンテンツ -->
-        <div class="collapse navbar-collapse" id="navbarNav">
-          ${isAuthenticated ? this.buildMainNavigation(visibleItems) : ''}
-          ${isAuthenticated ? this.buildUserMenu(currentUser) : this.buildLoginButton()}
-        </div>
-      </div>
-    `;
-  }
+    setupMenuItems() {
+        if (!this.currentUser) {
+            this.menuItems = [];
+            return;
+        }
 
-  /**
-   * メインナビゲーションの構築
-   */
-  buildMainNavigation(items) {
-    if (!items.length) return '';
-    
-    const navItems = items
-      .sort((a, b) => a.order - b.order)
-      .map(item => `
-        <li class="nav-item">
-          <a class="nav-link" href="#" data-route="${item.route}" data-nav-item="${item.id}">
-            <i class="${item.icon} me-1"></i>
-            <span class="nav-text">${item.label}</span>
-          </a>
-        </li>
-      `).join('');
+        // 基本メニューアイテム
+        this.menuItems = [
+            {
+                id: 'dashboard',
+                label: 'ダッシュボード',
+                path: '/dashboard',
+                icon: 'icon-home',
+                roles: ['admin', 'manager', 'supervisor', 'employee']
+            },
+            {
+                id: 'evaluations',
+                label: '評価一覧',
+                path: '/evaluations',
+                icon: 'icon-clipboard',
+                roles: ['admin', 'manager', 'supervisor', 'employee']
+            }
+        ];
 
-    return `
-      <ul class="navbar-nav me-auto">
-        ${navItems}
-      </ul>
-    `;
-  }
+        // 権限に応じてメニュー追加
+        if (window.auth?.hasRole('admin') || window.auth?.hasRole('manager')) {
+            this.menuItems.push({
+                id: 'users',
+                label: 'ユーザー管理',
+                path: '/users',
+                icon: 'icon-users',
+                roles: ['admin', 'manager']
+            });
+        }
 
-  /**
-   * ユーザーメニューの構築
-   */
-  buildUserMenu(currentUser) {
-    const displayName = currentUser.fullName || currentUser.full_name || currentUser.username;
-    const userRole = this.getUserRoleLabel(currentUser.role);
-    const userPosition = currentUser.position || '';
-    
-    return `
-      <ul class="navbar-nav ms-auto">
-        <!-- 通知アイコン（将来実装） -->
-        <li class="nav-item me-3">
-          <a class="nav-link position-relative" href="#" id="notification-bell">
-            <i class="fas fa-bell"></i>
-            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" id="notification-count">
-              0
-            </span>
-          </a>
-        </li>
-        
-        <!-- ユーザードロップダウン -->
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" 
-             role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <div class="user-avatar me-2">
-              <i class="fas fa-user-circle fa-lg"></i>
+        if (window.auth?.hasRole('admin')) {
+            this.menuItems.push({
+                id: 'reports',
+                label: 'レポート',
+                path: '/reports',
+                icon: 'icon-chart',
+                roles: ['admin']
+            });
+
+            this.menuItems.push({
+                id: 'settings',
+                label: '設定',
+                path: '/settings',
+                icon: 'icon-settings',
+                roles: ['admin']
+            });
+        }
+
+        // 現在のユーザーの権限でフィルタリング
+        this.menuItems = this.menuItems.filter(item => 
+            item.roles.includes(this.currentUser?.role)
+        );
+    }
+
+    renderHeader() {
+        const header = document.getElementById('app-header');
+        if (!header) return;
+
+        if (!this.currentUser) {
+            // ログインしていない場合は最小限のヘッダー
+            header.innerHTML = `
+                <div class="header-content">
+                    <div class="logo">
+                        <h1>建設業評価システム</h1>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        header.innerHTML = `
+            <div class="header-content">
+                <div class="logo">
+                    <h1>建設業評価システム</h1>
+                </div>
+                
+                <nav class="main-navigation">
+                    <ul class="nav-menu" id="nav-menu">
+                        ${this.renderMenuItems()}
+                    </ul>
+                    
+                    <!-- モバイルメニューボタン -->
+                    <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+                        <span class="hamburger"></span>
+                        <span class="hamburger"></span>
+                        <span class="hamburger"></span>
+                    </button>
+                </nav>
+                
+                <div class="user-menu">
+                    <div class="user-info" id="user-info">
+                        <div class="user-avatar">
+                            ${this.currentUser.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name">${this.currentUser.name}</div>
+                            <div class="user-role">${this.getRoleDisplayName(this.currentUser.role)}</div>
+                        </div>
+                        <button class="user-menu-toggle" id="user-menu-toggle">
+                            <i class="icon-chevron-down"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="user-dropdown" id="user-dropdown">
+                        <div class="dropdown-header">
+                            <div class="user-info-detail">
+                                <div class="user-name">${this.currentUser.name}</div>
+                                <div class="user-email">${this.currentUser.email || ''}</div>
+                                <div class="user-department">${this.currentUser.department || ''}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="dropdown-menu">
+                            <a href="#" class="dropdown-item" id="profile-link">
+                                <i class="icon-user"></i>
+                                プロフィール
+                            </a>
+                            <a href="#" class="dropdown-item" id="preferences-link">
+                                <i class="icon-settings"></i>
+                                設定
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item" id="logout-link">
+                                <i class="icon-logout"></i>
+                                ログアウト
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="user-info d-none d-md-block">
-              <div class="user-name">${displayName}</div>
-              <div class="user-role small text-muted">${userRole}${userPosition ? ' / ' + userPosition : ''}</div>
-            </div>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li>
-              <div class="dropdown-header">
-                <strong>${displayName}</strong><br>
-                <small class="text-muted">${userRole}${userPosition ? ' / ' + userPosition : ''}</small>
-              </div>
+        `;
+
+        // アクティブメニューの設定
+        this.setActiveMenuItem();
+    }
+
+    renderMenuItems() {
+        return this.menuItems.map(item => `
+            <li class="nav-item">
+                <a href="#" class="nav-link" data-path="${item.path}" data-menu-id="${item.id}">
+                    <i class="${item.icon}"></i>
+                    <span class="nav-label">${item.label}</span>
+                </a>
             </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <a class="dropdown-item" href="#" data-action="profile">
-                <i class="fas fa-user me-2"></i>プロフィール
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="#" data-action="my-evaluations">
-                <i class="fas fa-clipboard-check me-2"></i>自分の評価
-              </a>
-            </li>
-            ${this.buildQuickActions(currentUser)}
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <a class="dropdown-item" href="#" data-action="help">
-                <i class="fas fa-question-circle me-2"></i>ヘルプ
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item text-danger" href="#" data-action="logout">
-                <i class="fas fa-sign-out-alt me-2"></i>ログアウト
-              </a>
-            </li>
-          </ul>
-        </li>
-      </ul>
-    `;
-  }
-
-  /**
-   * クイックアクションの構築
-   */
-  buildQuickActions(currentUser) {
-    const actions = [];
-    
-    // 管理者用アクション
-    if (this.auth && this.auth.hasRole('admin')) {
-      actions.push(`
-        <li>
-          <a class="dropdown-item" href="#" data-route="users">
-            <i class="fas fa-users-cog me-2"></i>ユーザー管理
-          </a>
-        </li>
-        <li>
-          <a class="dropdown-item" href="#" data-route="settings">
-            <i class="fas fa-cog me-2"></i>システム設定
-          </a>
-        </li>
-      `);
+        `).join('');
     }
-    
-    // 評価者用アクション
-    if (this.auth && this.auth.hasRole('evaluator')) {
-      actions.push(`
-        <li>
-          <a class="dropdown-item" href="#" data-route="subordinates">
-            <i class="fas fa-clipboard-list me-2"></i>部下の評価確認
-          </a>
-        </li>
-      `);
-    }
-    
-    return actions.length > 0 ? '<li><hr class="dropdown-divider"></li>' + actions.join('') : '';
-  }
 
-  /**
-   * ログインボタンの構築
-   */
-  buildLoginButton() {
-    return `
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="#" data-action="login">
-            <i class="fas fa-sign-in-alt me-1"></i>ログイン
-          </a>
-        </li>
-      </ul>
-    `;
-  }
-
-  /**
-   * 表示可能なナビゲーション項目の取得
-   */
-  getVisibleNavigationItems(currentUser) {
-    if (!currentUser) return [];
-    
-    return this.navigationItems.filter(item => {
-      // 役割チェック
-      if (item.roles && !item.roles.includes(currentUser.role)) {
-        return false;
-      }
-      
-      // 評価者権限が必要な項目
-      if (item.requiresEvaluator && !this.auth?.hasRole('evaluator')) {
-        return false;
-      }
-      
-      // 管理者専用項目
-      if (item.adminOnly && !this.auth?.hasRole('admin')) {
-        return false;
-      }
-      
-      return true;
-    });
-  }
-
-  /**
-   * ユーザー役割ラベルの取得
-   */
-  getUserRoleLabel(role) {
-    const roleLabels = {
-      admin: '管理者',
-      evaluator: '評価者',
-      employee: '従業員'
-    };
-    return roleLabels[role] || '不明';
-  }
-
-  /**
-   * イベントリスナーの設定
-   */
-  setupEventListeners() {
-    // ナビゲーションクリックイベント
-    this.container.addEventListener('click', (event) => {
-      event.preventDefault();
-      
-      const target = event.target.closest('a[data-route], a[data-action]');
-      if (!target) return;
-      
-      const route = target.getAttribute('data-route');
-      const action = target.getAttribute('data-action');
-      
-      if (route) {
-        this.handleNavigation(route, event);
-      } else if (action) {
-        this.handleAction(action, event);
-      }
-    });
-    
-    // ドロップダウンイベント
-    this.setupDropdownEvents();
-    
-    // 通知ベルクリック
-    const notificationBell = this.container.querySelector('#notification-bell');
-    if (notificationBell) {
-      notificationBell.addEventListener('click', (event) => {
-        event.preventDefault();
-        this.handleNotificationClick();
-      });
-    }
-    
-    this.log('Event listeners set up');
-  }
-
-  /**
-   * ドロップダウンイベントの設定
-   */
-  setupDropdownEvents() {
-    const dropdown = this.container.querySelector('#userDropdown');
-    if (!dropdown) return;
-    
-    // ドロップダウン表示時
-    dropdown.addEventListener('show.bs.dropdown', () => {
-      this.log('User dropdown opened');
-    });
-    
-    // ドロップダウン非表示時
-    dropdown.addEventListener('hide.bs.dropdown', () => {
-      this.log('User dropdown closed');
-    });
-  }
-
-  /**
-   * ナビゲーション処理
-   */
-  handleNavigation(route, event) {
-    this.log('Navigation to:', route);
-    
-    // 現在のルートと同じ場合は何もしない
-    if (this.currentRoute === route) {
-      return;
-    }
-    
-    // ナビゲーションイベントを発火
-    this.emit('navigation:request', { 
-      route, 
-      event,
-      previousRoute: this.currentRoute 
-    });
-  }
-
-  /**
-   * アクション処理
-   */
-  async handleAction(action, event) {
-    this.log('Action triggered:', action);
-    
-    switch (action) {
-      case 'login':
-        this.handleLogin();
-        break;
+    setActiveMenuItem() {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll('.nav-link');
         
-      case 'logout':
-        await this.handleLogout();
-        break;
+        navLinks.forEach(link => {
+            const path = link.dataset.path;
+            if (currentPath === path || (path !== '/' && currentPath.startsWith(path))) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    }
+
+    setupEventListeners() {
+        // ナビゲーションリンククリック
+        document.addEventListener('click', (e) => {
+            const navLink = e.target.closest('.nav-link');
+            if (navLink) {
+                e.preventDefault();
+                const path = navLink.dataset.path;
+                if (path && window.router) {
+                    window.router.navigate(path);
+                }
+            }
+        });
+
+        // ユーザーメニュートグル
+        const userMenuToggle = document.getElementById('user-menu-toggle');
+        const userDropdown = document.getElementById('user-dropdown');
         
-      case 'profile':
-        this.handleProfile();
-        break;
+        if (userMenuToggle && userDropdown) {
+            userMenuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('show');
+            });
+
+            // 外部クリックでメニューを閉じる
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.user-menu')) {
+                    userDropdown.classList.remove('show');
+                }
+            });
+        }
+
+        // モバイルメニュートグル
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const navMenu = document.getElementById('nav-menu');
         
-      case 'my-evaluations':
-        this.handleMyEvaluations();
-        break;
-        
-      case 'help':
-        this.handleHelp();
-        break;
-        
-      default:
-        this.log('Unknown action:', action);
+        if (mobileMenuToggle && navMenu) {
+            mobileMenuToggle.addEventListener('click', () => {
+                this.isMenuOpen = !this.isMenuOpen;
+                navMenu.classList.toggle('show', this.isMenuOpen);
+                mobileMenuToggle.classList.toggle('active', this.isMenuOpen);
+            });
+        }
+
+        // ユーザードロップダウンアイテム
+        document.getElementById('profile-link')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.showProfile();
+        });
+
+        document.getElementById('preferences-link')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.showPreferences();
+        });
+
+        document.getElementById('logout-link')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.handleLogout();
+        });
+
+        // ウィンドウリサイズでモバイルメニューを閉じる
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768 && this.isMenuOpen) {
+                this.isMenuOpen = false;
+                navMenu?.classList.remove('show');
+                mobileMenuToggle?.classList.remove('active');
+            }
+        });
     }
-  }
 
-  /**
-   * ログイン処理
-   */
-  handleLogin() {
-    // ログインモーダルを表示（将来実装）
-    this.emit('auth:login:request');
-  }
-
-  /**
-   * ログアウト処理
-   */
-  async handleLogout() {
-    if (!confirm('ログアウトしますか？')) {
-      return;
+    showProfile() {
+        if (window.notification) {
+            window.notification.info('プロフィール画面は開発中です');
+        }
     }
-    
-    try {
-      if (this.auth) {
-        await this.auth.logout();
-      }
-      
-      // ナビゲーションを再描画
-      await this.render();
-      
-    } catch (error) {
-      this.log('Logout error:', error);
-      // エラーが発生してもログアウトを実行
-      this.emit('auth:logout:error', { error });
+
+    showPreferences() {
+        if (window.notification) {
+            window.notification.info('設定画面は開発中です');
+        }
     }
-  }
 
-  /**
-   * プロフィール表示
-   */
-  handleProfile() {
-    this.emit('navigation:request', { 
-      route: EvaluationApp.Constants.ROUTES.PROFILE 
-    });
-  }
-
-  /**
-   * 自分の評価表示
-   */
-  handleMyEvaluations() {
-    this.emit('navigation:request', { 
-      route: EvaluationApp.Constants.ROUTES.EVALUATIONS,
-      filter: 'my'
-    });
-  }
-
-  /**
-   * ヘルプ表示
-   */
-  handleHelp() {
-    // ヘルプページまたはモーダルを表示
-    this.emit('help:show');
-  }
-
-  /**
-   * 通知クリック処理
-   */
-  handleNotificationClick() {
-    this.emit('notification:show');
-  }
-
-  /**
-   * アクティブなナビゲーション項目の設定
-   */
-  setActiveItem(route) {
-    this.currentRoute = route;
-    
-    // 全てのナビゲーション項目からactiveクラスを削除
-    const navItems = this.container.querySelectorAll('.nav-link[data-nav-item]');
-    navItems.forEach(item => {
-      item.classList.remove('active');
-    });
-    
-    // 対応するナビゲーション項目にactiveクラスを追加
-    const activeItem = this.container.querySelector(`[data-route="${route}"]`);
-    if (activeItem) {
-      activeItem.classList.add('active');
+    handleLogout() {
+        if (window.notification) {
+            window.notification.confirm(
+                'ログアウトしますか？',
+                () => {
+                    if (window.auth) {
+                        window.auth.logout();
+                    }
+                }
+            );
+        } else {
+            if (confirm('ログアウトしますか？')) {
+                if (window.auth) {
+                    window.auth.logout();
+                }
+            }
+        }
     }
-    
-    this.log('Active navigation item set:', route);
-  }
 
-  /**
-   * 通知数の更新
-   */
-  updateNotificationCount(count) {
-    const badge = this.container.querySelector('#notification-count');
-    if (!badge) return;
-    
-    if (count > 0) {
-      badge.textContent = count > 99 ? '99+' : count.toString();
-      badge.classList.remove('d-none');
-    } else {
-      badge.classList.add('d-none');
+    getRoleDisplayName(role) {
+        const roleNames = {
+            admin: '管理者',
+            manager: 'マネージャー',
+            supervisor: '主任',
+            employee: '従業員'
+        };
+        return roleNames[role] || role;
     }
-    
-    this.log('Notification count updated:', count);
-  }
 
-  /**
-   * ナビゲーションの更新
-   */
-  async updateNavigation() {
-    await this.render();
-    this.log('Navigation updated');
-  }
-
-  /**
-   * レスポンシブ対応
-   */
-  handleResize() {
-    const navbar = this.container.querySelector('.navbar-collapse');
-    if (!navbar) return;
-    
-    // モバイルサイズでドロップダウンが開いている場合は閉じる
-    if (window.innerWidth >= 992) { // Bootstrap lg breakpoint
-      const bsCollapse = bootstrap.Collapse.getInstance(navbar);
-      if (bsCollapse) {
-        bsCollapse.hide();
-      }
+    updateUserInfo() {
+        this.currentUser = window.auth?.getCurrentUser();
+        this.render();
     }
-  }
 
-  /**
-   * イベント発火
-   */
-  emit(eventName, data = null) {
-    const event = new CustomEvent(eventName, { detail: data });
-    document.dispatchEvent(event);
-    
-    if (this.debug) {
-      this.log(`Event emitted: ${eventName}`, data);
+    hideNavigation() {
+        const header = document.getElementById('app-header');
+        if (header) {
+            header.style.display = 'none';
+        }
     }
-  }
 
-  /**
-   * ログ出力
-   */
-  log(message, data = null) {
-    if (this.debug) {
-      console.log(`[Navigation] ${message}`, data || '');
+    showNavigation() {
+        const header = document.getElementById('app-header');
+        if (header) {
+            header.style.display = 'block';
+        }
     }
-  }
 
-  /**
-   * ナビゲーションの破棄
-   */
-  destroy() {
-    this.log('Destroying navigation...');
-    
-    // イベントリスナーの削除
-    this.clickHandlers.forEach((handler, element) => {
-      element.removeEventListener('click', handler);
-    });
-    this.clickHandlers.clear();
-    
-    // リサイズイベントリスナーの削除
-    window.removeEventListener('resize', this.handleResize);
-    
-    // コンテナをクリア
-    if (this.container) {
-      this.container.innerHTML = '';
+    // 通知バッジの表示
+    showNotificationBadge(count) {
+        const userInfo = document.getElementById('user-info');
+        if (!userInfo) return;
+
+        let badge = userInfo.querySelector('.notification-badge');
+        if (!badge) {
+            badge = document.createElement('div');
+            badge.className = 'notification-badge';
+            userInfo.appendChild(badge);
+        }
+
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count.toString();
+            badge.style.display = 'block';
+        } else {
+            badge.style.display = 'none';
+        }
     }
-    
-    this.log('Navigation destroyed');
-  }
-};
 
-// リサイズイベントの設定（グローバル）
-window.addEventListener('resize', () => {
-  if (window.evaluationApp && window.evaluationApp.navigation) {
-    window.evaluationApp.navigation.handleResize();
-  }
-});
+    // メニューアイテムの動的追加
+    addMenuItem(item) {
+        // 権限チェック
+        if (!item.roles.includes(this.currentUser?.role)) {
+            return;
+        }
 
-// デバッグ用
-if (EvaluationApp.Constants && EvaluationApp.Constants.APP.DEBUG) {
-  console.log('Navigation component loaded');
+        this.menuItems.push(item);
+        this.render();
+    }
+
+    // メニューアイテムの削除
+    removeMenuItem(id) {
+        this.menuItems = this.menuItems.filter(item => item.id !== id);
+        this.render();
+    }
+
+    // デバッグ用
+    debug() {
+        return {
+            currentUser: this.currentUser,
+            menuItems: this.menuItems,
+            isMenuOpen: this.isMenuOpen
+        };
+    }
 }
+
+// グローバルインスタンスの作成
+window.navigation = new NavigationManager();
