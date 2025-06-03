@@ -6,10 +6,7 @@
     <title>建設業評価システム</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
     
-    <!-- 自作チャート - Chart.js不要 -->
-    
     <style>
-        /* 基本スタイル */
         * {
             margin: 0;
             padding: 0;
@@ -709,6 +706,7 @@
             }
             
             init() {
+                if (!this.container) return;
                 this.container.innerHTML = '';
                 const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                 svg.setAttribute('width', this.size);
@@ -734,7 +732,6 @@
             }
             
             drawGrid(svg) {
-                // 同心円状のグリッド
                 for (let i = 1; i <= 5; i++) {
                     const radius = (this.maxRadius * i) / 5;
                     const points = this.getPoints(radius);
@@ -747,7 +744,6 @@
                     svg.appendChild(gridPath);
                 }
                 
-                // 放射状のライン
                 for (let i = 0; i < 5; i++) {
                     const angle = (i * 2 * Math.PI / 5) - (Math.PI / 2);
                     const x = this.center + this.maxRadius * Math.cos(angle);
@@ -783,7 +779,6 @@
                     dataPath.setAttribute('class', 'pentagon-data');
                     svg.appendChild(dataPath);
                     
-                    // データポイント
                     dataPoints.forEach(point => {
                         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                         circle.setAttribute('cx', point[0]);
@@ -822,7 +817,6 @@
             currentUser: null,
             currentPage: 'login',
             
-            // 拡張された模擬データ
             mockData: {
                 users: [
                     { 
@@ -880,48 +874,6 @@
                         period: '2025年第1四半期',
                         updatedAt: '2025-06-01',
                         createdAt: '2025-05-15'
-                    },
-                    { 
-                        id: '2', 
-                        subordinate: '佐藤 次郎', 
-                        subordinateId: '5',
-                        evaluator: '佐藤 花子', 
-                        evaluatorId: '2',
-                        status: 'pending', 
-                        overallRating: null,
-                        ratings: {},
-                        comments: {},
-                        overallComment: '',
-                        period: '2025年第1四半期',
-                        updatedAt: '2025-06-02',
-                        createdAt: '2025-05-20'
-                    },
-                    { 
-                        id: '3', 
-                        subordinate: '鈴木 三郎', 
-                        subordinateId: '6',
-                        evaluator: '鈴木 一郎', 
-                        evaluatorId: '3',
-                        status: 'submitted', 
-                        overallRating: 3.8,
-                        ratings: {
-                            safety: 4,
-                            quality: 4,
-                            efficiency: 3,
-                            teamwork: 4,
-                            communication: 4
-                        },
-                        comments: {
-                            safety: '安全に気を配っている',
-                            quality: '品質は良好',
-                            efficiency: '効率を向上させる余地あり',
-                            teamwork: 'チームに貢献している',
-                            communication: '適切な報告ができている'
-                        },
-                        overallComment: '全体的に良好な評価です。',
-                        period: '2025年第1四半期',
-                        updatedAt: '2025-06-03',
-                        createdAt: '2025-05-25'
                     }
                 ],
                 evaluationCategories: [
@@ -948,7 +900,7 @@
             }
         }
         
-        async function handleLogin(e) {
+        function handleLogin(e) {
             e.preventDefault();
             
             const email = document.getElementById('email').value;
@@ -1000,16 +952,16 @@
                                 <div class="stat-label">総評価数</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-number">${app.mockData.evaluations.filter(e => e.status === 'pending').length}</div>
-                                <div class="stat-label">未完了</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-number">${app.mockData.evaluations.filter(e => e.status === 'completed').length}</div>
+                                <div class="stat-number">1</div>
                                 <div class="stat-label">完了済み</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-number">4.2</div>
+                                <div class="stat-number">4.5</div>
                                 <div class="stat-label">平均評価</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">5</div>
+                                <div class="stat-label">評価項目数</div>
                             </div>
                         </div>
                         
@@ -1029,20 +981,14 @@
                                 <tbody>
                                     ${app.mockData.evaluations.map(evaluation => `
                                         <tr>
-                                            <td>${evaluation.id}</td>
                                             <td>${evaluation.subordinate}</td>
                                             <td>${evaluation.evaluator}</td>
                                             <td>${evaluation.period}</td>
-                                            <td>${evaluation.overallRating ? evaluation.overallRating + '/5 ⭐' : '未評価'}</td>
-                                            <td>${calculateProgress(evaluation)}%</td>
-                                            <td><span style="padding:4px 8px;border-radius:4px;font-size:12px;font-weight:500;${getStatusStyle(evaluation.status)}">${getStatusDisplayName(evaluation.status)}</span></td>
+                                            <td>完了</td>
                                             <td>${evaluation.updatedAt}</td>
                                             <td>
-                                                <button class="btn btn-secondary" onclick="viewEvaluation('${evaluation.id}')" style="padding:6px 12px;font-size:12px;">
+                                                <button class="btn btn-secondary" onclick="viewEvaluation('${evaluation.id}')">
                                                     👁️ 詳細
-                                                </button>
-                                                <button class="btn btn-primary" onclick="editEvaluation('${evaluation.id}')" style="padding:6px 12px;font-size:12px;">
-                                                    ✏️ 編集
                                                 </button>
                                             </td>
                                         </tr>
@@ -1055,22 +1001,27 @@
             `;
         }
         
-        function showUsers() {
-            console.log('👥 Showing users');
-            app.currentPage = 'users';
+        function showEvaluations() {
+            console.log('📋 Showing evaluations');
+            app.currentPage = 'evaluations';
             updateBreadcrumbs([
                 { label: 'ダッシュボード', path: '/dashboard' },
-                { label: 'ユーザー管理', path: '/users' }
+                { label: '評価一覧', path: '/evaluations' }
             ]);
             
             const mainContent = document.getElementById('main-content');
             mainContent.innerHTML = `
                 <div class="page">
                     <div class="page-header">
-                        <h1 class="page-title">👥 ユーザー管理</h1>
-                        <button class="btn btn-secondary" onclick="showDashboard()">
-                            🏠 ダッシュボード
-                        </button>
+                        <h1 class="page-title">📋 評価一覧</h1>
+                        <div>
+                            <button class="btn btn-secondary" onclick="showDashboard()">
+                                🏠 ダッシュボード
+                            </button>
+                            <button class="btn btn-primary" onclick="showNewEvaluationForm()">
+                                ➕ 新規評価
+                            </button>
+                        </div>
                     </div>
                     <div class="page-content">
                         <div class="table-container">
@@ -1078,22 +1029,30 @@
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>名前</th>
-                                        <th>メールアドレス</th>
-                                        <th>役職</th>
-                                        <th>部署</th>
-                                        <th>ポジション</th>
+                                        <th>評価対象者</th>
+                                        <th>評価者</th>
+                                        <th>評価期間</th>
+                                        <th>総合評価</th>
+                                        <th>ステータス</th>
+                                        <th>更新日</th>
+                                        <th>操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${app.mockData.users.map(user => `
+                                    ${app.mockData.evaluations.map(evaluation => `
                                         <tr>
-                                            <td>${user.id}</td>
-                                            <td>${user.name}</td>
-                                            <td>${user.email}</td>
-                                            <td>${getRoleDisplayName(user.role)}</td>
-                                            <td>${getDepartmentDisplayName(user.department)}</td>
-                                            <td>${user.position}</td>
+                                            <td>${evaluation.id}</td>
+                                            <td>${evaluation.subordinate}</td>
+                                            <td>${evaluation.evaluator}</td>
+                                            <td>${evaluation.period}</td>
+                                            <td>${evaluation.overallRating}/5 ⭐</td>
+                                            <td>完了</td>
+                                            <td>${evaluation.updatedAt}</td>
+                                            <td>
+                                                <button class="btn btn-secondary" onclick="viewEvaluation('${evaluation.id}')">
+                                                    👁️ 詳細
+                                                </button>
+                                            </td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -1174,7 +1133,6 @@
                                     `).join('')}
                                 </div>
                                 
-                                <!-- リアルタイム五角形チャート -->
                                 <div class="evaluation-chart" style="margin-top: 24px;">
                                     <h4 style="text-align: center; margin-bottom: 20px; color: #1976d2;">📊 評価チャート（リアルタイム更新）</h4>
                                     <div class="chart-container">
@@ -1199,10 +1157,6 @@
                                     <label for="overall-comment">総合コメント</label>
                                     <textarea id="overall-comment" placeholder="総合的な評価コメントを入力してください" rows="4"></textarea>
                                 </div>
-                                <div class="form-group">
-                                    <label for="improvement-suggestions">改善提案</label>
-                                    <textarea id="improvement-suggestions" placeholder="今後の改善点や提案があれば入力してください" rows="3"></textarea>
-                                </div>
                             </div>
                             
                             <div style="text-align: center; margin-top: 32px;">
@@ -1225,15 +1179,17 @@
         }
         
         function initializeRadarChart() {
-            console.log('🎯 Initializing custom pentagon chart');
+            console.log('🎯 Initializing pentagon chart');
             const categories = app.mockData.evaluationCategories;
             
-            try {
-                window.pentagonChart = new PentagonChart('evaluation-radar-chart', categories);
-                console.log('✅ Pentagon chart initialized successfully');
-            } catch (error) {
-                console.error('Error creating pentagon chart:', error);
-            }
+            setTimeout(() => {
+                try {
+                    window.pentagonChart = new PentagonChart('evaluation-radar-chart', categories);
+                    console.log('✅ Pentagon chart initialized successfully');
+                } catch (error) {
+                    console.error('Error creating pentagon chart:', error);
+                }
+            }, 100);
         }
         
         function updateRatingDisplay(categoryId) {
@@ -1267,42 +1223,6 @@
             });
             
             window.pentagonChart.updateData(newData);
-        }Error creating radar chart:', error);
-            }
-        }
-        
-        function updateRatingDisplay(categoryId) {
-            const input = document.getElementById(`rating-${categoryId}`);
-            const display = document.getElementById(`display-${categoryId}`);
-            const value = parseFloat(input.value);
-            
-            if (isNaN(value) || value < 1 || value > 5) {
-                display.textContent = '未入力';
-                display.style.color = '#666';
-            } else {
-                display.textContent = `${value}/5`;
-                display.style.color = '#1976d2';
-                
-                const stars = '⭐'.repeat(Math.floor(value));
-                const halfStar = (value % 1 >= 0.5) ? '⭐' : '';
-                display.innerHTML = `${value}/5<br><small>${stars}${halfStar}</small>`;
-            }
-            
-            updateRadarChart();
-        }
-        
-        function updateRadarChart() {
-            if (!window.evaluationChart) return;
-            
-            const categories = app.mockData.evaluationCategories;
-            const newData = categories.map(category => {
-                const input = document.getElementById(`rating-${category.id}`);
-                const value = parseFloat(input.value);
-                return isNaN(value) ? 0 : Math.max(0, Math.min(5, value));
-            });
-            
-            window.evaluationChart.data.datasets[0].data = newData;
-            window.evaluationChart.update('none');
         }
         
         function handleSaveEvaluation(e) {
@@ -1311,7 +1231,6 @@
             const period = document.getElementById('evaluation-period').value;
             const subordinate = document.getElementById('subordinate-select').value;
             const overallComment = document.getElementById('overall-comment').value;
-            const improvements = document.getElementById('improvement-suggestions').value;
             
             if (!period || !subordinate) {
                 showNotification('評価期間と対象者を選択してください', 'error');
@@ -1334,14 +1253,6 @@
                 return;
             }
             
-            const comments = {};
-            app.mockData.evaluationCategories.forEach(category => {
-                const comment = document.getElementById(`comment-${category.id}`).value;
-                if (comment) {
-                    comments[category.id] = comment;
-                }
-            });
-            
             const totalRating = Object.values(ratings).reduce((sum, rating) => sum + rating, 0);
             const avgRating = totalRating / Object.keys(ratings).length || 0;
             
@@ -1354,9 +1265,8 @@
                 status: 'completed',
                 overallRating: Math.round(avgRating * 10) / 10,
                 ratings: ratings,
-                comments: comments,
+                comments: {},
                 overallComment: overallComment,
-                improvementSuggestions: improvements,
                 period: period === '2025-Q1' ? '2025年第1四半期' : period,
                 updatedAt: new Date().toISOString().split('T')[0],
                 createdAt: new Date().toISOString().split('T')[0]
@@ -1412,7 +1322,7 @@
                                 </div>
                                 <div class="detail-row">
                                     <span class="detail-label">ステータス:</span>
-                                    <span class="detail-value">${getStatusDisplayName(evaluation.status)}</span>
+                                    <span class="detail-value">完了</span>
                                 </div>
                                 <div class="detail-row">
                                     <span class="detail-label">総合評価:</span>
@@ -1456,35 +1366,13 @@
                             </div>
                         </div>
                         
-                        ${Object.keys(evaluation.comments).length > 0 ? `
-                            <div class="form-section">
-                                <h3>💭 詳細コメント</h3>
-                                ${app.mockData.evaluationCategories.map(category => 
-                                    evaluation.comments[category.id] ? `
-                                        <div class="form-group">
-                                            <label><strong>${category.name}</strong></label>
-                                            <div style="padding:12px;background:#f8f9fa;border-radius:4px;">${evaluation.comments[category.id]}</div>
-                                        </div>
-                                    ` : ''
-                                ).join('')}
-                            </div>
-                        ` : ''}
-                        
-                        ${evaluation.overallComment || evaluation.improvementSuggestions ? `
+                        ${evaluation.overallComment ? `
                             <div class="form-section">
                                 <h3>📝 総合評価</h3>
-                                ${evaluation.overallComment ? `
-                                    <div class="form-group">
-                                        <label><strong>総合コメント</strong></label>
-                                        <div style="padding:12px;background:#f8f9fa;border-radius:4px;">${evaluation.overallComment}</div>
-                                    </div>
-                                ` : ''}
-                                ${evaluation.improvementSuggestions ? `
-                                    <div class="form-group">
-                                        <label><strong>改善提案</strong></label>
-                                        <div style="padding:12px;background:#f8f9fa;border-radius:4px;">${evaluation.improvementSuggestions}</div>
-                                    </div>
-                                ` : ''}
+                                <div class="form-group">
+                                    <label><strong>総合コメント</strong></label>
+                                    <div style="padding:12px;background:#f8f9fa;border-radius:4px;">${evaluation.overallComment}</div>
+                                </div>
                             </div>
                         ` : ''}
                     </div>
@@ -1509,10 +1397,6 @@
             }
         }
         
-        function editEvaluation(id) {
-            showNotification('評価編集機能は開発中です', 'info');
-        }
-        
         function buildNavigation() {
             const navMenu = document.getElementById('nav-menu');
             const userInfo = document.getElementById('user-info');
@@ -1521,7 +1405,6 @@
                 navMenu.innerHTML = `
                     <li><a href="#" class="nav-link ${app.currentPage === 'dashboard' ? 'active' : ''}" onclick="showDashboard()">📊 ダッシュボード</a></li>
                     <li><a href="#" class="nav-link ${app.currentPage === 'evaluations' ? 'active' : ''}" onclick="showEvaluations()">📋 評価一覧</a></li>
-                    ${app.currentUser.role === 'admin' ? `<li><a href="#" class="nav-link ${app.currentPage === 'users' ? 'active' : ''}" onclick="showUsers()">👥 ユーザー管理</a></li>` : ''}
                 `;
             }
             
@@ -1530,7 +1413,7 @@
                     <div class="user-avatar">${app.currentUser.name.charAt(0)}</div>
                     <div class="user-details">
                         <div class="user-name">${app.currentUser.name}</div>
-                        <div class="user-role">${getRoleDisplayName(app.currentUser.role)}</div>
+                        <div class="user-role">管理者</div>
                     </div>
                     <button onclick="logout()" style="margin-left: 12px; background: none; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer;">
                         ログアウト
@@ -1556,7 +1439,6 @@
         function navigateFromBreadcrumb(path) {
             if (path === '/dashboard') showDashboard();
             else if (path === '/evaluations') showEvaluations();
-            else if (path === '/users') showUsers();
         }
         
         function logout() {
@@ -1568,55 +1450,6 @@
             document.getElementById('breadcrumbs').style.display = 'none';
             
             location.reload();
-        }
-        
-        // ユーティリティ関数
-        function getStatusDisplayName(status) {
-            const statusNames = {
-                draft: '下書き',
-                pending: '未完了',
-                submitted: '提出済み',
-                completed: '完了'
-            };
-            return statusNames[status] || status;
-        }
-        
-        function getStatusStyle(status) {
-            const styles = {
-                draft: 'background:#f5f5f5;color:#666;',
-                pending: 'background:#fff3cd;color:#856404;',
-                submitted: 'background:#d1ecf1;color:#0c5460;',
-                completed: 'background:#d4edda;color:#155724;'
-            };
-            return styles[status] || 'background:#f5f5f5;color:#666;';
-        }
-        
-        function getRoleDisplayName(role) {
-            const roleNames = {
-                admin: '管理者',
-                manager: 'マネージャー',
-                supervisor: '主任'
-            };
-            return roleNames[role] || role;
-        }
-        
-        function getDepartmentDisplayName(department) {
-            const deptNames = {
-                admin: '管理部',
-                construction: '建設部',
-                sales: '営業部'
-            };
-            return deptNames[department] || department;
-        }
-        
-        function calculateProgress(evaluation) {
-            let progress = 0;
-            if (evaluation.subordinate) progress += 20;
-            if (Object.keys(evaluation.ratings).length > 0) progress += 40;
-            if (Object.keys(evaluation.comments).length > 0) progress += 20;
-            if (evaluation.overallComment) progress += 10;
-            if (evaluation.status === 'completed') progress = 100;
-            return Math.min(progress, 100);
         }
         
         function showNotification(message, type = 'info') {
@@ -1642,65 +1475,4 @@
         console.log('✅ Building evaluation system ready');
     </script>
 </body>
-</html>>操作</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${app.mockData.evaluations.map(evaluation => `
-                                        <tr>
-                                            <td>${evaluation.subordinate}</td>
-                                            <td>${evaluation.evaluator}</td>
-                                            <td>${evaluation.period}</td>
-                                            <td>${getStatusDisplayName(evaluation.status)}</td>
-                                            <td>${evaluation.updatedAt}</td>
-                                            <td>
-                                                <button class="btn btn-secondary" onclick="viewEvaluation('${evaluation.id}')">
-                                                    👁️ 詳細
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function showEvaluations() {
-            console.log('📋 Showing evaluations');
-            app.currentPage = 'evaluations';
-            updateBreadcrumbs([
-                { label: 'ダッシュボード', path: '/dashboard' },
-                { label: '評価一覧', path: '/evaluations' }
-            ]);
-            
-            const mainContent = document.getElementById('main-content');
-            mainContent.innerHTML = `
-                <div class="page">
-                    <div class="page-header">
-                        <h1 class="page-title">📋 評価一覧</h1>
-                        <div>
-                            <button class="btn btn-secondary" onclick="showDashboard()">
-                                🏠 ダッシュボード
-                            </button>
-                            <button class="btn btn-primary" onclick="showNewEvaluationForm()">
-                                ➕ 新規評価
-                            </button>
-                        </div>
-                    </div>
-                    <div class="page-content">
-                        <div class="table-container">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>評価対象者</th>
-                                        <th>評価者</th>
-                                        <th>評価期間</th>
-                                        <th>総合評価</th>
-                                        <th>進捗</th>
-                                        <th>ステータス</th>
-                                        <th>更新日</th>
-                                        <th
+</html>
