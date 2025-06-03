@@ -1,0 +1,252 @@
+/**
+ * CSS Variables - 評価ツール
+ * 全体で使用する色、サイズ、フォントなどの変数を定義
+ */
+
+:root {
+  /* === カラーパレット === */
+  
+  /* プライマリーカラー（企業カラー） */
+  --color-primary: #001350;
+  --color-primary-light: #003d96;
+  --color-primary-dark: #00092e;
+  --color-primary-50: rgba(0, 19, 80, 0.05);
+  --color-primary-100: rgba(0, 19, 80, 0.1);
+  --color-primary-200: rgba(0, 19, 80, 0.2);
+  --color-primary-500: rgba(0, 19, 80, 0.5);
+  
+  /* セカンダリーカラー */
+  --color-secondary: #6c757d;
+  --color-secondary-light: #adb5bd;
+  --color-secondary-dark: #495057;
+  
+  /* 状態色 */
+  --color-success: #198754;
+  --color-success-light: #d1e7dd;
+  --color-success-dark: #146c43;
+  
+  --color-warning: #ffc107;
+  --color-warning-light: #fff3cd;
+  --color-warning-dark: #d39e00;
+  
+  --color-danger: #dc3545;
+  --color-danger-light: #f8d7da;
+  --color-danger-dark: #b02a37;
+  
+  --color-info: #0dcaf0;
+  --color-info-light: #d1ecf1;
+  --color-info-dark: #055160;
+  
+  /* グレースケール */
+  --color-white: #ffffff;
+  --color-gray-50: #f8f9fa;
+  --color-gray-100: #e9ecef;
+  --color-gray-200: #dee2e6;
+  --color-gray-300: #ced4da;
+  --color-gray-400: #adb5bd;
+  --color-gray-500: #6c757d;
+  --color-gray-600: #495057;
+  --color-gray-700: #343a40;
+  --color-gray-800: #212529;
+  --color-gray-900: #000000;
+  
+  /* === 評価ステータスカラー === */
+  --color-status-draft: var(--color-gray-500);
+  --color-status-submitted: #fd7e14;
+  --color-status-approved-evaluator: var(--color-primary);
+  --color-status-approved-admin: var(--color-success);
+  --color-status-rejected: var(--color-danger);
+  
+  /* === レイアウト === */
+  
+  /* ブレイクポイント */
+  --breakpoint-xs: 0;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-xxl: 1400px;
+  
+  /* コンテナ幅 */
+  --container-max-width: 1200px;
+  --container-padding: 1rem;
+  
+  /* スペーシング */
+  --spacing-xs: 0.25rem;   /* 4px */
+  --spacing-sm: 0.5rem;    /* 8px */
+  --spacing-md: 1rem;      /* 16px */
+  --spacing-lg: 1.5rem;    /* 24px */
+  --spacing-xl: 2rem;      /* 32px */
+  --spacing-xxl: 3rem;     /* 48px */
+  
+  /* === タイポグラフィ === */
+  
+  /* フォントファミリー */
+  --font-family-base: 'Segoe UI', 'Yu Gothic UI', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, system-ui, sans-serif;
+  --font-family-monospace: 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  
+  /* フォントサイズ */
+  --font-size-xs: 0.75rem;   /* 12px */
+  --font-size-sm: 0.875rem;  /* 14px */
+  --font-size-base: 1rem;    /* 16px */
+  --font-size-lg: 1.125rem;  /* 18px */
+  --font-size-xl: 1.25rem;   /* 20px */
+  --font-size-2xl: 1.5rem;   /* 24px */
+  --font-size-3xl: 1.875rem; /* 30px */
+  --font-size-4xl: 2.25rem;  /* 36px */
+  
+  /* フォントウェイト */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* 行の高さ */
+  --line-height-tight: 1.25;
+  --line-height-base: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* === コンポーネント === */
+  
+  /* ボーダー */
+  --border-width: 1px;
+  --border-radius-sm: 0.25rem;  /* 4px */
+  --border-radius: 0.375rem;    /* 6px */
+  --border-radius-md: 0.5rem;   /* 8px */
+  --border-radius-lg: 0.75rem;  /* 12px */
+  --border-radius-xl: 1rem;     /* 16px */
+  --border-color: var(--color-gray-300);
+  
+  /* シャドウ */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  /* トランジション */
+  --transition-fast: 150ms ease-in-out;
+  --transition-base: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+  
+  /* Z-index */
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+  --z-index-toast: 1080;
+  --z-index-demo-badge: 1100;
+  
+  /* === フォーム要素 === */
+  
+  /* 入力フィールド */
+  --input-padding-y: 0.5rem;
+  --input-padding-x: 0.75rem;
+  --input-border-color: var(--color-gray-300);
+  --input-border-radius: var(--border-radius);
+  --input-focus-border-color: var(--color-primary);
+  --input-focus-box-shadow: 0 0 0 0.25rem var(--color-primary-200);
+  
+  /* ボタン */
+  --btn-padding-y: 0.5rem;
+  --btn-padding-x: 1rem;
+  --btn-font-size: var(--font-size-base);
+  --btn-border-radius: var(--border-radius);
+  --btn-transition: all var(--transition-base);
+  
+  /* === カード === */
+  --card-border-radius: var(--border-radius-md);
+  --card-border-color: var(--color-gray-200);
+  --card-bg: var(--color-white);
+  --card-shadow: var(--shadow);
+  --card-hover-shadow: var(--shadow-md);
+  --card-padding: 1.25rem;
+  
+  /* === ナビゲーション === */
+  --navbar-height: 60px;
+  --navbar-padding-y: 0.5rem;
+  --navbar-padding-x: 1rem;
+  --navbar-brand-font-size: 1.25rem;
+  
+  /* === テーブル === */
+  --table-cell-padding-y: 0.75rem;
+  --table-cell-padding-x: 0.75rem;
+  --table-border-color: var(--color-gray-200);
+  --table-hover-bg: var(--color-primary-50);
+  
+  /* === モーダル === */
+  --modal-backdrop-bg: rgba(0, 0, 0, 0.5);
+  --modal-content-bg: var(--color-white);
+  --modal-content-border-radius: var(--border-radius-lg);
+  --modal-header-bg: var(--color-primary);
+  --modal-header-color: var(--color-white);
+  
+  /* === 通知・トースト === */
+  --toast-bg: var(--color-white);
+  --toast-border-radius: var(--border-radius);
+  --toast-shadow: var(--shadow-lg);
+  --toast-padding: 1rem;
+  
+  /* === チャート === */
+  --chart-primary-color: var(--color-primary);
+  --chart-secondary-color: var(--color-gray-400);
+  --chart-grid-color: var(--color-gray-200);
+  --chart-text-color: var(--color-gray-600);
+  
+  /* === ローディング === */
+  --loading-overlay-bg: rgba(255, 255, 255, 0.9);
+  --spinner-color: var(--color-primary);
+  
+  /* === レスポンシブフォント === */
+  --font-size-responsive-xs: clamp(0.7rem, 0.8vw, 0.75rem);
+  --font-size-responsive-sm: clamp(0.8rem, 1vw, 0.875rem);
+  --font-size-responsive-base: clamp(0.9rem, 1.2vw, 1rem);
+  --font-size-responsive-lg: clamp(1rem, 1.4vw, 1.125rem);
+  --font-size-responsive-xl: clamp(1.1rem, 1.6vw, 1.25rem);
+}
+
+/* === ダークモード対応（将来的に） === */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* ダークモード用の変数を定義 */
+    --color-bg-base: #1a1a1a;
+    --color-text-base: #ffffff;
+    --card-bg: #2d2d2d;
+    --input-bg: #3d3d3d;
+    --border-color: #4d4d4d;
+  }
+}
+
+/* === 印刷用スタイル === */
+@media print {
+  :root {
+    --shadow: none;
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
+    --card-shadow: none;
+  }
+}
+
+/* === 高コントラストモード対応 === */
+@media (prefers-contrast: high) {
+  :root {
+    --border-width: 2px;
+    --input-border-color: var(--color-gray-800);
+    --card-border-color: var(--color-gray-600);
+  }
+}
+
+/* === 動きを減らす設定 === */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: none;
+    --transition-base: none;
+    --transition-slow: none;
+  }
+}
