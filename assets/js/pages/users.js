@@ -1,6 +1,6 @@
 /**
  * ユーザー管理ページコントローラー
- * 管理者・マネージャー向けのユーザー管理機能
+ * ユーザーの一覧表示、作成、編集、削除を管理
  */
 class UsersController {
     constructor() {
@@ -9,41 +9,128 @@ class UsersController {
         this.currentFilter = {
             search: '',
             role: '',
-            status: '',
-            department: ''
+            department: '',
+            status: ''
         };
         this.sortConfig = {
             field: 'name',
             direction: 'asc'
         };
-        this.pagination = {
-            currentPage: 1,
-            itemsPerPage: 10,
-            totalItems: 0
-        };
-        this.selectedUsers = new Set();
         
-        this.createPageStructure();
-        this.bindEvents();
+        console.log('Users controller initialized');
     }
 
-    createPageStructure() {
+    async render(options = {}) {
+        const { mode = 'list', userId = null } = options;
+        
+        try {
+            this.showLoading();
+            
+            if (mode === 'list') {
+                await this.renderUsersList();
+            } else if (mode === 'detail' && userId) {
+                await this.renderUserDetail(userId);
+            }
+            
+        } catch (error) {
+            console.error('Users page render failed:', error);
+            this.showError('ユーザー管理ページの読み込みに失敗しました');
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    async renderUsersList() {
+        await this.loadUsers();
+        this.createUsersListStructure();
+        this.populateUsersList();
+        this.setupEventListeners();
+    }
+
+    async loadUsers() {
+        try {
+            if (window.api) {
+                this.users = await window.api.getUsers();
+            } else {
+                // モックデータを使用
+                this.users = this.generateMockUsers();
+            }
+            
+            this.applyFilters();
+        } catch (error) {
+            console.error('Failed to load users:', error);
+            this.users = this.generateMockUsers();
+            this.applyFilters();
+        }
+    }
+
+    generateMockUsers() {
+        return [
+            {
+                id: 'user-1',
+                name: '田中 太郎',
+                email: 'tanaka@company.com',
+                role: 'manager',
+                department: 'construction',
+                position: 'マネージャー',
+                status: 'active',
+                createdAt: '2024-01-15T09:00:00Z',
+                lastLogin: '2025-06-03T08:30:00Z'
+            },
+            {
+                id: 'user-2',
+                name: '佐藤 花子',
+                email: 'sato@company.com',
+                role: 'supervisor',
+                department: 'construction',
+                position: '主任',
+                status: 'active',
+                createdAt: '2024-02-01T09:00:00Z',
+                lastLogin: '2025-06-02T17:45:00Z'
+            },
+            {
+                id: 'user-3',
+                name: '鈴木 一郎',
+                email: 'suzuki@company.com',
+                role: 'employee',
+                department: 'construction',
+                position: '作業員',
+                status: 'active',
+                createdAt: '2024-03-10T09:00:00Z',
+                lastLogin: '2025-06-01T16:20:00Z'
+            },
+            {
+                id: 'user-4',
+                name: '山田 次郎',
+                email: 'yamada@company.com',
+                role: 'employee',
+                department: 'construction',
+                position: '作業員',
+                status: 'inactive',
+                createdAt: '2024-04-05T09:00:00Z',
+                lastLogin: '2025-05-15T14:10:00Z'
+            }
+        ];
+    }
+
+    createUsersListStructure() {
         const mainContent = document.getElementById('main-content');
         if (!mainContent) return;
 
         mainContent.innerHTML = `
             <div class="users-page">
+                <!-- ページヘッダー -->
                 <div class="page-header">
                     <div class="header-content">
                         <h1>ユーザー管理</h1>
                         <div class="header-actions">
+                            <button class="btn-secondary" id="refresh-users">
+                                <i class="icon-refresh"></i>
+                                更新
+                            </button>
                             <button class="btn-primary" id="add-user-btn">
                                 <i class="icon-plus"></i>
                                 新規ユーザー
-                            </button>
-                            <button class="btn-secondary" id="bulk-actions-btn" style="display: none;">
-                                <i class="icon-settings"></i>
-                                一括操作
                             </button>
                         </div>
                     </div>
@@ -55,7 +142,7 @@ class UsersController {
                         <input 
                             type="text" 
                             id="search-input" 
-                            placeholder="名前、メール、部署で検索..."
+                            placeholder="名前、メールアドレスで検索..."
                             class="search-input"
                         >
                         <i class="search-icon icon-search"></i>
@@ -67,22 +154,20 @@ class UsersController {
                             <option value="admin">管理者</option>
                             <option value="manager">マネージャー</option>
                             <option value="supervisor">主任</option>
-                            <option value="staff">一般社員</option>
-                        </select>
-                        
-                        <select id="status-filter" class="filter-select">
-                            <option value="">すべてのステータス</option>
-                            <option value="active">有効</option>
-                            <option value="inactive">無効</option>
-                            <option value="pending">承認待ち</option>
+                            <option value="employee">従業員</option>
                         </select>
                         
                         <select id="department-filter" class="filter-select">
                             <option value="">すべての部署</option>
-                            <option value="construction">工事部</option>
-                            <option value="sales">営業部</option>
+                            <option value="construction">建設部</option>
                             <option value="admin">管理部</option>
-                            <option value="quality">品質管理部</option>
+                            <option value="sales">営業部</option>
+                        </select>
+                        
+                        <select id="status-filter" class="filter-select">
+                            <option value="">すべてのステータス</option>
+                            <option value="active">アクティブ</option>
+                            <option value="inactive">非アクティブ</option>
                         </select>
                         
                         <button id="clear-filters-btn" class="btn-text">
@@ -93,36 +178,32 @@ class UsersController {
 
                 <!-- ユーザー一覧テーブル -->
                 <div class="table-container">
+                    <div class="table-header">
+                        <div class="table-controls">
+                            <div class="results-count">
+                                <span id="users-count">0</span> 名のユーザー
+                            </div>
+                            
+                            <select id="sort-select" class="sort-select">
+                                <option value="name-asc">名前（昇順）</option>
+                                <option value="name-desc">名前（降順）</option>
+                                <option value="role-asc">役職（昇順）</option>
+                                <option value="role-desc">役職（降順）</option>
+                                <option value="createdAt-desc">登録日（新しい順）</option>
+                                <option value="createdAt-asc">登録日（古い順）</option>
+                                <option value="lastLogin-asc">最終ログイン（古い順）</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <table class="users-table">
                         <thead>
                             <tr>
-                                <th class="checkbox-column">
-                                    <input type="checkbox" id="select-all-checkbox">
-                                </th>
-                                <th class="sortable" data-field="name">
-                                    名前
-                                    <i class="sort-icon"></i>
-                                </th>
-                                <th class="sortable" data-field="email">
-                                    メールアドレス
-                                    <i class="sort-icon"></i>
-                                </th>
-                                <th class="sortable" data-field="role">
-                                    役職
-                                    <i class="sort-icon"></i>
-                                </th>
-                                <th class="sortable" data-field="department">
-                                    部署
-                                    <i class="sort-icon"></i>
-                                </th>
-                                <th class="sortable" data-field="status">
-                                    ステータス
-                                    <i class="sort-icon"></i>
-                                </th>
-                                <th class="sortable" data-field="lastLogin">
-                                    最終ログイン
-                                    <i class="sort-icon"></i>
-                                </th>
+                                <th class="user-column">ユーザー</th>
+                                <th class="role-column">役職</th>
+                                <th class="department-column">部署</th>
+                                <th class="status-column">ステータス</th>
+                                <th class="last-login-column">最終ログイン</th>
                                 <th class="actions-column">操作</th>
                             </tr>
                         </thead>
@@ -132,201 +213,104 @@ class UsersController {
                     </table>
                 </div>
 
-                <!-- ペジネーション -->
-                <div class="pagination-container">
-                    <div class="pagination-info">
-                        <span id="pagination-info-text"></span>
-                    </div>
-                    <div class="pagination-controls">
-                        <button id="prev-page-btn" class="pagination-btn" disabled>
-                            <i class="icon-chevron-left"></i>
-                        </button>
-                        <div id="page-numbers" class="page-numbers">
-                            <!-- 動的に生成 -->
-                        </div>
-                        <button id="next-page-btn" class="pagination-btn" disabled>
-                            <i class="icon-chevron-right"></i>
-                        </button>
-                    </div>
-                    <div class="items-per-page">
-                        <select id="items-per-page-select">
-                            <option value="10">10件表示</option>
-                            <option value="25">25件表示</option>
-                            <option value="50">50件表示</option>
-                            <option value="100">100件表示</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- ローディング表示 -->
-                <div id="users-loading" class="loading-overlay" style="display: none;">
-                    <div class="loading-spinner"></div>
-                    <div class="loading-text">読み込み中...</div>
-                </div>
-
                 <!-- 空の状態 -->
                 <div id="empty-state" class="empty-state" style="display: none;">
                     <div class="empty-icon">
                         <i class="icon-users"></i>
                     </div>
-                    <h3>ユーザーがいません</h3>
-                    <p>新しいユーザーを追加してください。</p>
+                    <h3>ユーザーがありません</h3>
+                    <p>条件に一致するユーザーが見つかりません。</p>
                     <button class="btn-primary" onclick="document.getElementById('add-user-btn').click()">
-                        最初のユーザーを追加
+                        最初のユーザーを作成
                     </button>
-                </div>
-            </div>
-
-            <!-- ユーザー編集モーダル -->
-            <div id="user-modal" class="modal" style="display: none;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2 id="user-modal-title">新規ユーザー</h2>
-                        <button class="modal-close" id="user-modal-close">
-                            <i class="icon-x"></i>
-                        </button>
-                    </div>
-                    
-                    <form id="user-form" class="modal-form">
-                        <div class="form-section">
-                            <h3>基本情報</h3>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="user-name">氏名 <span class="required">*</span></label>
-                                    <input type="text" id="user-name" name="name" required>
-                                    <div class="error-message" id="name-error"></div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="user-email">メールアドレス <span class="required">*</span></label>
-                                    <input type="email" id="user-email" name="email" required>
-                                    <div class="error-message" id="email-error"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="user-role">役職 <span class="required">*</span></label>
-                                    <select id="user-role" name="role" required>
-                                        <option value="">選択してください</option>
-                                        <option value="admin">管理者</option>
-                                        <option value="manager">マネージャー</option>
-                                        <option value="supervisor">主任</option>
-                                        <option value="staff">一般社員</option>
-                                    </select>
-                                    <div class="error-message" id="role-error"></div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="user-department">部署 <span class="required">*</span></label>
-                                    <select id="user-department" name="department" required>
-                                        <option value="">選択してください</option>
-                                        <option value="construction">工事部</option>
-                                        <option value="sales">営業部</option>
-                                        <option value="admin">管理部</option>
-                                        <option value="quality">品質管理部</option>
-                                    </select>
-                                    <div class="error-message" id="department-error"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <h3>権限設定</h3>
-                            <div class="form-group">
-                                <label for="user-status">ステータス</label>
-                                <select id="user-status" name="status">
-                                    <option value="active">有効</option>
-                                    <option value="inactive">無効</option>
-                                    <option value="pending">承認待ち</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label>権限</label>
-                                <div class="checkbox-group">
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="permissions" value="evaluate">
-                                        <span class="checkmark"></span>
-                                        評価実施
-                                    </label>
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="permissions" value="manage_subordinates">
-                                        <span class="checkmark"></span>
-                                        部下管理
-                                    </label>
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="permissions" value="view_reports">
-                                        <span class="checkmark"></span>
-                                        レポート閲覧
-                                    </label>
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="permissions" value="manage_users">
-                                        <span class="checkmark"></span>
-                                        ユーザー管理
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-section" id="password-section">
-                            <h3>パスワード設定</h3>
-                            <div class="form-group">
-                                <label for="user-password">パスワード <span class="required">*</span></label>
-                                <input type="password" id="user-password" name="password">
-                                <div class="form-help">8文字以上の英数字を入力してください</div>
-                                <div class="error-message" id="password-error"></div>
-                            </div>
-                        </div>
-                    </form>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn-secondary" id="user-cancel-btn">
-                            キャンセル
-                        </button>
-                        <button type="submit" form="user-form" class="btn-primary" id="user-save-btn">
-                            保存
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 一括操作モーダル -->
-            <div id="bulk-actions-modal" class="modal" style="display: none;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>一括操作</h2>
-                        <button class="modal-close" id="bulk-modal-close">
-                            <i class="icon-x"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="modal-body">
-                        <p><span id="selected-count">0</span>人のユーザーが選択されています。</p>
-                        
-                        <div class="bulk-actions">
-                            <button class="bulk-action-btn" data-action="activate">
-                                <i class="icon-check"></i>
-                                有効化
-                            </button>
-                            <button class="bulk-action-btn" data-action="deactivate">
-                                <i class="icon-x"></i>
-                                無効化
-                            </button>
-                            <button class="bulk-action-btn" data-action="delete">
-                                <i class="icon-trash"></i>
-                                削除
-                            </button>
-                            <button class="bulk-action-btn" data-action="export">
-                                <i class="icon-download"></i>
-                                CSVエクスポート
-                            </button>
-                        </div>
-                    </div>
                 </div>
             </div>
         `;
     }
 
-    bindEvents() {
+    populateUsersList() {
+        const tbody = document.getElementById('users-table-body');
+        const emptyState = document.getElementById('empty-state');
+        const usersCount = document.getElementById('users-count');
+        
+        if (!tbody) return;
+
+        // 結果数の表示
+        if (usersCount) {
+            usersCount.textContent = this.filteredUsers.length;
+        }
+
+        if (this.filteredUsers.length === 0) {
+            tbody.innerHTML = '';
+            if (emptyState) emptyState.style.display = 'block';
+            return;
+        }
+
+        if (emptyState) emptyState.style.display = 'none';
+
+        tbody.innerHTML = this.filteredUsers.map(user => `
+            <tr class="user-row" data-user-id="${user.id}">
+                <td class="user-cell">
+                    <div class="user-info">
+                        <div class="user-avatar">
+                            ${user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div class="user-details">
+                            <div class="user-name">${this.escapeHtml(user.name)}</div>
+                            <div class="user-email">${this.escapeHtml(user.email)}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="role-cell">
+                    <span class="role-badge role-${user.role}">
+                        ${this.getRoleDisplayName(user.role)}
+                    </span>
+                </td>
+                <td class="department-cell">
+                    <span class="department-name">${this.getDepartmentDisplayName(user.department)}</span>
+                    <div class="position-name">${this.escapeHtml(user.position || '')}</div>
+                </td>
+                <td class="status-cell">
+                    <span class="status-badge status-${user.status}">
+                        ${this.getStatusDisplayName(user.status)}
+                    </span>
+                </td>
+                <td class="last-login-cell">
+                    <div class="last-login-info">
+                        ${user.lastLogin ? this.formatRelativeTime(user.lastLogin) : '未ログイン'}
+                    </div>
+                </td>
+                <td class="actions-cell">
+                    <div class="action-buttons">
+                        <button 
+                            class="action-btn view-user-btn" 
+                            data-user-id="${user.id}"
+                            title="詳細表示"
+                        >
+                            <i class="icon-eye"></i>
+                        </button>
+                        <button 
+                            class="action-btn edit-user-btn" 
+                            data-user-id="${user.id}"
+                            title="編集"
+                        >
+                            <i class="icon-edit"></i>
+                        </button>
+                        <button 
+                            class="action-btn delete-user-btn" 
+                            data-user-id="${user.id}"
+                            title="削除"
+                            ${user.id === window.auth?.getCurrentUser()?.id ? 'disabled' : ''}
+                        >
+                            <i class="icon-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    setupEventListeners() {
         // 検索
         const searchInput = document.getElementById('search-input');
         if (searchInput) {
@@ -341,93 +325,37 @@ class UsersController {
             if (e.target.id === 'role-filter') {
                 this.currentFilter.role = e.target.value;
                 this.applyFilters();
-            } else if (e.target.id === 'status-filter') {
-                this.currentFilter.status = e.target.value;
-                this.applyFilters();
             } else if (e.target.id === 'department-filter') {
                 this.currentFilter.department = e.target.value;
                 this.applyFilters();
-            } else if (e.target.id === 'items-per-page-select') {
-                this.pagination.itemsPerPage = parseInt(e.target.value);
-                this.pagination.currentPage = 1;
-                this.renderTable();
+            } else if (e.target.id === 'status-filter') {
+                this.currentFilter.status = e.target.value;
+                this.applyFilters();
+            } else if (e.target.id === 'sort-select') {
+                const [field, direction] = e.target.value.split('-');
+                this.sortConfig.field = field;
+                this.sortConfig.direction = direction;
+                this.applySorting();
+                this.populateUsersList();
             }
         });
 
         // ボタンクリック
         document.addEventListener('click', (e) => {
             if (e.target.id === 'add-user-btn') {
-                this.openUserModal();
+                this.showAddUserModal();
+            } else if (e.target.id === 'refresh-users') {
+                this.render();
             } else if (e.target.id === 'clear-filters-btn') {
                 this.clearFilters();
-            } else if (e.target.id === 'bulk-actions-btn') {
-                this.openBulkActionsModal();
+            } else if (e.target.classList.contains('view-user-btn')) {
+                this.viewUser(e.target.dataset.userId);
             } else if (e.target.classList.contains('edit-user-btn')) {
                 this.editUser(e.target.dataset.userId);
             } else if (e.target.classList.contains('delete-user-btn')) {
                 this.deleteUser(e.target.dataset.userId);
-            } else if (e.target.classList.contains('sortable')) {
-                this.handleSort(e.target.dataset.field);
-            } else if (e.target.classList.contains('page-number')) {
-                this.goToPage(parseInt(e.target.dataset.page));
-            } else if (e.target.id === 'prev-page-btn') {
-                this.goToPage(this.pagination.currentPage - 1);
-            } else if (e.target.id === 'next-page-btn') {
-                this.goToPage(this.pagination.currentPage + 1);
-            } else if (e.target.classList.contains('bulk-action-btn')) {
-                this.executeBulkAction(e.target.dataset.action);
             }
         });
-
-        // チェックボックス
-        document.addEventListener('change', (e) => {
-            if (e.target.id === 'select-all-checkbox') {
-                this.toggleSelectAll(e.target.checked);
-            } else if (e.target.classList.contains('user-checkbox')) {
-                this.toggleUserSelection(e.target.dataset.userId, e.target.checked);
-            }
-        });
-
-        // モーダル関連
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal-close') || 
-                e.target.id === 'user-cancel-btn' ||
-                e.target.id === 'bulk-modal-close') {
-                this.closeModals();
-            }
-        });
-
-        // フォーム送信
-        const userForm = document.getElementById('user-form');
-        if (userForm) {
-            userForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.saveUser();
-            });
-        }
-    }
-
-    async render() {
-        this.showLoading();
-        try {
-            await this.loadUsers();
-            this.applyFilters();
-        } catch (error) {
-            console.error('ユーザー一覧の読み込みに失敗:', error);
-            window.notification.show('ユーザー一覧の読み込みに失敗しました', 'error');
-        } finally {
-            this.hideLoading();
-        }
-    }
-
-    async loadUsers() {
-        try {
-            this.users = await window.api.getUsers();
-        } catch (error) {
-            console.error('ユーザーデータの取得に失敗:', error);
-            this.users = [];
-            throw error;
-        }
     }
 
     applyFilters() {
@@ -435,20 +363,19 @@ class UsersController {
             // 検索フィルター
             if (this.currentFilter.search) {
                 const searchTerm = this.currentFilter.search.toLowerCase();
-                const matchesSearch = 
-                    user.name.toLowerCase().includes(searchTerm) ||
-                    user.email.toLowerCase().includes(searchTerm) ||
-                    user.department.toLowerCase().includes(searchTerm);
-                if (!matchesSearch) return false;
+                const searchableText = [
+                    user.name,
+                    user.email,
+                    user.position
+                ].join(' ').toLowerCase();
+                
+                if (!searchableText.includes(searchTerm)) {
+                    return false;
+                }
             }
 
             // 役職フィルター
             if (this.currentFilter.role && user.role !== this.currentFilter.role) {
-                return false;
-            }
-
-            // ステータスフィルター
-            if (this.currentFilter.status && user.status !== this.currentFilter.status) {
                 return false;
             }
 
@@ -457,443 +384,76 @@ class UsersController {
                 return false;
             }
 
+            // ステータスフィルター
+            if (this.currentFilter.status && user.status !== this.currentFilter.status) {
+                return false;
+            }
+
             return true;
         });
 
         this.applySorting();
-        this.pagination.currentPage = 1;
-        this.pagination.totalItems = this.filteredUsers.length;
-        this.renderTable();
+        this.populateUsersList();
     }
 
     applySorting() {
         this.filteredUsers.sort((a, b) => {
             const field = this.sortConfig.field;
-            let aValue = a[field] || '';
-            let bValue = b[field] || '';
+            let aValue = a[field];
+            let bValue = b[field];
 
             // 日付フィールドの特別処理
-            if (field === 'lastLogin') {
+            if (field.includes('At') || field === 'lastLogin') {
                 aValue = new Date(aValue || 0);
                 bValue = new Date(bValue || 0);
             }
 
-            if (aValue < bValue) {
-                return this.sortConfig.direction === 'asc' ? -1 : 1;
+            // 文字列フィールドの特別処理
+            if (typeof aValue === 'string') {
+                aValue = aValue.toLowerCase();
+                bValue = bValue.toLowerCase();
             }
-            if (aValue > bValue) {
-                return this.sortConfig.direction === 'asc' ? 1 : -1;
-            }
-            return 0;
+
+            let comparison = 0;
+            if (aValue < bValue) comparison = -1;
+            if (aValue > bValue) comparison = 1;
+
+            return this.sortConfig.direction === 'asc' ? comparison : -comparison;
         });
-    }
-
-    renderTable() {
-        const tbody = document.getElementById('users-table-body');
-        const emptyState = document.getElementById('empty-state');
-        
-        if (!tbody) return;
-
-        // ページネーション計算
-        const startIndex = (this.pagination.currentPage - 1) * this.pagination.itemsPerPage;
-        const endIndex = startIndex + this.pagination.itemsPerPage;
-        const pageUsers = this.filteredUsers.slice(startIndex, endIndex);
-
-        if (this.filteredUsers.length === 0) {
-            tbody.innerHTML = '';
-            if (emptyState) emptyState.style.display = 'block';
-            return;
-        }
-
-        if (emptyState) emptyState.style.display = 'none';
-
-        tbody.innerHTML = pageUsers.map(user => `
-            <tr class="user-row" data-user-id="${user.id}">
-                <td class="checkbox-cell">
-                    <input 
-                        type="checkbox" 
-                        class="user-checkbox" 
-                        data-user-id="${user.id}"
-                        ${this.selectedUsers.has(user.id) ? 'checked' : ''}
-                    >
-                </td>
-                <td class="user-name">
-                    <div class="user-info">
-                        <div class="user-avatar">
-                            ${user.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div class="user-details">
-                            <div class="name">${this.escapeHtml(user.name)}</div>
-                            <div class="employee-id">${user.employeeId || ''}</div>
-                        </div>
-                    </div>
-                </td>
-                <td class="user-email">${this.escapeHtml(user.email)}</td>
-                <td class="user-role">
-                    <span class="role-badge role-${user.role}">
-                        ${this.getRoleDisplayName(user.role)}
-                    </span>
-                </td>
-                <td class="user-department">
-                    ${this.getDepartmentDisplayName(user.department)}
-                </td>
-                <td class="user-status">
-                    <span class="status-badge status-${user.status}">
-                        ${this.getStatusDisplayName(user.status)}
-                    </span>
-                </td>
-                <td class="user-last-login">
-                    ${user.lastLogin ? this.formatDate(user.lastLogin) : '未ログイン'}
-                </td>
-                <td class="user-actions">
-                    <div class="action-buttons">
-                        <button 
-                            class="action-btn edit-user-btn" 
-                            data-user-id="${user.id}"
-                            title="編集"
-                        >
-                            <i class="icon-edit"></i>
-                        </button>
-                        <button 
-                            class="action-btn delete-user-btn" 
-                            data-user-id="${user.id}"
-                            title="削除"
-                            ${user.role === 'admin' ? 'disabled' : ''}
-                        >
-                            <i class="icon-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
-
-        this.updateSortIndicators();
-        this.renderPagination();
-        this.updateBulkActionsButton();
-    }
-
-    updateSortIndicators() {
-        const sortableHeaders = document.querySelectorAll('.sortable');
-        sortableHeaders.forEach(header => {
-            const sortIcon = header.querySelector('.sort-icon');
-            if (header.dataset.field === this.sortConfig.field) {
-                sortIcon.className = `sort-icon icon-chevron-${this.sortConfig.direction === 'asc' ? 'up' : 'down'}`;
-                header.classList.add('sorted');
-            } else {
-                sortIcon.className = 'sort-icon';
-                header.classList.remove('sorted');
-            }
-        });
-    }
-
-    renderPagination() {
-        const totalPages = Math.ceil(this.pagination.totalItems / this.pagination.itemsPerPage);
-        const currentPage = this.pagination.currentPage;
-
-        // 情報表示
-        const infoText = document.getElementById('pagination-info-text');
-        if (infoText) {
-            const startItem = (currentPage - 1) * this.pagination.itemsPerPage + 1;
-            const endItem = Math.min(currentPage * this.pagination.itemsPerPage, this.pagination.totalItems);
-            infoText.textContent = `${startItem}-${endItem} / ${this.pagination.totalItems}件`;
-        }
-
-        // ページ番号ボタン
-        const pageNumbers = document.getElementById('page-numbers');
-        if (pageNumbers) {
-            const pages = this.generatePageNumbers(currentPage, totalPages);
-            pageNumbers.innerHTML = pages.map(page => {
-                if (page === '...') {
-                    return '<span class="page-ellipsis">...</span>';
-                }
-                return `
-                    <button 
-                        class="page-number ${page === currentPage ? 'current' : ''}"
-                        data-page="${page}"
-                    >
-                        ${page}
-                    </button>
-                `;
-            }).join('');
-        }
-
-        // 前後ボタン
-        const prevBtn = document.getElementById('prev-page-btn');
-        const nextBtn = document.getElementById('next-page-btn');
-        if (prevBtn) prevBtn.disabled = currentPage <= 1;
-        if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
-    }
-
-    generatePageNumbers(current, total) {
-        const pages = [];
-        const delta = 2; // 現在ページの前後に表示するページ数
-
-        if (total <= 7) {
-            // 総ページ数が少ない場合は全て表示
-            for (let i = 1; i <= total; i++) {
-                pages.push(i);
-            }
-        } else {
-            // 最初のページ
-            pages.push(1);
-
-            // 開始位置
-            const start = Math.max(2, current - delta);
-            const end = Math.min(total - 1, current + delta);
-
-            // 省略記号（前）
-            if (start > 2) {
-                pages.push('...');
-            }
-
-            // 中間ページ
-            for (let i = start; i <= end; i++) {
-                pages.push(i);
-            }
-
-            // 省略記号（後）
-            if (end < total - 1) {
-                pages.push('...');
-            }
-
-            // 最後のページ
-            if (total > 1) {
-                pages.push(total);
-            }
-        }
-
-        return pages;
-    }
-
-    handleSort(field) {
-        if (this.sortConfig.field === field) {
-            this.sortConfig.direction = this.sortConfig.direction === 'asc' ? 'desc' : 'asc';
-        } else {
-            this.sortConfig.field = field;
-            this.sortConfig.direction = 'asc';
-        }
-
-        this.applySorting();
-        this.renderTable();
-    }
-
-    goToPage(page) {
-        const totalPages = Math.ceil(this.pagination.totalItems / this.pagination.itemsPerPage);
-        if (page >= 1 && page <= totalPages) {
-            this.pagination.currentPage = page;
-            this.renderTable();
-        }
-    }
-
-    toggleSelectAll(checked) {
-        const checkboxes = document.querySelectorAll('.user-checkbox');
-        checkboxes.forEach(checkbox => {
-            checkbox.checked = checked;
-            this.toggleUserSelection(checkbox.dataset.userId, checked);
-        });
-    }
-
-    toggleUserSelection(userId, selected) {
-        if (selected) {
-            this.selectedUsers.add(userId);
-        } else {
-            this.selectedUsers.delete(userId);
-        }
-        this.updateBulkActionsButton();
-    }
-
-    updateBulkActionsButton() {
-        const bulkBtn = document.getElementById('bulk-actions-btn');
-        if (bulkBtn) {
-            if (this.selectedUsers.size > 0) {
-                bulkBtn.style.display = 'inline-flex';
-                bulkBtn.textContent = `${this.selectedUsers.size}件選択中`;
-            } else {
-                bulkBtn.style.display = 'none';
-            }
-        }
-
-        // 全選択チェックボックスの状態更新
-        const selectAllCheckbox = document.getElementById('select-all-checkbox');
-        if (selectAllCheckbox) {
-            const visibleUsers = document.querySelectorAll('.user-checkbox');
-            const selectedVisible = Array.from(visibleUsers).filter(cb => cb.checked).length;
-            
-            selectAllCheckbox.checked = visibleUsers.length > 0 && selectedVisible === visibleUsers.length;
-            selectAllCheckbox.indeterminate = selectedVisible > 0 && selectedVisible < visibleUsers.length;
-        }
     }
 
     clearFilters() {
         this.currentFilter = {
             search: '',
             role: '',
-            status: '',
-            department: ''
+            department: '',
+            status: ''
         };
 
         // UI更新
         document.getElementById('search-input').value = '';
         document.getElementById('role-filter').value = '';
-        document.getElementById('status-filter').value = '';
         document.getElementById('department-filter').value = '';
+        document.getElementById('status-filter').value = '';
 
         this.applyFilters();
     }
 
-    openUserModal(user = null) {
-        const modal = document.getElementById('user-modal');
-        const title = document.getElementById('user-modal-title');
-        const form = document.getElementById('user-form');
-        const passwordSection = document.getElementById('password-section');
-        
-        if (!modal || !form) return;
-
-        this.clearFormErrors();
-        
-        if (user) {
-            // 編集モード
-            title.textContent = 'ユーザー編集';
-            this.populateUserForm(user);
-            passwordSection.style.display = 'none';
-            this.currentEditingUser = user;
-        } else {
-            // 新規作成モード
-            title.textContent = '新規ユーザー';
-            form.reset();
-            passwordSection.style.display = 'block';
-            this.currentEditingUser = null;
-        }
-
-        modal.style.display = 'flex';
-    }
-
-    populateUserForm(user) {
-        document.getElementById('user-name').value = user.name;
-        document.getElementById('user-email').value = user.email;
-        document.getElementById('user-role').value = user.role;
-        document.getElementById('user-department').value = user.department;
-        document.getElementById('user-status').value = user.status;
-
-        // 権限チェックボックス
-        const permissionCheckboxes = document.querySelectorAll('input[name="permissions"]');
-        permissionCheckboxes.forEach(checkbox => {
-            checkbox.checked = user.permissions?.includes(checkbox.value) || false;
-        });
-    }
-
-    async saveUser() {
-        this.clearFormErrors();
-        
-        const formData = this.collectFormData();
-        if (!this.validateUserForm(formData)) {
-            return;
-        }
-
-        try {
-            if (this.currentEditingUser) {
-                await window.api.updateUser(this.currentEditingUser.id, formData);
-                window.notification.show('ユーザーを更新しました', 'success');
-            } else {
-                await window.api.createUser(formData);
-                window.notification.show('ユーザーを作成しました', 'success');
-            }
-
-            this.closeModals();
-            await this.loadUsers();
-            this.applyFilters();
-
-        } catch (error) {
-            console.error('ユーザーの保存に失敗:', error);
-            window.notification.show('ユーザーの保存に失敗しました', 'error');
+    showAddUserModal() {
+        if (window.notification) {
+            window.notification.info('新規ユーザー作成機能は開発中です');
         }
     }
 
-    collectFormData() {
-        const form = document.getElementById('user-form');
-        const formData = new FormData(form);
-        
-        // 権限の収集
-        const permissions = Array.from(document.querySelectorAll('input[name="permissions"]:checked'))
-            .map(checkbox => checkbox.value);
-
-        return {
-            name: formData.get('name'),
-            email: formData.get('email'),
-            role: formData.get('role'),
-            department: formData.get('department'),
-            status: formData.get('status'),
-            password: formData.get('password'),
-            permissions
-        };
-    }
-
-    validateUserForm(data) {
-        let isValid = true;
-
-        // 必須フィールドチェック
-        if (!data.name?.trim()) {
-            this.showFieldError('name', '氏名は必須です');
-            isValid = false;
-        }
-
-        if (!data.email?.trim()) {
-            this.showFieldError('email', 'メールアドレスは必須です');
-            isValid = false;
-        } else if (!this.isValidEmail(data.email)) {
-            this.showFieldError('email', '正しいメールアドレスを入力してください');
-            isValid = false;
-        }
-
-        if (!data.role) {
-            this.showFieldError('role', '役職を選択してください');
-            isValid = false;
-        }
-
-        if (!data.department) {
-            this.showFieldError('department', '部署を選択してください');
-            isValid = false;
-        }
-
-        // 新規作成時のパスワードチェック
-        if (!this.currentEditingUser) {
-            if (!data.password?.trim()) {
-                this.showFieldError('password', 'パスワードは必須です');
-                isValid = false;
-            } else if (data.password.length < 8) {
-                this.showFieldError('password', 'パスワードは8文字以上で入力してください');
-                isValid = false;
-            }
-        }
-
-        return isValid;
-    }
-
-    isValidEmail(email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    }
-
-    showFieldError(fieldName, message) {
-        const errorElement = document.getElementById(`${fieldName}-error`);
-        if (errorElement) {
-            errorElement.textContent = message;
-            errorElement.style.display = 'block';
+    viewUser(userId) {
+        if (window.router) {
+            window.router.navigate(`/users/${userId}`);
         }
     }
 
-    clearFormErrors() {
-        const errorElements = document.querySelectorAll('.error-message');
-        errorElements.forEach(element => {
-            element.textContent = '';
-            element.style.display = 'none';
-        });
-    }
-
-    async editUser(userId) {
-        const user = this.users.find(u => u.id === userId);
-        if (user) {
-            this.openUserModal(user);
+    editUser(userId) {
+        if (window.notification) {
+            window.notification.info('ユーザー編集機能は開発中です');
         }
     }
 
@@ -901,8 +461,9 @@ class UsersController {
         const user = this.users.find(u => u.id === userId);
         if (!user) return;
 
-        if (user.role === 'admin') {
-            window.notification.show('管理者ユーザーは削除できません', 'error');
+        // 自分自身は削除できない
+        if (userId === window.auth?.getCurrentUser()?.id) {
+            window.notification?.error('自分自身を削除することはできません');
             return;
         }
 
@@ -910,130 +471,37 @@ class UsersController {
         if (!confirmed) return;
 
         try {
-            await window.api.deleteUser(userId);
-            window.notification.show('ユーザーを削除しました', 'success');
-            
-            await this.loadUsers();
-            this.applyFilters();
-            this.selectedUsers.delete(userId);
-
-        } catch (error) {
-            console.error('ユーザーの削除に失敗:', error);
-            window.notification.show('ユーザーの削除に失敗しました', 'error');
-        }
-    }
-
-    openBulkActionsModal() {
-        const modal = document.getElementById('bulk-actions-modal');
-        const countElement = document.getElementById('selected-count');
-        
-        if (modal && countElement) {
-            countElement.textContent = this.selectedUsers.size;
-            modal.style.display = 'flex';
-        }
-    }
-
-    async executeBulkAction(action) {
-        const selectedIds = Array.from(this.selectedUsers);
-        if (selectedIds.length === 0) return;
-
-        let confirmed = true;
-        let message = '';
-
-        switch (action) {
-            case 'activate':
-                message = `${selectedIds.length}人のユーザーを有効化しますか？`;
-                break;
-            case 'deactivate':
-                message = `${selectedIds.length}人のユーザーを無効化しますか？`;
-                break;
-            case 'delete':
-                message = `${selectedIds.length}人のユーザーを削除しますか？\nこの操作は取り消せません。`;
-                break;
-            case 'export':
-                this.exportSelectedUsers(selectedIds);
-                this.closeModals();
-                return;
-        }
-
-        confirmed = confirm(message);
-        if (!confirmed) return;
-
-        try {
-            switch (action) {
-                case 'activate':
-                    await window.api.bulkUpdateUsers(selectedIds, { status: 'active' });
-                    window.notification.show('ユーザーを有効化しました', 'success');
-                    break;
-                case 'deactivate':
-                    await window.api.bulkUpdateUsers(selectedIds, { status: 'inactive' });
-                    window.notification.show('ユーザーを無効化しました', 'success');
-                    break;
-                case 'delete':
-                    await window.api.bulkDeleteUsers(selectedIds);
-                    window.notification.show('ユーザーを削除しました', 'success');
-                    break;
+            if (window.api) {
+                await window.api.deleteUser(userId);
+            } else {
+                // モックモードでは配列から削除
+                this.users = this.users.filter(u => u.id !== userId);
             }
 
-            this.selectedUsers.clear();
-            this.closeModals();
-            await this.loadUsers();
+            window.notification?.success('ユーザーを削除しました');
             this.applyFilters();
 
         } catch (error) {
-            console.error('一括操作に失敗:', error);
-            window.notification.show('一括操作に失敗しました', 'error');
+            console.error('User deletion failed:', error);
+            window.notification?.error('ユーザーの削除に失敗しました');
         }
     }
 
-    exportSelectedUsers(userIds) {
-        const selectedUsers = this.users.filter(user => userIds.includes(user.id));
-        const csvData = this.generateCSV(selectedUsers);
-        this.downloadCSV(csvData, 'selected_users.csv');
-        window.notification.show('CSVファイルをダウンロードしました', 'success');
-    }
-
-    generateCSV(users) {
-        const headers = ['氏名', 'メールアドレス', '役職', '部署', 'ステータス', '最終ログイン'];
-        const rows = users.map(user => [
-            user.name,
-            user.email,
-            this.getRoleDisplayName(user.role),
-            this.getDepartmentDisplayName(user.department),
-            this.getStatusDisplayName(user.status),
-            user.lastLogin ? this.formatDate(user.lastLogin) : '未ログイン'
-        ]);
-
-        return [headers, ...rows]
-            .map(row => row.map(cell => `"${cell}"`).join(','))
-            .join('\n');
-    }
-
-    downloadCSV(csvData, filename) {
-        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-        URL.revokeObjectURL(link.href);
-    }
-
-    closeModals() {
-        const modals = document.querySelectorAll('.modal');
-        modals.forEach(modal => {
-            modal.style.display = 'none';
-        });
-        this.currentEditingUser = null;
-    }
-
-    showLoading() {
-        const loading = document.getElementById('users-loading');
-        if (loading) loading.style.display = 'flex';
-    }
-
-    hideLoading() {
-        const loading = document.getElementById('users-loading');
-        if (loading) loading.style.display = 'none';
+    async renderUserDetail(userId) {
+        // ユーザー詳細ページ（開発中）
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.innerHTML = `
+                <div class="user-detail-page">
+                    <h2>👤 ユーザー詳細</h2>
+                    <p>ユーザー詳細ページは開発中です。</p>
+                    <p>ユーザーID: ${userId}</p>
+                    <button onclick="window.router.navigate('/users')" class="btn-primary">
+                        ユーザー一覧に戻る
+                    </button>
+                </div>
+            `;
+        }
     }
 
     // ユーティリティメソッド
@@ -1042,42 +510,50 @@ class UsersController {
             admin: '管理者',
             manager: 'マネージャー',
             supervisor: '主任',
-            staff: '一般社員'
+            employee: '従業員'
         };
         return roleNames[role] || role;
     }
 
     getDepartmentDisplayName(department) {
         const departmentNames = {
-            construction: '工事部',
-            sales: '営業部',
+            construction: '建設部',
             admin: '管理部',
-            quality: '品質管理部'
+            sales: '営業部'
         };
         return departmentNames[department] || department;
     }
 
     getStatusDisplayName(status) {
         const statusNames = {
-            active: '有効',
-            inactive: '無効',
-            pending: '承認待ち'
+            active: 'アクティブ',
+            inactive: '非アクティブ'
         };
         return statusNames[status] || status;
     }
 
-    formatDate(dateString) {
+    formatRelativeTime(dateString) {
+        if (!dateString) return '';
+
         const date = new Date(dateString);
-        return date.toLocaleDateString('ja-JP', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        const now = new Date();
+        const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+
+        if (diffInMinutes < 1) {
+            return 'たった今';
+        } else if (diffInMinutes < 60) {
+            return `${diffInMinutes}分前`;
+        } else if (diffInMinutes < 1440) {
+            return `${Math.floor(diffInMinutes / 60)}時間前`;
+        } else if (diffInMinutes < 10080) {
+            return `${Math.floor(diffInMinutes / 1440)}日前`;
+        } else {
+            return date.toLocaleDateString('ja-JP');
+        }
     }
 
     escapeHtml(text) {
+        if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
@@ -1092,6 +568,48 @@ class UsersController {
             };
             clearTimeout(timeout);
             timeout = setTimeout(later, wait);
+        };
+    }
+
+    showLoading() {
+        const loadingIndicator = document.getElementById('loading-indicator');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'flex';
+        }
+    }
+
+    hideLoading() {
+        const loadingIndicator = document.getElementById('loading-indicator');
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+    }
+
+    showError(message) {
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.innerHTML = `
+                <div class="error-page">
+                    <div class="error-icon">
+                        <i class="icon-alert-circle"></i>
+                    </div>
+                    <h2>エラー</h2>
+                    <p>${message}</p>
+                    <button onclick="window.users.render()" class="btn-primary">
+                        再試行
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    // デバッグ用
+    debug() {
+        return {
+            users: this.users.length,
+            filteredUsers: this.filteredUsers.length,
+            currentFilter: this.currentFilter,
+            sortConfig: this.sortConfig
         };
     }
 }
