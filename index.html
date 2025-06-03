@@ -6,8 +6,7 @@
     <title>建設業評価システム</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
     
-    <!-- Chart.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chart.js/3.9.1/chart.min.js"></script>
+    <!-- 自作チャート - Chart.js不要 -->
     
     <style>
         /* 基本スタイル */
@@ -207,6 +206,45 @@
             width: 100%;
             max-width: 400px;
             margin: 0 auto;
+        }
+        
+        /* 自作五角形チャート */
+        .pentagon-chart {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .pentagon-chart svg {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .pentagon-grid {
+            fill: none;
+            stroke: #e0e0e0;
+            stroke-width: 1;
+        }
+        
+        .pentagon-data {
+            fill: rgba(25, 118, 210, 0.3);
+            stroke: rgba(25, 118, 210, 1);
+            stroke-width: 2;
+        }
+        
+        .pentagon-point {
+            fill: rgba(25, 118, 210, 1);
+            stroke: #fff;
+            stroke-width: 2;
+        }
+        
+        .pentagon-label {
+            font-size: 12px;
+            font-weight: bold;
+            fill: #1976d2;
+            text-anchor: middle;
+            dominant-baseline: middle;
         }
         
         /* 数値入力 */
@@ -658,6 +696,127 @@
     <script>
         console.log('🚀 Building evaluation system started');
         
+        // 五角形チャート作成クラス
+        class PentagonChart {
+            constructor(containerId, categories, data = []) {
+                this.container = document.getElementById(containerId);
+                this.categories = categories;
+                this.data = data.length ? data : categories.map(() => 0);
+                this.size = 280;
+                this.center = this.size / 2;
+                this.maxRadius = this.size * 0.35;
+                this.init();
+            }
+            
+            init() {
+                this.container.innerHTML = '';
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', this.size);
+                svg.setAttribute('height', this.size);
+                svg.setAttribute('viewBox', `0 0 ${this.size} ${this.size}`);
+                
+                this.drawGrid(svg);
+                this.drawData(svg);
+                this.drawLabels(svg);
+                
+                this.container.appendChild(svg);
+            }
+            
+            getPoints(radius) {
+                const points = [];
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * 2 * Math.PI / 5) - (Math.PI / 2);
+                    const x = this.center + radius * Math.cos(angle);
+                    const y = this.center + radius * Math.sin(angle);
+                    points.push([x, y]);
+                }
+                return points;
+            }
+            
+            drawGrid(svg) {
+                // 同心円状のグリッド
+                for (let i = 1; i <= 5; i++) {
+                    const radius = (this.maxRadius * i) / 5;
+                    const points = this.getPoints(radius);
+                    const path = `M ${points[0][0]} ${points[0][1]} ` + 
+                                points.slice(1).map(p => `L ${p[0]} ${p[1]}`).join(' ') + ' Z';
+                    
+                    const gridPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    gridPath.setAttribute('d', path);
+                    gridPath.setAttribute('class', 'pentagon-grid');
+                    svg.appendChild(gridPath);
+                }
+                
+                // 放射状のライン
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * 2 * Math.PI / 5) - (Math.PI / 2);
+                    const x = this.center + this.maxRadius * Math.cos(angle);
+                    const y = this.center + this.maxRadius * Math.sin(angle);
+                    
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', this.center);
+                    line.setAttribute('y1', this.center);
+                    line.setAttribute('x2', x);
+                    line.setAttribute('y2', y);
+                    line.setAttribute('class', 'pentagon-grid');
+                    svg.appendChild(line);
+                }
+            }
+            
+            drawData(svg) {
+                const dataPoints = [];
+                for (let i = 0; i < 5; i++) {
+                    const value = this.data[i] || 0;
+                    const radius = (this.maxRadius * value) / 5;
+                    const angle = (i * 2 * Math.PI / 5) - (Math.PI / 2);
+                    const x = this.center + radius * Math.cos(angle);
+                    const y = this.center + radius * Math.sin(angle);
+                    dataPoints.push([x, y]);
+                }
+                
+                if (dataPoints.length > 0) {
+                    const path = `M ${dataPoints[0][0]} ${dataPoints[0][1]} ` + 
+                                dataPoints.slice(1).map(p => `L ${p[0]} ${p[1]}`).join(' ') + ' Z';
+                    
+                    const dataPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    dataPath.setAttribute('d', path);
+                    dataPath.setAttribute('class', 'pentagon-data');
+                    svg.appendChild(dataPath);
+                    
+                    // データポイント
+                    dataPoints.forEach(point => {
+                        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        circle.setAttribute('cx', point[0]);
+                        circle.setAttribute('cy', point[1]);
+                        circle.setAttribute('r', 4);
+                        circle.setAttribute('class', 'pentagon-point');
+                        svg.appendChild(circle);
+                    });
+                }
+            }
+            
+            drawLabels(svg) {
+                for (let i = 0; i < 5; i++) {
+                    const angle = (i * 2 * Math.PI / 5) - (Math.PI / 2);
+                    const labelRadius = this.maxRadius + 25;
+                    const x = this.center + labelRadius * Math.cos(angle);
+                    const y = this.center + labelRadius * Math.sin(angle);
+                    
+                    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', x);
+                    text.setAttribute('y', y);
+                    text.setAttribute('class', 'pentagon-label');
+                    text.textContent = this.categories[i]?.name || `項目${i+1}`;
+                    svg.appendChild(text);
+                }
+            }
+            
+            updateData(newData) {
+                this.data = newData;
+                this.init();
+            }
+        }
+        
         // アプリケーション状態
         const app = {
             currentUser: null,
@@ -1019,7 +1178,7 @@
                                 <div class="evaluation-chart" style="margin-top: 24px;">
                                     <h4 style="text-align: center; margin-bottom: 20px; color: #1976d2;">📊 評価チャート（リアルタイム更新）</h4>
                                     <div class="chart-container">
-                                        <canvas id="evaluation-radar-chart"></canvas>
+                                        <div id="evaluation-radar-chart" class="pentagon-chart"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1066,67 +1225,50 @@
         }
         
         function initializeRadarChart() {
-            const ctx = document.getElementById('evaluation-radar-chart');
-            if (!ctx) return;
-            
-            if (window.evaluationChart) {
-                window.evaluationChart.destroy();
-            }
-            
+            console.log('🎯 Initializing custom pentagon chart');
             const categories = app.mockData.evaluationCategories;
             
-            window.evaluationChart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: categories.map(cat => cat.name),
-                    datasets: [{
-                        label: '評価',
-                        data: categories.map(() => 0),
-                        backgroundColor: 'rgba(25, 118, 210, 0.2)',
-                        borderColor: 'rgba(25, 118, 210, 1)',
-                        borderWidth: 3,
-                        pointBackgroundColor: 'rgba(25, 118, 210, 1)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(25, 118, 210, 1)',
-                        pointRadius: 6,
-                        pointHoverRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    scales: {
-                        r: {
-                            angleLines: {
-                                color: 'rgba(0, 0, 0, 0.1)'
-                            },
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.1)'
-                            },
-                            pointLabels: {
-                                color: '#1976d2',
-                                font: {
-                                    size: 12,
-                                    weight: 'bold'
-                                }
-                            },
-                            ticks: {
-                                color: '#666',
-                                backdropColor: 'transparent',
-                                min: 0,
-                                max: 5,
-                                stepSize: 1
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    }
-                }
+            try {
+                window.pentagonChart = new PentagonChart('evaluation-radar-chart', categories);
+                console.log('✅ Pentagon chart initialized successfully');
+            } catch (error) {
+                console.error('Error creating pentagon chart:', error);
+            }
+        }
+        
+        function updateRatingDisplay(categoryId) {
+            const input = document.getElementById(`rating-${categoryId}`);
+            const display = document.getElementById(`display-${categoryId}`);
+            const value = parseFloat(input.value);
+            
+            if (isNaN(value) || value < 1 || value > 5) {
+                display.textContent = '未入力';
+                display.style.color = '#666';
+            } else {
+                display.textContent = `${value}/5`;
+                display.style.color = '#1976d2';
+                
+                const stars = '⭐'.repeat(Math.floor(value));
+                const halfStar = (value % 1 >= 0.5) ? '⭐' : '';
+                display.innerHTML = `${value}/5<br><small>${stars}${halfStar}</small>`;
+            }
+            
+            updateRadarChart();
+        }
+        
+        function updateRadarChart() {
+            if (!window.pentagonChart) return;
+            
+            const categories = app.mockData.evaluationCategories;
+            const newData = categories.map(category => {
+                const input = document.getElementById(`rating-${category.id}`);
+                const value = parseFloat(input.value);
+                return isNaN(value) ? 0 : Math.max(0, Math.min(5, value));
             });
+            
+            window.pentagonChart.updateData(newData);
+        }Error creating radar chart:', error);
+            }
         }
         
         function updateRatingDisplay(categoryId) {
@@ -1285,7 +1427,7 @@
                             <div class="evaluation-chart">
                                 <h4 style="text-align: center; margin-bottom: 20px; color: #1976d2;">📊 評価チャート</h4>
                                 <div class="chart-container">
-                                    <canvas id="detail-radar-chart"></canvas>
+                                    <div id="detail-radar-chart" class="pentagon-chart"></div>
                                 </div>
                             </div>
                         </div>
@@ -1351,79 +1493,20 @@
             
             setTimeout(() => {
                 initializeDetailRadarChart(evaluation);
-            }, 100);
+            }, 200);
         }
         
         function initializeDetailRadarChart(evaluation) {
-            const ctx = document.getElementById('detail-radar-chart');
-            if (!ctx) return;
-            
-            if (window.detailChart) {
-                window.detailChart.destroy();
-            }
-            
+            console.log('🎯 Initializing detail pentagon chart');
             const categories = app.mockData.evaluationCategories;
             const data = categories.map(category => evaluation.ratings[category.id] || 0);
             
-            window.detailChart = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: categories.map(cat => cat.name),
-                    datasets: [{
-                        label: '評価',
-                        data: data,
-                        backgroundColor: 'rgba(25, 118, 210, 0.3)',
-                        borderColor: 'rgba(25, 118, 210, 1)',
-                        borderWidth: 3,
-                        pointBackgroundColor: 'rgba(25, 118, 210, 1)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(25, 118, 210, 1)',
-                        pointRadius: 8,
-                        pointHoverRadius: 10
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    scales: {
-                        r: {
-                            angleLines: {
-                                color: 'rgba(0, 0, 0, 0.1)'
-                            },
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.1)'
-                            },
-                            pointLabels: {
-                                color: '#1976d2',
-                                font: {
-                                    size: 12,
-                                    weight: 'bold'
-                                }
-                            },
-                            ticks: {
-                                color: '#666',
-                                backdropColor: 'transparent',
-                                min: 0,
-                                max: 5,
-                                stepSize: 1
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.label}: ${context.raw}/5`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+            try {
+                window.detailPentagonChart = new PentagonChart('detail-radar-chart', categories, data);
+                console.log('✅ Detail pentagon chart initialized successfully');
+            } catch (error) {
+                console.error('Error creating detail pentagon chart:', error);
+            }
         }
         
         function editEvaluation(id) {
