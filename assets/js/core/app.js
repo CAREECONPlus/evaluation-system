@@ -20,24 +20,31 @@ class App {
 
             // 依存関係の確認
             this.checkDependencies();
+            console.log('✅ Dependencies checked');
 
             // コンポーネントの初期化
             await this.initializeComponents();
+            console.log('✅ Components initialized');
 
             // 認証状態の確認
-            await this.checkAuthState();
+            const isAuthenticated = await this.checkAuthState();
+            console.log('✅ Auth state checked:', isAuthenticated);
 
             // ルーターの初期化
             this.initializeRouter();
+            console.log('✅ Router initialized');
 
             // ナビゲーションの初期化
             this.initializeNavigation();
+            console.log('✅ Navigation initialized');
 
             // 初期ページの表示
             this.loadInitialPage();
+            console.log('✅ Initial page loaded');
 
             // アプリケーション準備完了
             this.onAppReady();
+            console.log('✅ App ready');
 
             this.isInitialized = true;
             console.log('App initialization completed successfully');
@@ -46,7 +53,15 @@ class App {
             console.error('App initialization failed:', error);
             this.handleInitializationError(error);
         } finally {
+            // 確実にローディングを隠す
+            console.log('🔄 Hiding loading indicator...');
             this.hideLoading();
+            
+            // 2秒後に再度確認（保険）
+            setTimeout(() => {
+                this.hideLoading();
+                console.log('🔄 Loading indicator hide confirmed');
+            }, 2000);
         }
     }
 
@@ -141,12 +156,21 @@ class App {
     loadInitialPage() {
         // 現在のURLに基づいて初期ページを表示
         const path = window.location.pathname;
+        console.log('🚀 Loading initial page for path:', path);
+        
+        // まずローディングを隠してからページ表示
+        this.hideLoading();
         
         if (path === '/' || path === '') {
+            console.log('📍 Showing login or dashboard');
             this.showLoginOrDashboard();
         } else {
+            console.log('📍 Navigating to:', path);
             if (window.router) {
-                window.router.navigate(path);
+                window.router.navigate(path, false); // pushState=false for initial load
+            } else {
+                console.error('Router not available for navigation');
+                this.showLoginOrDashboard();
             }
         }
     }
@@ -234,9 +258,15 @@ class App {
     }
 
     showLoginPage() {
+        console.log('🔐 Showing login page');
         this.setCurrentPage('login');
+        this.hideLoading(); // 確実にローディングを隠す
+        
         const mainContent = document.getElementById('main-content');
-        if (!mainContent) return;
+        if (!mainContent) {
+            console.error('Main content element not found');
+            return;
+        }
 
         mainContent.innerHTML = `
             <div class="login-page">
@@ -250,13 +280,15 @@ class App {
                         <div class="form-group">
                             <label for="email">メールアドレス</label>
                             <input type="email" id="email" name="email" required 
-                                   placeholder="example@company.com">
+                                   placeholder="example@company.com"
+                                   value="admin@company.com">
                         </div>
                         
                         <div class="form-group">
                             <label for="password">パスワード</label>
                             <input type="password" id="password" name="password" required 
-                                   placeholder="パスワード">
+                                   placeholder="パスワード"
+                                   value="password123">
                         </div>
                         
                         <button type="submit" class="btn-primary login-btn">
@@ -265,26 +297,28 @@ class App {
                     </form>
                     
                     <div class="demo-info">
-                        <h3>デモアカウント</h3>
+                        <h3>🚀 デモアカウント（テスト用）</h3>
                         <div class="demo-accounts">
                             <div class="demo-account">
-                                <strong>管理者:</strong><br>
+                                <strong>👤 管理者:</strong><br>
                                 admin@company.com / password123
                             </div>
                             <div class="demo-account">
-                                <strong>マネージャー:</strong><br>
+                                <strong>👨‍💼 マネージャー:</strong><br>
                                 manager@company.com / password123
                             </div>
                             <div class="demo-account">
-                                <strong>主任:</strong><br>
+                                <strong>👷 主任:</strong><br>
                                 supervisor@company.com / password123
                             </div>
                         </div>
+                        <p><small>※ 上記のアカウント情報は既に入力済みです</small></p>
                     </div>
                 </div>
             </div>
         `;
 
+        console.log('✅ Login page HTML set');
         this.setupLoginForm();
     }
 
@@ -430,16 +464,35 @@ class App {
     }
 
     showLoading() {
+        console.log('📥 Showing loading indicator');
         const loadingIndicator = document.getElementById('loading-indicator');
         if (loadingIndicator) {
             loadingIndicator.style.display = 'flex';
+            loadingIndicator.style.visibility = 'visible';
+            loadingIndicator.style.opacity = '1';
+        } else {
+            console.warn('Loading indicator element not found');
         }
     }
 
     hideLoading() {
+        console.log('📤 Hiding loading indicator');
         const loadingIndicator = document.getElementById('loading-indicator');
         if (loadingIndicator) {
             loadingIndicator.style.display = 'none';
+            loadingIndicator.style.visibility = 'hidden';
+            loadingIndicator.style.opacity = '0';
+            console.log('✅ Loading indicator hidden successfully');
+        } else {
+            console.warn('Loading indicator element not found');
+        }
+        
+        // メインコンテンツを確実に表示
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.style.display = 'block';
+            mainContent.style.visibility = 'visible';
+            console.log('✅ Main content made visible');
         }
     }
 
