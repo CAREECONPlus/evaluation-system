@@ -1,61 +1,113 @@
 /**
- * CSS Variables - 評価ツール
- * 全体で使用する色、サイズ、フォントなどの変数を定義
+ * CSS Variables - 建設業評価システム
+ * 新トンマナ適用版 - 全体で使用する色、サイズ、フォントなどの変数を定義
  */
 
 :root {
-  /* === カラーパレット === */
+  /* === 新カラーパレット（確定トンマナ） === */
   
-  /* プライマリーカラー（企業カラー） */
-  --color-primary: #001350;
-  --color-primary-light: #003d96;
-  --color-primary-dark: #00092e;
-  --color-primary-50: rgba(0, 19, 80, 0.05);
-  --color-primary-100: rgba(0, 19, 80, 0.1);
-  --color-primary-200: rgba(0, 19, 80, 0.2);
-  --color-primary-500: rgba(0, 19, 80, 0.5);
+  /* プライマリーカラー（青系） */
+  --color-primary: #244EFF;           /* メインブルー */
+  --color-primary-light: #5C77FF;     /* ライトブルー */
+  --color-primary-dark: #0133D8;      /* 濃いブルー */
+  --color-primary-50: rgba(36, 78, 255, 0.05);
+  --color-primary-100: rgba(36, 78, 255, 0.1);
+  --color-primary-200: rgba(36, 78, 255, 0.2);
+  --color-primary-300: rgba(36, 78, 255, 0.3);
+  --color-primary-500: rgba(36, 78, 255, 0.5);
   
-  /* セカンダリーカラー */
-  --color-secondary: #6c757d;
-  --color-secondary-light: #adb5bd;
-  --color-secondary-dark: #495057;
+  /* セカンダリーカラー（濃紺） */
+  --color-secondary: #001350;         /* 濃紺 */
+  --color-secondary-light: #002B7F;   /* ライト濃紺 */
+  --color-secondary-dark: #000A2A;    /* ダーク濃紺 */
+  --color-secondary-50: rgba(0, 19, 80, 0.05);
+  --color-secondary-100: rgba(0, 19, 80, 0.1);
+  --color-secondary-200: rgba(0, 19, 80, 0.2);
+  --color-secondary-500: rgba(0, 19, 80, 0.5);
   
-  /* 状態色 */
-  --color-success: #198754;
-  --color-success-light: #d1e7dd;
-  --color-success-dark: #146c43;
+  /* ニュートラルカラー（グレー） */
+  --color-neutral: #82889D;           /* メイングレー */
+  --color-neutral-light: #A8AEC0;     /* ライトグレー */
+  --color-neutral-dark: #6B7280;      /* ダークグレー */
+  --color-neutral-50: rgba(130, 136, 157, 0.05);
+  --color-neutral-100: rgba(130, 136, 157, 0.1);
+  --color-neutral-200: rgba(130, 136, 157, 0.2);
+  --color-neutral-500: rgba(130, 136, 157, 0.5);
   
-  --color-warning: #ffc107;
-  --color-warning-light: #fff3cd;
-  --color-warning-dark: #d39e00;
+  /* 背景カラー */
+  --color-background: #F1F4FF;        /* バックブルー */
+  --color-background-secondary: #F9FAFC; /* グレーブルー */
+  --color-background-card: #FFFFFF;    /* カード背景 */
   
-  --color-danger: #dc3545;
-  --color-danger-light: #f8d7da;
-  --color-danger-dark: #b02a37;
+  /* アクセントカラー */
+  --color-success: #1DCE85;           /* 緑 - 成功 */
+  --color-success-light: #48E5A3;     /* ライト緑 */
+  --color-success-dark: #16A86B;      /* ダーク緑 */
+  --color-success-50: rgba(29, 206, 133, 0.05);
+  --color-success-100: rgba(29, 206, 133, 0.1);
+  --color-success-200: rgba(29, 206, 133, 0.2);
   
-  --color-info: #0dcaf0;
-  --color-info-light: #d1ecf1;
-  --color-info-dark: #055160;
+  --color-warning: #FFCE2C;           /* 黄色 - 注意 */
+  --color-warning-light: #FFD94F;     /* ライト黄色 */
+  --color-warning-dark: #E6B800;      /* ダーク黄色 */
+  --color-warning-50: rgba(255, 206, 44, 0.05);
+  --color-warning-100: rgba(255, 206, 44, 0.1);
+  --color-warning-200: rgba(255, 206, 44, 0.2);
   
-  /* グレースケール */
-  --color-white: #ffffff;
-  --color-gray-50: #f8f9fa;
-  --color-gray-100: #e9ecef;
-  --color-gray-200: #dee2e6;
-  --color-gray-300: #ced4da;
-  --color-gray-400: #adb5bd;
-  --color-gray-500: #6c757d;
-  --color-gray-600: #495057;
-  --color-gray-700: #343a40;
-  --color-gray-800: #212529;
-  --color-gray-900: #000000;
+  --color-danger: #FF2C5D;            /* ピンク - 警告 */
+  --color-danger-light: #FF5C82;      /* ライトピンク */
+  --color-danger-dark: #E6003D;       /* ダークピンク */
+  --color-danger-50: rgba(255, 44, 93, 0.05);
+  --color-danger-100: rgba(255, 44, 93, 0.1);
+  --color-danger-200: rgba(255, 44, 93, 0.2);
   
-  /* === 評価ステータスカラー === */
-  --color-status-draft: var(--color-gray-500);
-  --color-status-submitted: #fd7e14;
-  --color-status-approved-evaluator: var(--color-primary);
-  --color-status-approved-admin: var(--color-success);
-  --color-status-rejected: var(--color-danger);
+  --color-info: var(--color-primary);  /* 情報表示は青を使用 */
+  --color-info-light: var(--color-primary-light);
+  --color-info-dark: var(--color-primary-dark);
+  
+  /* === 建設業界専用カラー === */
+  
+  /* 評価ステータス */
+  --color-evaluation-excellent: var(--color-success);    /* 優秀 */
+  --color-evaluation-good: #4ECE85;                      /* 良好 */
+  --color-evaluation-average: var(--color-warning);      /* 普通 */
+  --color-evaluation-poor: #FF8C42;                      /* 要改善 */
+  --color-evaluation-critical: var(--color-danger);      /* 要指導 */
+  
+  /* 安全性カラー */
+  --color-safety-safe: var(--color-success);            /* 安全 */
+  --color-safety-caution: var(--color-warning);         /* 注意 */
+  --color-safety-danger: var(--color-danger);           /* 危険 */
+  --color-safety-helmet: var(--color-warning);          /* ヘルメット */
+  
+  /* 作業ステータス */
+  --color-status-completed: var(--color-success);       /* 完了 */
+  --color-status-in-progress: var(--color-primary);     /* 作業中 */
+  --color-status-pending: var(--color-warning);         /* 保留 */
+  --color-status-not-started: var(--color-neutral);     /* 未着手 */
+  --color-status-on-hold: var(--color-danger);          /* 中止 */
+  
+  /* === グレースケール === */
+  --color-white: #FFFFFF;
+  --color-gray-50: #F9FAFC;          /* グレーブルー背景 */
+  --color-gray-100: #F1F4FF;         /* バックブルー背景 */
+  --color-gray-200: #E5E7EB;
+  --color-gray-300: #D1D5DB;
+  --color-gray-400: #9CA3AF;
+  --color-gray-500: var(--color-neutral);  /* 82889D */
+  --color-gray-600: #6B7280;
+  --color-gray-700: #374151;
+  --color-gray-800: #1F2937;
+  --color-gray-900: var(--color-secondary); /* 001350 */
+  --color-black: #000000;
+  
+  /* === テキストカラー === */
+  --color-text-primary: var(--color-secondary);    /* 濃紺テキスト */
+  --color-text-secondary: var(--color-neutral);    /* グレーテキスト */
+  --color-text-muted: var(--color-gray-500);       /* 補助テキスト */
+  --color-text-inverse: var(--color-white);        /* 逆色テキスト */
+  --color-text-link: var(--color-primary);         /* リンクテキスト */
+  --color-text-link-hover: var(--color-primary-dark);
   
   /* === レイアウト === */
   
@@ -118,12 +170,17 @@
   --border-radius-xl: 1rem;     /* 16px */
   --border-color: var(--color-gray-300);
   
-  /* シャドウ */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  /* シャドウ（新カラーベース） */
+  --shadow-sm: 0 1px 2px 0 rgba(36, 78, 255, 0.05);
+  --shadow: 0 1px 3px 0 rgba(36, 78, 255, 0.1), 0 1px 2px 0 rgba(36, 78, 255, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(36, 78, 255, 0.1), 0 2px 4px -1px rgba(36, 78, 255, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(36, 78, 255, 0.1), 0 4px 6px -2px rgba(36, 78, 255, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(36, 78, 255, 0.1), 0 10px 10px -5px rgba(36, 78, 255, 0.04);
+  
+  /* 建設業界カラーシャドウ */
+  --shadow-safety: 0 4px 6px -1px rgba(29, 206, 133, 0.1);    /* 安全色シャドウ */
+  --shadow-warning: 0 4px 6px -1px rgba(255, 206, 44, 0.1);   /* 警告色シャドウ */
+  --shadow-danger: 0 4px 6px -1px rgba(255, 44, 93, 0.1);     /* 危険色シャドウ */
   
   /* トランジション */
   --transition-fast: 150ms ease-in-out;
@@ -150,6 +207,7 @@
   --input-border-radius: var(--border-radius);
   --input-focus-border-color: var(--color-primary);
   --input-focus-box-shadow: 0 0 0 0.25rem var(--color-primary-200);
+  --input-bg: var(--color-white);
   
   /* ボタン */
   --btn-padding-y: 0.5rem;
@@ -158,10 +216,19 @@
   --btn-border-radius: var(--border-radius);
   --btn-transition: all var(--transition-base);
   
+  /* ボタンカラーバリエーション */
+  --btn-primary-bg: var(--color-primary);
+  --btn-primary-hover-bg: var(--color-primary-dark);
+  --btn-secondary-bg: var(--color-secondary);
+  --btn-secondary-hover-bg: var(--color-secondary-dark);
+  --btn-success-bg: var(--color-success);
+  --btn-warning-bg: var(--color-warning);
+  --btn-danger-bg: var(--color-danger);
+  
   /* === カード === */
   --card-border-radius: var(--border-radius-md);
   --card-border-color: var(--color-gray-200);
-  --card-bg: var(--color-white);
+  --card-bg: var(--color-background-card);
   --card-shadow: var(--shadow);
   --card-hover-shadow: var(--shadow-md);
   --card-padding: 1.25rem;
@@ -171,18 +238,23 @@
   --navbar-padding-y: 0.5rem;
   --navbar-padding-x: 1rem;
   --navbar-brand-font-size: 1.25rem;
+  --navbar-bg: var(--color-secondary);        /* 濃紺背景 */
+  --navbar-text-color: var(--color-white);
+  --navbar-link-hover-color: var(--color-primary-light);
   
   /* === テーブル === */
   --table-cell-padding-y: 0.75rem;
   --table-cell-padding-x: 0.75rem;
   --table-border-color: var(--color-gray-200);
   --table-hover-bg: var(--color-primary-50);
+  --table-header-bg: var(--color-background);
+  --table-header-color: var(--color-text-primary);
   
   /* === モーダル === */
-  --modal-backdrop-bg: rgba(0, 0, 0, 0.5);
+  --modal-backdrop-bg: rgba(0, 19, 80, 0.5);  /* 濃紺ベース */
   --modal-content-bg: var(--color-white);
   --modal-content-border-radius: var(--border-radius-lg);
-  --modal-header-bg: var(--color-primary);
+  --modal-header-bg: var(--color-secondary);   /* 濃紺ヘッダー */
   --modal-header-color: var(--color-white);
   
   /* === 通知・トースト === */
@@ -191,15 +263,32 @@
   --toast-shadow: var(--shadow-lg);
   --toast-padding: 1rem;
   
-  /* === チャート === */
-  --chart-primary-color: var(--color-primary);
-  --chart-secondary-color: var(--color-gray-400);
-  --chart-grid-color: var(--color-gray-200);
-  --chart-text-color: var(--color-gray-600);
+  /* === チャート（五角形チャート専用） === */
+  --chart-primary-color: var(--color-primary);           /* データ線 */
+  --chart-primary-fill: var(--color-primary-200);        /* データエリア */
+  --chart-secondary-color: var(--color-neutral);         /* 補助線 */
+  --chart-grid-color: var(--color-gray-300);             /* グリッド線 */
+  --chart-text-color: var(--color-text-primary);         /* ラベルテキスト */
+  --chart-point-color: var(--color-primary);             /* データポイント */
+  --chart-bg: var(--color-white);                        /* チャート背景 */
+  
+  /* 評価レベル別チャートカラー */
+  --chart-level-5: var(--color-success);                 /* 優秀 */
+  --chart-level-4: #4ECE85;                              /* 良好 */
+  --chart-level-3: var(--color-warning);                 /* 普通 */
+  --chart-level-2: #FF8C42;                              /* 要改善 */
+  --chart-level-1: var(--color-danger);                  /* 要指導 */
   
   /* === ローディング === */
-  --loading-overlay-bg: rgba(255, 255, 255, 0.9);
+  --loading-overlay-bg: rgba(241, 244, 255, 0.9);        /* バックブルーベース */
   --spinner-color: var(--color-primary);
+  --spinner-secondary-color: var(--color-primary-200);
+  
+  /* === プログレスバー === */
+  --progress-bg: var(--color-gray-200);
+  --progress-bar-bg: var(--color-primary);
+  --progress-height: 0.5rem;
+  --progress-border-radius: var(--border-radius);
   
   /* === レスポンシブフォント === */
   --font-size-responsive-xs: clamp(0.7rem, 0.8vw, 0.75rem);
@@ -207,17 +296,32 @@
   --font-size-responsive-base: clamp(0.9rem, 1.2vw, 1rem);
   --font-size-responsive-lg: clamp(1rem, 1.4vw, 1.125rem);
   --font-size-responsive-xl: clamp(1.1rem, 1.6vw, 1.25rem);
+  
+  /* === グラデーション === */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  --gradient-secondary: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-dark));
+  --gradient-success: linear-gradient(135deg, var(--color-success), var(--color-success-dark));
+  --gradient-background: linear-gradient(135deg, var(--color-background), var(--color-background-secondary));
+  
+  /* === 技能実習生向け特別カラー === */
+  --color-trainee-highlight: var(--color-warning);       /* ハイライト */
+  --color-trainee-success: var(--color-success);         /* 成功体験 */
+  --color-trainee-progress: var(--color-primary);        /* 進歩 */
+  --color-trainee-support: var(--color-info);            /* サポート */
 }
 
 /* === ダークモード対応（将来的に） === */
 @media (prefers-color-scheme: dark) {
   :root {
     /* ダークモード用の変数を定義 */
-    --color-bg-base: #1a1a1a;
-    --color-text-base: #ffffff;
-    --card-bg: #2d2d2d;
-    --input-bg: #3d3d3d;
-    --border-color: #4d4d4d;
+    --color-background: #1a1a2e;
+    --color-background-secondary: #16213e;
+    --color-background-card: #2d2d3d;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #b0b3c7;
+    --input-bg: #3d3d4d;
+    --border-color: #4d4d5d;
+    --navbar-bg: var(--color-secondary-dark);
   }
 }
 
@@ -230,6 +334,13 @@
     --shadow-lg: none;
     --shadow-xl: none;
     --card-shadow: none;
+    --toast-shadow: none;
+    
+    /* 印刷用カラー調整 */
+    --color-primary: #0133D8;
+    --color-secondary: #001350;
+    --navbar-bg: transparent;
+    --card-bg: transparent;
   }
 }
 
@@ -237,8 +348,13 @@
 @media (prefers-contrast: high) {
   :root {
     --border-width: 2px;
-    --input-border-color: var(--color-gray-800);
-    --card-border-color: var(--color-gray-600);
+    --input-border-color: var(--color-secondary);
+    --card-border-color: var(--color-secondary);
+    --table-border-color: var(--color-secondary);
+    
+    /* 高コントラスト用カラー強化 */
+    --color-text-primary: var(--color-black);
+    --color-text-secondary: var(--color-secondary);
   }
 }
 
@@ -248,5 +364,6 @@
     --transition-fast: none;
     --transition-base: none;
     --transition-slow: none;
+    --btn-transition: none;
   }
 }
