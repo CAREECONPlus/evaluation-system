@@ -68,8 +68,12 @@ class ConstructionEvaluationApp {
             this.initialized = true;
             console.log('✅ Construction Evaluation System initialized successfully');
             
-            // 初期化完了通知
-            this.notifications?.info('システムが正常に起動しました', { duration: 2000 });
+            // 初期化完了通知（安全な呼び出し）
+            if (this.notifications && typeof this.notifications.show === 'function') {
+                this.notifications.show('システムが正常に起動しました', 'info', { duration: 2000 });
+            } else if (typeof showNotification === 'function') {
+                showNotification('システムが正常に起動しました', 'info');
+            }
             
         } catch (error) {
             console.error('❌ App initialization failed:', error);
@@ -106,6 +110,17 @@ class ConstructionEvaluationApp {
         if (typeof notificationManager !== 'undefined') {
             this.notifications = notificationManager;
             console.log('✅ Notification module loaded');
+        } else if (typeof showNotification !== 'undefined') {
+            // フォールバック：グローバル関数を使用
+            this.notifications = {
+                show: showNotification,
+                success: (msg, opt) => showNotification(msg, 'success'),
+                error: (msg, opt) => showNotification(msg, 'error'),
+                warning: (msg, opt) => showNotification(msg, 'warning'),
+                info: (msg, opt) => showNotification(msg, 'info'),
+                confirm: (msg, opt) => confirm(msg)
+            };
+            console.log('✅ Notification fallback loaded');
         }
         
         // チャート管理システム
