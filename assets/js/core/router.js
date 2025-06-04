@@ -290,6 +290,10 @@ class Router {
         document.getElementById('app-header').style.display = 'block';
         document.getElementById('breadcrumbs').style.display = 'block';
         
+        // ボディクラス更新
+        document.body.classList.remove('login-mode');
+        document.body.classList.add('authenticated');
+        
         // 対応する関数を呼び出し
         const functionMap = {
             dashboard: showDashboard,
@@ -320,6 +324,10 @@ class Router {
     showLoginPage() {
         document.getElementById('app-header').style.display = 'none';
         document.getElementById('breadcrumbs').style.display = 'none';
+        
+        // ボディクラス更新
+        document.body.classList.add('login-mode');
+        document.body.classList.remove('authenticated');
         
         if (typeof window.showLoginPage === 'function') {
             window.showLoginPage();
