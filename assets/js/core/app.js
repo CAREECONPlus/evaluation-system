@@ -1,703 +1,853 @@
 /**
- * メインアプリケーションクラス
- * アプリケーション全体の初期化と管理を行う
+ * app.js - 建設業評価システム メインアプリケーション
+ * 全体の初期化・状態管理・グローバル機能統合
  */
-class App {
+
+class ConstructionEvaluationApp {
     constructor() {
-        this.isInitialized = false;
-        this.currentPage = null;
         this.version = '1.0.0';
-        
-        console.log('App constructor called');
-    }
-
-    async initialize() {
-        try {
-            console.log('Starting app initialization...');
-            
-            // ローディング表示
-            this.showLoading();
-
-            // 依存関係の確認
-            this.checkDependencies();
-            console.log('✅ Dependencies checked');
-
-            // コンポーネントの初期化
-            await this.initializeComponents();
-            console.log('✅ Components initialized');
-
-            // 認証状態の確認
-            const isAuthenticated = await this.checkAuthState();
-            console.log('✅ Auth state checked:', isAuthenticated);
-
-            // ルーターの初期化
-            this.initializeRouter();
-            console.log('✅ Router initialized');
-
-            // ナビゲーションの初期化
-            this.initializeNavigation();
-            console.log('✅ Navigation initialized');
-
-            // 初期ページの表示
-            this.loadInitialPage();
-            console.log('✅ Initial page loaded');
-
-            // アプリケーション準備完了
-            this.onAppReady();
-            console.log('✅ App ready');
-
-            this.isInitialized = true;
-            console.log('App initialization completed successfully');
-            
-            // 緊急対策: 3秒後に確実にローディングを隠してログインページを表示
-            setTimeout(() => {
-                console.log('🚨 Emergency: Force showing login page');
-                this.emergencyShowLogin();
-            }, 3000);
-
-        } catch (error) {
-            console.error('App initialization failed:', error);
-            this.handleInitializationError(error);
-        } finally {
-            // 確実にローディングを隠す
-            console.log('🔄 Hiding loading indicator...');
-            this.hideLoading();
-            
-            // 2秒後に再度確認（保険）
-            setTimeout(() => {
-                this.hideLoading();
-                console.log('🔄 Loading indicator hide confirmed');
-            }, 2000);
-        }
-    }
-
-    emergencyShowLogin() {
-        console.log('🚨 Emergency login page display');
-        
-        // 強制的にローディングを削除
-        this.forceHideLoading();
-        
-        // ログインページを強制表示
-        const mainContent = document.getElementById('main-content');
-        if (mainContent) {
-            mainContent.innerHTML = `
-                <div style="padding: 40px; text-align: center; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;">
-                    <h1 style="color: #1976d2; margin-bottom: 20px;">🏗️ 建設業評価システム</h1>
-                    <div style="max-width: 400px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                        <h2 style="margin-bottom: 20px;">ログイン</h2>
-                        <form id="emergency-login-form">
-                            <div style="margin-bottom: 15px;">
-                                <label style="display: block; margin-bottom: 5px; text-align: left;">メールアドレス</label>
-                                <input type="email" id="emergency-email" value="admin@company.com" 
-                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
-                            </div>
-                            <div style="margin-bottom: 20px;">
-                                <label style="display: block; margin-bottom: 5px; text-align: left;">パスワード</label>
-                                <input type="password" id="emergency-password" value="password123"
-                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
-                            </div>
-                            <button type="submit" style="width: 100%; padding: 12px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
-                                ログイン
-                            </button>
-                        </form>
-                        <div style="margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 4px; font-size: 14px;">
-                            <strong>🚀 緊急表示モード</strong><br>
-                            管理者アカウントが事前入力済みです
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // 緊急ログインフォームの処理
-            const form = document.getElementById('emergency-login-form');
-            if (form) {
-                form.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const email = document.getElementById('emergency-email').value;
-                    const password = document.getElementById('emergency-password').value;
-                    
-                    console.log('🚨 Emergency login attempt');
-                    
-                    try {
-                        if (window.auth) {
-                            const result = await window.auth.login({ email, password });
-                            if (result.success) {
-                                console.log('✅ Emergency login successful');
-                                if (window.navigation) {
-                                    window.navigation.render();
-                                }
-                                if (window.dashboard) {
-                                    window.dashboard.render();
-                                }
-                            } else {
-                                alert('ログインに失敗しました: ' + result.error);
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Emergency login error:', error);
-                        alert('ログインエラー: ' + error.message);
-                    }
-                });
-            }
-            
-            console.log('✅ Emergency login page displayed');
-        }
-    }
-
-    checkDependencies() {
-        const requiredObjects = [
-            { name: 'window.AuthManager', obj: window.AuthManager },
-            { name: 'window.ApiClient', obj: window.ApiClient },
-            { name: 'window.notification', obj: window.notification },
-            { name: 'window.dashboard', obj: window.dashboard }
-        ];
-
-        const missing = requiredObjects.filter(dep => !dep.obj);
-        
-        if (missing.length > 0) {
-            throw new Error(`Missing dependencies: ${missing.map(m => m.name).join(', ')}`);
-        }
-
-        console.log('All dependencies are available');
-    }
-
-    async initializeComponents() {
-        try {
-            // 通知システムは既に初期化済み
-            console.log('Notification system ready');
-
-            // APIクライアントの接続テスト（モック環境では省略）
-            if (window.api && window.api.useRealAPI) {
-                const connectionTest = await window.api.testConnection();
-                if (!connectionTest.success) {
-                    console.warn('API connection test failed:', connectionTest.message);
-                }
-            }
-
-            console.log('Components initialized successfully');
-        } catch (error) {
-            console.error('Component initialization failed:', error);
-            throw error;
-        }
-    }
-
-    async checkAuthState() {
-        try {
-            if (window.auth && window.auth.isAuthenticatedUser()) {
-                console.log('User is authenticated:', window.auth.getCurrentUser());
-                return true;
-            } else {
-                console.log('User is not authenticated');
-                return false;
-            }
-        } catch (error) {
-            console.error('Auth state check failed:', error);
-            return false;
-        }
-    }
-
-    initializeRouter() {
-        if (!window.router) {
-            console.error('Router not available');
-            return;
-        }
-
-        // ルートの定義
-        const routes = {
-            '/': () => this.showLoginOrDashboard(),
-            '/login': () => this.showLoginPage(),
-            '/dashboard': () => this.showDashboard(),
-            '/evaluations': () => this.showEvaluations(),
-            '/evaluations/new': () => this.showNewEvaluation(),
-            '/evaluations/:id': (id) => this.showEvaluation(id),
-            '/evaluations/:id/edit': (id) => this.showEditEvaluation(id),
-            '/users': () => this.showUsers(),
-            '/users/:id': (id) => this.showUser(id),
-            '/reports': () => this.showReports(),
-            '/settings': () => this.showSettings()
+        this.initialized = false;
+        this.currentUser = null;
+        this.currentPage = 'login';
+        this.loadingStates = new Map();
+        this.globalState = {
+            language: 'ja',
+            theme: 'light',
+            isOnline: navigator.onLine,
+            lastActivity: Date.now()
         };
-
-        // ルーターの設定
-        window.router.setRoutes(routes);
-        window.router.setNotFoundHandler(() => this.show404());
-        window.router.setErrorHandler((error) => this.handleRouterError(error));
-
-        console.log('Router initialized');
+        
+        // モジュール参照
+        this.i18n = null;
+        this.auth = null;
+        this.router = null;
+        this.notifications = null;
+        this.charts = new Map();
+        
+        // データキャッシュ
+        this.dataCache = {
+            evaluations: null,
+            users: null,
+            categories: null,
+            lastUpdate: null
+        };
     }
-
-    initializeNavigation() {
-        if (window.navigation) {
-            window.navigation.render();
-            console.log('Navigation initialized');
-        }
-    }
-
-    loadInitialPage() {
-        // 現在のURLに基づいて初期ページを表示
-        const path = window.location.pathname;
-        console.log('🚀 Loading initial page for path:', path);
-        
-        // まずローディングを隠してからページ表示
-        this.hideLoading();
-        
-        if (path === '/' || path === '') {
-            console.log('📍 Showing login or dashboard');
-            this.showLoginOrDashboard();
-        } else {
-            console.log('📍 Navigating to:', path);
-            if (window.router) {
-                window.router.navigate(path, false); // pushState=false for initial load
-            } else {
-                console.error('Router not available for navigation');
-                this.showLoginOrDashboard();
-            }
-        }
-    }
-
-    onAppReady() {
-        console.log('🎉 App ready - starting final setup');
-        
-        // アプリケーション準備完了時の処理
-        this.setupGlobalEventListeners();
-        this.startPeriodicTasks();
-        
-        // 強制的にローディングを隠す
-        console.log('🔄 Force hiding loading...');
-        this.forceHideLoading();
-        
-        // デバッグ情報の表示（開発環境のみ）
-        if (window.DEBUG_MODE) {
-            console.log('🚀 App ready!', {
-                version: this.version,
-                auth: window.auth?.debug(),
-                api: window.api?.getApiInfo(),
-                notification: window.notification?.getStats()
-            });
-        }
-
-        // 準備完了通知
-        setTimeout(() => {
-            window.notification?.success('システムが正常に起動しました', {
-                duration: 3000
-            });
-        }, 1000);
-        
-        console.log('✅ App ready process completed');
-    }
-
-    forceHideLoading() {
-        console.log('🚨 Force hiding loading indicator');
-        
-        // ローディングインジケーターを強制的に隠す
-        const loadingElements = [
-            document.getElementById('loading-indicator'),
-            document.querySelector('.loading-overlay'),
-            document.querySelector('[id*="loading"]')
-        ];
-        
-        loadingElements.forEach(element => {
-            if (element) {
-                element.style.display = 'none !important';
-                element.style.visibility = 'hidden';
-                element.style.opacity = '0';
-                element.remove(); // 完全に削除
-                console.log('🗑️ Loading element removed');
-            }
-        });
-        
-        // メインコンテンツを確実に表示
-        const mainContent = document.getElementById('main-content');
-        if (mainContent) {
-            mainContent.style.display = 'block';
-            mainContent.style.visibility = 'visible';
-            mainContent.style.opacity = '1';
-            console.log('✅ Main content forced visible');
-        }
-        
-        // bodyのスタイルもリセット
-        document.body.style.overflow = 'auto';
-        document.body.classList.remove('loading');
-    }
-
-    setupGlobalEventListeners() {
-        // グローバルキーボードショートカット
-        document.addEventListener('keydown', (e) => {
-            // Ctrl+/ でヘルプ表示
-            if (e.ctrlKey && e.key === '/') {
-                e.preventDefault();
-                this.showHelp();
-            }
-            
-            // Escキーでモーダル等を閉じる
-            if (e.key === 'Escape') {
-                this.handleEscapeKey();
-            }
-        });
-
-        // ページの可視性変更監視
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                console.log('Page hidden');
-            } else {
-                console.log('Page visible');
-                // ページが再表示された時の処理
-                this.onPageVisible();
-            }
-        });
-
-        // オンライン/オフライン状態の監視
-        window.addEventListener('online', () => {
-            window.notification?.success('インターネット接続が復旧しました');
-        });
-
-        window.addEventListener('offline', () => {
-            window.notification?.warning('インターネット接続が失われました');
-        });
-    }
-
-    startPeriodicTasks() {
-        // 5分毎にセッション延長チェック
-        setInterval(() => {
-            if (window.auth?.isAuthenticatedUser()) {
-                window.auth.extendSession();
-            }
-        }, 5 * 60 * 1000);
-
-        // 10分毎に通知確認（本番環境のみ）
-        if (window.api?.useRealAPI) {
-            setInterval(() => {
-                this.checkNotifications();
-            }, 10 * 60 * 1000);
-        }
-    }
-
-    // ページ表示メソッド群
-    showLoginOrDashboard() {
-        if (window.auth?.isAuthenticatedUser()) {
-            this.showDashboard();
-        } else {
-            this.showLoginPage();
-        }
-    }
-
-    showLoginPage() {
-        console.log('🔐 Showing login page');
-        this.setCurrentPage('login');
-        this.hideLoading(); // 確実にローディングを隠す
-        
-        const mainContent = document.getElementById('main-content');
-        if (!mainContent) {
-            console.error('Main content element not found');
+    
+    /**
+     * アプリケーション初期化
+     */
+    async init() {
+        if (this.initialized) {
+            console.warn('App already initialized');
             return;
         }
-
-        mainContent.innerHTML = `
-            <div class="login-page">
-                <div class="login-container">
-                    <div class="login-header">
-                        <h1>建設業評価システム</h1>
-                        <p>ログインしてください</p>
-                    </div>
-                    
-                    <form id="login-form" class="login-form">
-                        <div class="form-group">
-                            <label for="email">メールアドレス</label>
-                            <input type="email" id="email" name="email" required 
-                                   placeholder="example@company.com"
-                                   value="admin@company.com">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="password">パスワード</label>
-                            <input type="password" id="password" name="password" required 
-                                   placeholder="パスワード"
-                                   value="password123">
-                        </div>
-                        
-                        <button type="submit" class="btn-primary login-btn">
-                            ログイン
-                        </button>
-                    </form>
-                    
-                    <div class="demo-info">
-                        <h3>🚀 デモアカウント（テスト用）</h3>
-                        <div class="demo-accounts">
-                            <div class="demo-account">
-                                <strong>👤 管理者:</strong><br>
-                                admin@company.com / password123
-                            </div>
-                            <div class="demo-account">
-                                <strong>👨‍💼 マネージャー:</strong><br>
-                                manager@company.com / password123
-                            </div>
-                            <div class="demo-account">
-                                <strong>👷 主任:</strong><br>
-                                supervisor@company.com / password123
-                            </div>
-                        </div>
-                        <p><small>※ 上記のアカウント情報は既に入力済みです</small></p>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        console.log('✅ Login page HTML set');
-        this.setupLoginForm();
-    }
-
-    setupLoginForm() {
-        const form = document.getElementById('login-form');
-        if (!form) return;
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        
+        console.log('🚀 Initializing Construction Evaluation System v' + this.version);
+        
+        try {
+            // 1. 基本システム初期化
+            this.setupGlobalErrorHandler();
+            this.setupActivityMonitoring();
+            this.setupOnlineStatusMonitoring();
             
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            // 2. モジュール初期化
+            await this.initializeModules();
             
-            const loginBtn = form.querySelector('.login-btn');
-            loginBtn.textContent = 'ログイン中...';
-            loginBtn.disabled = true;
-
-            try {
-                const result = await window.auth.login({ email, password });
-                
-                if (result.success) {
-                    window.notification?.success(`${result.user.name}さん、おかえりなさい！`);
-                    
-                    // ナビゲーション更新
-                    if (window.navigation) {
-                        window.navigation.render();
-                    }
-                    
-                    // ダッシュボードへリダイレクト
-                    if (window.router) {
-                        window.router.navigate('/dashboard');
-                    }
-                } else {
-                    window.notification?.error(result.error);
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                window.notification?.error('ログインに失敗しました');
-            } finally {
-                loginBtn.textContent = 'ログイン';
-                loginBtn.disabled = false;
-            }
-        });
-    }
-
-    showDashboard() {
-        this.setCurrentPage('dashboard');
-        if (window.dashboard) {
-            window.dashboard.render();
+            // 3. イベントリスナー設定
+            this.setupEventListeners();
+            
+            // 4. 初期データ読み込み
+            this.loadInitialData();
+            
+            // 5. セッション復元チェック
+            this.checkSessionRestoration();
+            
+            // 6. 初期ページ表示
+            this.showInitialPage();
+            
+            this.initialized = true;
+            console.log('✅ Construction Evaluation System initialized successfully');
+            
+            // 初期化完了通知
+            this.notifications?.info('システムが正常に起動しました', { duration: 2000 });
+            
+        } catch (error) {
+            console.error('❌ App initialization failed:', error);
+            this.showInitializationError(error);
         }
     }
-
-    showEvaluations() {
-        this.setCurrentPage('evaluations');
-        if (window.evaluations) {
-            window.evaluations.render();
-        }
-    }
-
-    showNewEvaluation() {
-        this.setCurrentPage('evaluation-new');
-        if (window.evaluationForm) {
-            window.evaluationForm.render();
-        }
-    }
-
-    showEvaluation(id) {
-        this.setCurrentPage('evaluation-view');
-        if (window.evaluationForm) {
-            window.evaluationForm.render({ mode: 'view', evaluationId: id });
-        }
-    }
-
-    showEditEvaluation(id) {
-        this.setCurrentPage('evaluation-edit');
-        if (window.evaluationForm) {
-            window.evaluationForm.render({ mode: 'edit', evaluationId: id });
-        }
-    }
-
-    showUsers() {
-        this.setCurrentPage('users');
-        if (window.users) {
-            window.users.render();
-        }
-    }
-
-    showUser(id) {
-        this.setCurrentPage('user-detail');
-        if (window.users) {
-            window.users.render({ mode: 'detail', userId: id });
-        }
-    }
-
-    showReports() {
-        this.setCurrentPage('reports');
-        // レポートコントローラーは未実装のため、プレースホルダー表示
-        const mainContent = document.getElementById('main-content');
-        if (mainContent) {
-            mainContent.innerHTML = `
-                <div class="placeholder-page">
-                    <h2>📊 レポート</h2>
-                    <p>レポート機能は開発中です。</p>
-                </div>
-            `;
-        }
-    }
-
-    showSettings() {
-        this.setCurrentPage('settings');
-        // 設定ページは未実装のため、プレースホルダー表示
-        const mainContent = document.getElementById('main-content');
-        if (mainContent) {
-            mainContent.innerHTML = `
-                <div class="placeholder-page">
-                    <h2>⚙️ 設定</h2>
-                    <p>設定ページは開発中です。</p>
-                </div>
-            `;
-        }
-    }
-
-    show404() {
-        this.setCurrentPage('404');
-        const mainContent = document.getElementById('main-content');
-        if (mainContent) {
-            mainContent.innerHTML = `
-                <div class="error-page">
-                    <h2>404 - ページが見つかりません</h2>
-                    <p>お探しのページは存在しないか、移動された可能性があります。</p>
-                    <button onclick="window.router.navigate('/dashboard')" class="btn-primary">
-                        ダッシュボードに戻る
-                    </button>
-                </div>
-            `;
-        }
-    }
-
-    // ユーティリティメソッド
-    setCurrentPage(pageName) {
-        this.currentPage = pageName;
-        document.body.className = `page-${pageName}`;
-    }
-
-    showLoading() {
-        console.log('📥 Showing loading indicator');
-        const loadingIndicator = document.getElementById('loading-indicator');
-        if (loadingIndicator) {
-            loadingIndicator.style.display = 'flex';
-            loadingIndicator.style.visibility = 'visible';
-            loadingIndicator.style.opacity = '1';
-        } else {
-            console.warn('Loading indicator element not found');
-        }
-    }
-
-    hideLoading() {
-        console.log('📤 Hiding loading indicator');
-        const loadingIndicator = document.getElementById('loading-indicator');
-        if (loadingIndicator) {
-            loadingIndicator.style.display = 'none';
-            loadingIndicator.style.visibility = 'hidden';
-            loadingIndicator.style.opacity = '0';
-            console.log('✅ Loading indicator hidden successfully');
-        } else {
-            console.warn('Loading indicator element not found');
+    
+    /**
+     * モジュール初期化
+     */
+    async initializeModules() {
+        console.log('📦 Initializing modules...');
+        
+        // 多言語システム
+        if (typeof i18n !== 'undefined') {
+            this.i18n = i18n.init ? i18n.init() : i18n;
+            console.log('✅ i18n module loaded');
         }
         
-        // メインコンテンツを確実に表示
-        const mainContent = document.getElementById('main-content');
-        if (mainContent) {
-            mainContent.style.display = 'block';
-            mainContent.style.visibility = 'visible';
-            console.log('✅ Main content made visible');
+        // 認証システム
+        if (typeof authManager !== 'undefined') {
+            this.auth = authManager;
+            console.log('✅ Auth module loaded');
+        }
+        
+        // ルーターシステム
+        if (typeof router !== 'undefined') {
+            this.router = router;
+            this.setupRouterHooks();
+            console.log('✅ Router module loaded');
+        }
+        
+        // 通知システム
+        if (typeof notificationManager !== 'undefined') {
+            this.notifications = notificationManager;
+            console.log('✅ Notification module loaded');
+        }
+        
+        // チャート管理システム
+        if (typeof pentagonChartManager !== 'undefined') {
+            this.chartManager = pentagonChartManager;
+            console.log('✅ Chart module loaded');
+        }
+        
+        // Google Apps Script翻訳API設定
+        await this.setupTranslationAPI();
+    }
+    
+    /**
+     * ルーターフック設定
+     */
+    setupRouterHooks() {
+        // ページ遷移前の処理
+        this.router.addHook('before', async (route, currentRoute) => {
+            console.log(`🗺️ Navigating from ${currentRoute} to ${route.path}`);
+            
+            // ローディング状態表示
+            this.setLoading('navigation', true);
+            
+            // 未保存データのチェック
+            if (this.hasUnsavedData()) {
+                const confirmed = await this.notifications.confirm(
+                    '未保存のデータがあります。ページを離れますか？',
+                    { type: 'warning' }
+                );
+                if (!confirmed) {
+                    this.setLoading('navigation', false);
+                    return false;
+                }
+            }
+            
+            return true;
+        });
+        
+        // ページ遷移後の処理
+        this.router.addHook('after', async (route, currentRoute) => {
+            this.currentPage = route.name;
+            
+            // ページ固有の初期化
+            await this.initializePage(route);
+            
+            // ローディング状態解除
+            this.setLoading('navigation', false);
+            
+            // アクティビティ記録
+            this.recordActivity('page_view', { page: route.name });
+            
+            console.log(`✅ Page loaded: ${route.name}`);
+        });
+    }
+    
+    /**
+     * 翻訳API設定
+     */
+    async setupTranslationAPI() {
+        // 環境変数または設定ファイルからAPI URLを取得
+        const gasApiUrl = this.getConfig('GAS_TRANSLATION_API_URL');
+        
+        if (gasApiUrl && this.i18n && this.i18n.translator) {
+            this.i18n.translator.setGASApiUrl(gasApiUrl);
+            console.log('🌐 Translation API configured');
+        } else {
+            console.warn('⚠️ Translation API URL not configured');
         }
     }
-
-    handleInitializationError(error) {
+    
+    /**
+     * イベントリスナー設定
+     */
+    setupEventListeners() {
+        // 言語切り替えイベント
+        document.addEventListener('change', (event) => {
+            if (event.target.matches('#login-language-select, #header-language-select')) {
+                this.changeLanguage(event.target.value);
+            }
+        });
+        
+        // フォーム送信イベント
+        document.addEventListener('submit', (event) => {
+            if (event.target.id === 'login-form') {
+                event.preventDefault();
+                this.handleLogin(event);
+            } else if (event.target.id === 'new-evaluation-form') {
+                event.preventDefault();
+                this.handleSaveEvaluation(event);
+            }
+        });
+        
+        // 評価入力リアルタイム更新
+        document.addEventListener('input', (event) => {
+            if (event.target.matches('.rating-input')) {
+                this.handleRatingInput(event);
+            }
+        });
+        
+        // キーボードショートカット
+        document.addEventListener('keydown', (event) => {
+            this.handleKeyboardShortcuts(event);
+        });
+        
+        // ページ離脱前の確認
+        window.addEventListener('beforeunload', (event) => {
+            if (this.hasUnsavedData()) {
+                event.preventDefault();
+                event.returnValue = '';
+                return '';
+            }
+        });
+    }
+    
+    /**
+     * 初期データ読み込み
+     */
+    loadInitialData() {
+        console.log('📊 Loading initial data...');
+        
+        // モックデータを初期キャッシュとして設定
+        if (typeof mockData !== 'undefined') {
+            this.dataCache.evaluations = mockData.evaluations;
+            this.dataCache.users = mockData.users;
+            this.dataCache.categories = mockData.evaluationCategories;
+            this.dataCache.lastUpdate = Date.now();
+            console.log('✅ Initial data loaded from mock');
+        }
+    }
+    
+    /**
+     * セッション復元チェック
+     */
+    checkSessionRestoration() {
+        if (this.auth && this.auth.isAuthenticated()) {
+            this.currentUser = this.auth.getCurrentUser();
+            console.log(`🔄 Session restored for: ${this.currentUser.name}`);
+        }
+    }
+    
+    /**
+     * 初期ページ表示
+     */
+    showInitialPage() {
+        if (this.auth && this.auth.isAuthenticated()) {
+            // 認証済みの場合はダッシュボードへ
+            this.router.navigate('/dashboard', false);
+        } else {
+            // 未認証の場合はログインページ
+            this.router.navigate('/', false);
+        }
+    }
+    
+    /**
+     * 言語変更処理
+     * @param {string} lang - 言語コード
+     */
+    async changeLanguage(lang) {
+        console.log(`🌐 Changing language to: ${lang}`);
+        
+        this.globalState.language = lang;
+        
+        if (this.i18n) {
+            this.i18n.setLanguage(lang);
+        }
+        
+        // 言語選択の状態を同期
+        const selects = document.querySelectorAll('#login-language-select, #header-language-select');
+        selects.forEach(select => {
+            if (select.value !== lang) {
+                select.value = lang;
+            }
+        });
+        
+        // 現在のページを再描画
+        if (this.router && this.currentUser) {
+            const currentRoute = this.router.getCurrentRoute();
+            await this.initializePage(currentRoute.route);
+        }
+    }
+    
+    /**
+     * ログイン処理
+     * @param {Event} event - フォームイベント
+     */
+    async handleLogin(event) {
+        if (typeof authHelpers !== 'undefined' && authHelpers.handleLogin) {
+            await authHelpers.handleLogin(event);
+            
+            // ログイン成功時の追加処理
+            if (this.auth && this.auth.isAuthenticated()) {
+                this.currentUser = this.auth.getCurrentUser();
+                this.recordActivity('login', { userId: this.currentUser.id });
+            }
+        }
+    }
+    
+    /**
+     * 評価保存処理
+     * @param {Event} event - フォームイベント
+     */
+    async handleSaveEvaluation(event) {
+        this.setLoading('save_evaluation', true);
+        
+        try {
+            // フォームデータ収集
+            const formData = this.collectEvaluationFormData(event.target);
+            
+            // バリデーション
+            const validation = this.validateEvaluationData(formData);
+            if (!validation.isValid) {
+                this.notifications.error(validation.message);
+                return;
+            }
+            
+            // 保存処理
+            const savedEvaluation = mockDataService.saveEvaluation(formData);
+            
+            // キャッシュ更新
+            this.updateDataCache('evaluations');
+            
+            // 成功通知
+            this.notifications.construction('evaluation', 'saved', { 
+                target: formData.subordinate 
+            });
+            
+            // 評価一覧に戻る
+            setTimeout(() => {
+                this.router.navigate('/evaluations');
+            }, 1500);
+            
+        } catch (error) {
+            console.error('Evaluation save failed:', error);
+            this.notifications.error('評価の保存に失敗しました');
+        } finally {
+            this.setLoading('save_evaluation', false);
+        }
+    }
+    
+    /**
+     * 評価入力処理
+     * @param {Event} event - 入力イベント
+     */
+    handleRatingInput(event) {
+        const categoryId = event.target.id.replace('rating-', '');
+        this.updateRatingDisplay(categoryId);
+        this.updateRadarChart();
+        
+        // 未保存データフラグ設定
+        this.setUnsavedData(true);
+    }
+    
+    /**
+     * 評価表示更新
+     * @param {string} categoryId - カテゴリID
+     */
+    updateRatingDisplay(categoryId) {
+        if (typeof updateRatingDisplay === 'function') {
+            updateRatingDisplay(categoryId);
+        }
+    }
+    
+    /**
+     * レーダーチャート更新
+     */
+    updateRadarChart() {
+        if (typeof updateRadarChart === 'function') {
+            updateRadarChart();
+        }
+    }
+    
+    /**
+     * ページ固有の初期化
+     * @param {Object} route - ルート情報
+     */
+    async initializePage(route) {
+        if (!route) return;
+        
+        switch (route.name) {
+            case 'dashboard':
+                await this.initializeDashboard();
+                break;
+            case 'evaluations':
+                await this.initializeEvaluations();
+                break;
+            case 'new-evaluation':
+                await this.initializeNewEvaluation();
+                break;
+            case 'evaluation-detail':
+                await this.initializeEvaluationDetail();
+                break;
+            default:
+                console.log(`No specific initialization for page: ${route.name}`);
+        }
+    }
+    
+    /**
+     * ダッシュボード初期化
+     */
+    async initializeDashboard() {
+        // 統計データ更新
+        if (typeof mockDataService !== 'undefined') {
+            mockDataService.updateStatistics();
+        }
+    }
+    
+    /**
+     * 評価一覧初期化
+     */
+    async initializeEvaluations() {
+        // データ更新チェック
+        this.checkDataUpdate('evaluations');
+    }
+    
+    /**
+     * 新規評価初期化
+     */
+    async initializeNewEvaluation() {
+        // チャート初期化を遅延実行
+        setTimeout(() => {
+            this.initializeRadarChart();
+        }, 100);
+    }
+    
+    /**
+     * 評価詳細初期化
+     */
+    async initializeEvaluationDetail() {
+        // 詳細チャート初期化を遅延実行
+        setTimeout(() => {
+            if (typeof initializeDetailRadarChart === 'function') {
+                // 現在表示中の評価データを取得して初期化
+                const evaluationId = this.router.currentRoute.split('/').pop();
+                const evaluation = this.dataCache.evaluations?.find(e => e.id === evaluationId);
+                if (evaluation) {
+                    initializeDetailRadarChart(evaluation);
+                }
+            }
+        }, 200);
+    }
+    
+    /**
+     * レーダーチャート初期化
+     */
+    initializeRadarChart() {
+        if (typeof initializeRadarChart === 'function') {
+            initializeRadarChart();
+        } else if (this.chartManager) {
+            // 新しいチャートマネージャーを使用
+            const categories = this.dataCache.categories || [];
+            this.chartManager.createChart(
+                'evaluation-chart',
+                'evaluation-radar-chart',
+                categories,
+                []
+            );
+        }
+    }
+    
+    /**
+     * キーボードショートカット処理
+     * @param {KeyboardEvent} event - キーボードイベント
+     */
+    handleKeyboardShortcuts(event) {
+        // Ctrl/Cmd + S: 保存
+        if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+            event.preventDefault();
+            this.quickSave();
+        }
+        
+        // Ctrl/Cmd + D: ダッシュボード
+        if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
+            event.preventDefault();
+            this.router.navigate('/dashboard');
+        }
+        
+        // Ctrl/Cmd + E: 評価一覧
+        if ((event.ctrlKey || event.metaKey) && event.key === 'e') {
+            event.preventDefault();
+            this.router.navigate('/evaluations');
+        }
+        
+        // Esc: モーダル/ダイアログを閉じる
+        if (event.key === 'Escape') {
+            this.closeActiveModal();
+        }
+    }
+    
+    /**
+     * クイック保存
+     */
+    quickSave() {
+        const activeForm = document.querySelector('form:not([hidden])');
+        if (activeForm) {
+            const submitButton = activeForm.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.click();
+            }
+        }
+    }
+    
+    /**
+     * アクティブなモーダルを閉じる
+     */
+    closeActiveModal() {
+        const activeModal = document.querySelector('.modal.show');
+        if (activeModal) {
+            const closeButton = activeModal.querySelector('.modal-close, .confirm-cancel');
+            if (closeButton) {
+                closeButton.click();
+            }
+        }
+    }
+    
+    /**
+     * ローディング状態管理
+     * @param {string} key - ローディングキー
+     * @param {boolean} isLoading - ローディング状態
+     */
+    setLoading(key, isLoading) {
+        if (isLoading) {
+            this.loadingStates.set(key, Date.now());
+        } else {
+            this.loadingStates.delete(key);
+        }
+        
+        // グローバルローディング状態更新
+        this.updateGlobalLoadingState();
+    }
+    
+    /**
+     * グローバルローディング状態更新
+     */
+    updateGlobalLoadingState() {
+        const isLoading = this.loadingStates.size > 0;
+        document.body.classList.toggle('app-loading', isLoading);
+        
+        // ローディング表示要素があれば更新
+        const loader = document.querySelector('.global-loader');
+        if (loader) {
+            loader.style.display = isLoading ? 'flex' : 'none';
+        }
+    }
+    
+    /**
+     * 未保存データ状態管理
+     * @param {boolean} hasUnsaved - 未保存データがあるか
+     */
+    setUnsavedData(hasUnsaved) {
+        this.globalState.hasUnsavedData = hasUnsaved;
+        
+        // 視覚的インジケーター更新
+        document.body.classList.toggle('has-unsaved-data', hasUnsaved);
+    }
+    
+    /**
+     * 未保存データチェック
+     * @returns {boolean} 未保存データがあるか
+     */
+    hasUnsavedData() {
+        return this.globalState.hasUnsavedData === true;
+    }
+    
+    /**
+     * アクティビティ記録
+     * @param {string} action - アクション
+     * @param {Object} data - データ
+     */
+    recordActivity(action, data = {}) {
+        const activity = {
+            action,
+            data,
+            timestamp: Date.now(),
+            user: this.currentUser?.id,
+            page: this.currentPage
+        };
+        
+        console.log('📊 Activity recorded:', activity);
+        
+        // ローカルストレージに保存（最新100件）
+        try {
+            const activities = JSON.parse(localStorage.getItem('user_activities') || '[]');
+            activities.unshift(activity);
+            activities.splice(100); // 最新100件のみ保持
+            localStorage.setItem('user_activities', JSON.stringify(activities));
+        } catch (error) {
+            console.warn('Failed to save activity:', error);
+        }
+        
+        // 最終アクティビティ時刻更新
+        this.globalState.lastActivity = Date.now();
+    }
+    
+    /**
+     * データキャッシュ更新
+     * @param {string} type - データタイプ
+     */
+    updateDataCache(type) {
+        switch (type) {
+            case 'evaluations':
+                this.dataCache.evaluations = mockData.evaluations;
+                break;
+            case 'users':
+                this.dataCache.users = mockData.users;
+                break;
+            case 'categories':
+                this.dataCache.categories = mockData.evaluationCategories;
+                break;
+        }
+        
+        this.dataCache.lastUpdate = Date.now();
+    }
+    
+    /**
+     * データ更新チェック
+     * @param {string} type - データタイプ
+     */
+    checkDataUpdate(type) {
+        const lastUpdate = this.dataCache.lastUpdate;
+        const fiveMinutes = 5 * 60 * 1000;
+        
+        if (!lastUpdate || Date.now() - lastUpdate > fiveMinutes) {
+            console.log(`🔄 Updating ${type} cache...`);
+            this.updateDataCache(type);
+        }
+    }
+    
+    /**
+     * グローバルエラーハンドラー設定
+     */
+    setupGlobalErrorHandler() {
+        window.addEventListener('error', (event) => {
+            console.error('Global error:', event.error);
+            this.notifications?.error('予期しないエラーが発生しました');
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+            this.notifications?.error('処理中にエラーが発生しました');
+        });
+    }
+    
+    /**
+     * アクティビティ監視設定
+     */
+    setupActivityMonitoring() {
+        // 30分間非アクティブの場合の警告
+        const inactivityTime = 30 * 60 * 1000;
+        
+        setInterval(() => {
+            if (Date.now() - this.globalState.lastActivity > inactivityTime) {
+                if (this.auth && this.auth.isAuthenticated()) {
+                    this.notifications?.warning(
+                        '長時間非アクティブです。セキュリティのため再ログインを検討してください。',
+                        { duration: 10000 }
+                    );
+                }
+            }
+        }, 5 * 60 * 1000); // 5分ごとにチェック
+    }
+    
+    /**
+     * オンライン状態監視設定
+     */
+    setupOnlineStatusMonitoring() {
+        window.addEventListener('online', () => {
+            this.globalState.isOnline = true;
+            this.notifications?.success('インターネット接続が復旧しました');
+        });
+        
+        window.addEventListener('offline', () => {
+            this.globalState.isOnline = false;
+            this.notifications?.warning('インターネット接続が切断されました');
+        });
+    }
+    
+    /**
+     * 初期化エラー表示
+     * @param {Error} error - エラー
+     */
+    showInitializationError(error) {
         const mainContent = document.getElementById('main-content');
         if (mainContent) {
             mainContent.innerHTML = `
-                <div class="error-page">
-                    <h2>🚨 アプリケーション初期化エラー</h2>
-                    <p><strong>エラー:</strong> ${error.message}</p>
-                    <div class="error-details">
-                        <h3>考えられる原因:</h3>
-                        <ul>
-                            <li>JavaScriptファイルの読み込み失敗</li>
-                            <li>ネットワーク接続の問題</li>
-                            <li>ブラウザの互換性問題</li>
-                        </ul>
+                <div style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 100vh;
+                    background: var(--color-danger);
+                    color: white;
+                    text-align: center;
+                    padding: 20px;
+                ">
+                    <div>
+                        <h1>⚠️ システム初期化エラー</h1>
+                        <p>システムの初期化中にエラーが発生しました。</p>
+                        <p><strong>エラー内容:</strong> ${error.message}</p>
+                        <button onclick="location.reload()" style="
+                            margin-top: 20px;
+                            padding: 10px 20px;
+                            background: white;
+                            color: var(--color-danger);
+                            border: none;
+                            border-radius: 5px;
+                            cursor: pointer;
+                        ">
+                            ページを再読み込み
+                        </button>
                     </div>
-                    <button onclick="location.reload()" class="btn-primary">
-                        再読み込み
-                    </button>
                 </div>
             `;
         }
     }
-
-    handleRouterError(error) {
-        console.error('Router error:', error);
-        window.notification?.error('ページの読み込みに失敗しました');
+    
+    /**
+     * 設定値取得
+     * @param {string} key - 設定キー
+     * @returns {any} 設定値
+     */
+    getConfig(key) {
+        // 環境変数、設定ファイル、デフォルト値の順で取得
+        const configs = {
+            'GAS_TRANSLATION_API_URL': process?.env?.GAS_TRANSLATION_API_URL || null,
+            'FIREBASE_CONFIG': process?.env?.FIREBASE_CONFIG || null,
+            'DEBUG_MODE': process?.env?.NODE_ENV === 'development'
+        };
+        
+        return configs[key];
     }
-
-    handleEscapeKey() {
-        // モーダルやドロップダウンを閉じる処理
-        console.log('Escape key pressed');
-    }
-
-    onPageVisible() {
-        // ページが再表示された時の処理
-        if (this.currentPage === 'dashboard' && window.dashboard) {
-            window.dashboard.render();
-        }
-    }
-
-    showHelp() {
-        window.notification?.info('ヘルプ機能は開発中です', {
-            title: 'ヘルプ'
-        });
-    }
-
-    async checkNotifications() {
-        try {
-            if (window.auth?.isAuthenticatedUser()) {
-                const notifications = await window.api?.getNotifications(window.auth.getCurrentUser().id);
-                // 通知処理は実装予定
-            }
-        } catch (error) {
-            console.error('Failed to check notifications:', error);
-        }
-    }
-
-    // デバッグ用メソッド
-    debug() {
+    
+    /**
+     * アプリケーション情報取得
+     * @returns {Object} アプリケーション情報
+     */
+    getAppInfo() {
         return {
             version: this.version,
-            isInitialized: this.isInitialized,
+            initialized: this.initialized,
+            currentUser: this.currentUser,
             currentPage: this.currentPage,
-            auth: window.auth?.debug(),
-            api: window.api?.getApiInfo(),
-            notification: window.notification?.getStats()
+            globalState: this.globalState,
+            loadingStates: Array.from(this.loadingStates.keys()),
+            cacheInfo: {
+                evaluations: this.dataCache.evaluations?.length || 0,
+                users: this.dataCache.users?.length || 0,
+                categories: this.dataCache.categories?.length || 0,
+                lastUpdate: this.dataCache.lastUpdate
+            }
         };
     }
-
-    // アプリケーション終了処理
-    destroy() {
-        // タイマーやイベントリスナーのクリーンアップ
-        if (window.dashboard) {
-            window.dashboard.destroy();
+    
+    /**
+     * 評価フォームデータ収集
+     * @param {HTMLFormElement} form - フォーム要素
+     * @returns {Object} フォームデータ
+     */
+    collectEvaluationFormData(form) {
+        const formData = new FormData(form);
+        const data = {};
+        
+        // 基本情報
+        data.period = document.getElementById('evaluation-period')?.value;
+        data.subordinate = document.getElementById('subordinate-select')?.value;
+        data.overallComment = document.getElementById('overall-comment')?.value;
+        data.evaluator = this.currentUser?.name;
+        data.evaluatorId = this.currentUser?.id;
+        
+        // 評価項目
+        data.ratings = {};
+        if (this.dataCache.categories) {
+            this.dataCache.categories.forEach(category => {
+                const input = document.getElementById(`rating-${category.id}`);
+                if (input && input.value) {
+                    data.ratings[category.id] = parseFloat(input.value);
+                }
+            });
         }
         
-        console.log('App destroyed');
+        // 総合評価計算
+        const ratingValues = Object.values(data.ratings);
+        data.overallRating = ratingValues.length > 0 
+            ? Math.round((ratingValues.reduce((sum, r) => sum + r, 0) / ratingValues.length) * 10) / 10
+            : 0;
+        
+        return data;
+    }
+    
+    /**
+     * 評価データバリデーション
+     * @param {Object} data - 評価データ
+     * @returns {Object} バリデーション結果
+     */
+    validateEvaluationData(data) {
+        const result = { isValid: true, message: '' };
+        
+        if (!data.period) {
+            result.isValid = false;
+            result.message = '評価期間を選択してください';
+            return result;
+        }
+        
+        if (!data.subordinate) {
+            result.isValid = false;
+            result.message = '評価対象者を選択してください';
+            return result;
+        }
+        
+        const ratingCount = Object.keys(data.ratings).length;
+        if (ratingCount === 0) {
+            result.isValid = false;
+            result.message = '少なくとも1つの評価項目を入力してください';
+            return result;
+        }
+        
+        // 評価値の範囲チェック
+        for (const [category, rating] of Object.entries(data.ratings)) {
+            if (rating < 1 || rating > 5) {
+                result.isValid = false;
+                result.message = `${category}の評価値が正しくありません（1-5の範囲で入力）`;
+                return result;
+            }
+        }
+        
+        return result;
     }
 }
 
-// グローバルインスタンス
-window.App = App;
+// グローバルインスタンス作成
+const app = new ConstructionEvaluationApp();
+
+// グローバルに公開
+if (typeof window !== 'undefined') {
+    window.app = app;
+    
+    // 後方互換性のための関数エイリアス
+    window.changeLanguage = app.changeLanguage.bind(app);
+    window.handleLogin = app.handleLogin.bind(app);
+    window.handleSaveEvaluation = app.handleSaveEvaluation.bind(app);
+    window.updateRatingDisplay = app.updateRatingDisplay.bind(app);
+    window.updateRadarChart = app.updateRadarChart.bind(app);
+    window.initializeRadarChart = app.initializeRadarChart.bind(app);
+}
+
+console.log('🏗️ app.js loaded - Main application ready');
