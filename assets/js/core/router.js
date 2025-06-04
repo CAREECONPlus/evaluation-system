@@ -292,24 +292,24 @@ class Router {
         
         // 対応する関数を呼び出し
         const functionMap = {
-            dashboard: 'showDashboard',
-            evaluations: 'showEvaluations', 
-            newEvaluation: 'showNewEvaluationForm',
-            evaluationDetail: 'viewEvaluation',
-            users: 'showUsers',
-            profile: 'showProfile'
+            dashboard: showDashboard,
+            evaluations: showEvaluations, 
+            newEvaluation: showNewEvaluationForm,
+            evaluationDetail: viewEvaluation,
+            users: showUsers,
+            profile: showProfile
         };
         
-        const functionName = functionMap[componentName];
+        const pageFunction = functionMap[componentName];
         
-        if (typeof window[functionName] === 'function') {
+        if (typeof pageFunction === 'function') {
             if (componentName === 'evaluationDetail' && params.id) {
-                window[functionName](params.id);
+                pageFunction(params.id);
             } else {
-                window[functionName]();
+                pageFunction();
             }
         } else {
-            console.warn(`Component function not found: ${functionName}`);
+            console.warn(`Page function not found: ${componentName}`);
             this.show404();
         }
     }
