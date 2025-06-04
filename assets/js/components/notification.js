@@ -697,13 +697,29 @@ const notificationManager = new NotificationManager();
 // グローバルに公開
 if (typeof window !== 'undefined') {
     window.notificationManager = notificationManager;
-    window.showNotification = notificationManager.show.bind(notificationManager);
-    window.hideNotification = notificationManager.hide.bind(notificationManager);
-    window.clearNotifications = notificationManager.clear.bind(notificationManager);
-    window.confirmDialog = notificationManager.confirm.bind(notificationManager);
     
-    // ヘルパー関数もグローバルに
-    Object.assign(window, notificationHelpers);
+    // 基本関数を直接公開
+    window.showNotification = function(message, type = 'info', options = {}) {
+        return notificationManager.show(message, type, options);
+    };
+    
+    window.hideNotification = function(id) {
+        return notificationManager.hide(id);
+    };
+    
+    window.clearNotifications = function() {
+        return notificationManager.clear();
+    };
+    
+    window.confirmDialog = function(message, options = {}) {
+        return notificationManager.confirm(message, options);
+    };
+    
+    // ヘルパー関数も公開
+    window.success = notificationHelpers.success.bind(notificationHelpers);
+    window.error = notificationHelpers.error.bind(notificationHelpers);
+    window.warning = notificationHelpers.warning.bind(notificationHelpers);
+    window.info = notificationHelpers.info.bind(notificationHelpers);
 }
 
 console.log('🔔 notification.js loaded - Notification system ready');
