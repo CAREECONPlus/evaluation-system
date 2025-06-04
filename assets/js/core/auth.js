@@ -466,13 +466,17 @@ const authHelpers = {
         const password = document.getElementById('password')?.value;
         
         if (!email || !password) {
-            showNotification('メールアドレスとパスワードを入力してください', 'error');
+            if (typeof showNotification === 'function') {
+                showNotification('メールアドレスとパスワードを入力してください', 'error');
+            }
             return;
         }
         
         // ログイン試行回数チェック
         if (!authManager.canAttemptLogin(email)) {
-            showNotification('ログイン試行回数が上限に達しました。15分後に再試行してください。', 'error');
+            if (typeof showNotification === 'function') {
+                showNotification('ログイン試行回数が上限に達しました。15分後に再試行してください。', 'error');
+            }
             return;
         }
         
@@ -489,7 +493,9 @@ const authHelpers = {
             
             if (result.success) {
                 authManager.recordSuccessfulLogin(email);
-                showNotification(result.message, 'success');
+                if (typeof showNotification === 'function') {
+                    showNotification(result.message, 'success');
+                }
                 
                 // ダッシュボードに遷移
                 setTimeout(() => {
@@ -499,11 +505,15 @@ const authHelpers = {
                 }, 1000);
             } else {
                 authManager.recordFailedLogin(email);
-                showNotification(result.message, 'error');
+                if (typeof showNotification === 'function') {
+                    showNotification(result.message, 'error');
+                }
             }
         } catch (error) {
             console.error('Login error:', error);
-            showNotification('ログイン処理中にエラーが発生しました', 'error');
+            if (typeof showNotification === 'function') {
+                showNotification('ログイン処理中にエラーが発生しました', 'error');
+            }
         } finally {
             // ローディング状態解除
             if (submitButton) {
