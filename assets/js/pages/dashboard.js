@@ -5,8 +5,19 @@
 function showDashboard() {
     app.currentPage = 'dashboard';
     
+    // ログインページを完全に隠す
+    const loginPage = document.querySelector('.login-page');
+    if (loginPage) {
+        loginPage.style.display = 'none';
+    }
+    
+    // ヘッダーとブレッドクラムを表示
     document.getElementById('app-header').style.display = 'block';
     document.getElementById('breadcrumbs').style.display = 'block';
+    
+    // ボディクラス更新
+    document.body.classList.remove('login-mode');
+    document.body.classList.add('authenticated');
     
     buildNavigation();
     updateBreadcrumbs([{ label: i18n.t('nav.dashboard') }]);
