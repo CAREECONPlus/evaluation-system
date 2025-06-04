@@ -499,8 +499,16 @@ const authHelpers = {
                 
                 // ダッシュボードに遷移
                 setTimeout(() => {
+                    // ログインページを完全に隠す
+                    const loginPage = document.querySelector('.login-page');
+                    if (loginPage) {
+                        loginPage.style.display = 'none';
+                    }
+                    
                     if (typeof showDashboard === 'function') {
                         showDashboard();
+                    } else if (typeof router !== 'undefined') {
+                        router.navigate('/dashboard');
                     }
                 }, 1000);
             } else {
