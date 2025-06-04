@@ -340,7 +340,11 @@ class ConstructionEvaluationApp {
             // バリデーション
             const validation = this.validateEvaluationData(formData);
             if (!validation.isValid) {
-                this.notifications.error(validation.message);
+                if (this.notifications && typeof this.notifications.show === 'function') {
+                    this.notifications.show(validation.message, 'error');
+                } else if (typeof showNotification === 'function') {
+                    showNotification(validation.message, 'error');
+                }
                 return;
             }
             
@@ -351,9 +355,11 @@ class ConstructionEvaluationApp {
             this.updateDataCache('evaluations');
             
             // 成功通知
-            this.notifications.construction('evaluation', 'saved', { 
-                target: formData.subordinate 
-            });
+            if (this.notifications && typeof this.notifications.show === 'function') {
+                this.notifications.show('評価を保存しました', 'success');
+            } else if (typeof showNotification === 'function') {
+                showNotification('評価を保存しました', 'success');
+            }
             
             // 評価一覧に戻る
             setTimeout(() => {
@@ -362,7 +368,11 @@ class ConstructionEvaluationApp {
             
         } catch (error) {
             console.error('Evaluation save failed:', error);
-            this.notifications.error('評価の保存に失敗しました');
+            if (this.notifications && typeof this.notifications.show === 'function') {
+                this.notifications.show('評価の保存に失敗しました', 'error');
+            } else if (typeof showNotification === 'function') {
+                showNotification('評価の保存に失敗しました', 'error');
+            }
         } finally {
             this.setLoading('save_evaluation', false);
         }
