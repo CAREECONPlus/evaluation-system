@@ -156,14 +156,18 @@ class Router {
         
         // 認証チェック
         if (route.requireAuth && !authManager.isAuthenticated()) {
-            showNotification('ログインが必要です', 'error');
+            if (typeof showNotification === 'function') {
+                showNotification('ログインが必要です', 'error');
+            }
             this.navigate('/', false);
             return;
         }
         
         // 権限チェック
         if (route.permission && !authManager.hasPermission(route.permission)) {
-            showNotification('この操作を実行する権限がありません', 'error');
+            if (typeof showNotification === 'function') {
+                showNotification('この操作を実行する権限がありません', 'error');
+            }
             this.navigate('/dashboard', false);
             return;
         }
@@ -307,10 +311,15 @@ class Router {
         const pageFunction = functionMap[componentName];
         
         if (typeof pageFunction === 'function') {
-            if (componentName === 'evaluationDetail' && params.id) {
-                pageFunction(params.id);
-            } else {
-                pageFunction();
+            try {
+                if (componentName === 'evaluationDetail' && params.id) {
+                    pageFunction(params.id);
+                } else {
+                    pageFunction();
+                }
+            } catch (error) {
+                console.error(`Error rendering ${componentName}:`, error);
+                this.show404();
             }
         } else {
             console.warn(`Page function not found: ${componentName}`);
