@@ -1,844 +1,527 @@
 /**
- * Responsive CSS - 評価ツール
- * レスポンシブデザインとモバイル対応のスタイル
+ * responsive.css - 建設業評価システムレスポンシブ対応
+ * 新トンマナ適用版
  */
 
-/* === タブレット対応 (≤ 1200px) === */
-@media (max-width: 1200px) {
-  .container {
-    max-width: 100%;
-    padding: 0 var(--spacing-md);
-  }
-  
-  .card-body {
-    padding: var(--spacing-md);
-  }
-  
-  .modal-dialog {
-    max-width: 90%;
-  }
-}
-
-/* === 小さいタブレット対応 (≤ 992px) === */
-@media (max-width: 992px) {
-  /* ナビゲーション */
-  .navbar-nav .nav-text {
-    display: none;
-  }
-  
-  .navbar-nav .nav-link {
-    justify-content: center;
-    min-width: 44px;
-    padding: var(--spacing-sm);
-  }
-  
-  .user-info {
-    display: none !important;
-  }
-  
-  /* カード */
-  .card-header {
-    padding: var(--spacing-sm) var(--spacing-md);
-  }
-  
-  .info-card .card-body {
-    padding: var(--spacing-md);
-  }
-  
-  /* フォーム */
-  .form-row {
-    flex-direction: column;
-    gap: var(--spacing-sm);
-  }
-  
-  /* テーブル */
-  .table-responsive {
-    font-size: var(--font-size-sm);
-  }
-  
-  .table td,
-  .table th {
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-  
-  /* アクションボタン */
-  .action-buttons {
-    flex-direction: column;
-    gap: var(--spacing-xs);
-  }
-  
-  .action-buttons .btn {
-    width: 100%;
-    margin-bottom: var(--spacing-xs);
-  }
-  
-  /* チャート */
-  .radar-chart-container {
-    height: 250px;
-  }
-  
-  .chart-container {
-    height: 200px;
-  }
-}
-
-/* === モバイル対応 (≤ 768px) === */
+/* === タブレット対応 (768px以下) === */
 @media (max-width: 768px) {
-  /* ベースレイアウト */
-  .container,
-  .container-fluid {
-    padding: 0 var(--spacing-sm);
-  }
-  
-  /* ページヘッダー */
-  .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-lg);
-    padding-bottom: var(--spacing-md);
-  }
-  
-  .page-title {
-    font-size: var(--font-size-2xl);
-  }
-  
-  .page-subtitle {
-    font-size: var(--font-size-sm);
-  }
-  
-  .page-actions {
-    width: 100%;
-    margin-top: var(--spacing-sm);
-  }
-  
-  .page-actions .btn {
-    width: 100%;
-    margin-bottom: var(--spacing-xs);
-  }
-  
-  /* ナビゲーション */
-  .navbar {
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-  
-  .navbar-brand {
-    font-size: var(--font-size-lg);
-  }
-  
-  .navbar-collapse {
-    margin-top: var(--spacing-sm);
-  }
-  
-  .navbar-nav {
-    width: 100%;
-  }
-  
-  .navbar-nav .nav-item {
-    width: 100%;
-  }
-  
-  .navbar-nav .nav-link {
-    padding: var(--spacing-sm) var(--spacing-md);
-    justify-content: flex-start;
-  }
-  
-  .navbar-nav .nav-text {
-    display: inline;
-  }
-  
-  .dropdown-menu {
-    position: static !important;
-    transform: none !important;
-    width: 100%;
-    border: none;
-    box-shadow: none;
-    background-color: transparent;
-    padding: 0;
-  }
-  
-  .dropdown-item {
-    padding: var(--spacing-sm) var(--spacing-md);
-    border-bottom: 1px solid var(--color-gray-200);
-  }
-  
-  /* カード */
-  .card {
-    margin-bottom: var(--spacing-md);
-  }
-  
-  .card-body {
-    padding: var(--spacing-sm);
-  }
-  
-  .info-card .card-body {
-    padding: var(--spacing-sm);
-  }
-  
-  .card-footer {
-    padding: var(--spacing-sm);
-  }
-  
-  /* 統計カード */
-  .stat-card {
-    padding: var(--spacing-md);
-  }
-  
-  .stat-value {
-    font-size: var(--font-size-3xl);
-  }
-  
-  /* モーダル */
-  .modal-dialog {
-    margin: var(--spacing-sm);
-    max-width: none;
-    width: calc(100% - var(--spacing-md));
-  }
-  
-  .modal-body {
-    padding: var(--spacing-md);
-    max-height: 60vh;
-    overflow-y: auto;
-  }
-  
-  .modal-footer {
-    padding: var(--spacing-sm);
-    flex-direction: column-reverse;
-    gap: var(--spacing-xs);
-  }
-  
-  .modal-footer .btn {
-    width: 100%;
-    margin-bottom: var(--spacing-xs);
-  }
-  
-  /* フォーム */
-  .form-section {
-    padding: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
-  }
-  
-  .form-section-header {
-    margin-bottom: var(--spacing-md);
-    padding-bottom: var(--spacing-sm);
-  }
-  
-  .form-section-title {
-    font-size: var(--font-size-lg);
-  }
-  
-  .category-section {
-    margin-bottom: var(--spacing-md);
-  }
-  
-  .category-header {
-    padding: var(--spacing-sm) var(--spacing-md);
-  }
-  
-  .category-item {
-    padding: var(--spacing-md);
-  }
-  
-  .qualitative-item .card-body {
-    padding: var(--spacing-md);
-  }
-  
-  /* テーブル */
-  .table-responsive {
-    border-radius: var(--border-radius);
-    font-size: var(--font-size-xs);
-  }
-  
-  .table {
-    margin-bottom: 0;
-  }
-  
-  .table td,
-  .table th {
-    padding: var(--spacing-xs);
-    white-space: nowrap;
-  }
-  
-  /* テーブル */
-  .table-responsive {
-    border-radius: var(--border-radius);
-    font-size: var(--font-size-xs);
-  }
-  
-  .table {
-    margin-bottom: 0;
-  }
-  
-  .table td,
-  .table th {
-    padding: var(--spacing-xs);
-    white-space: nowrap;
-  }
-  
-  .table-actions {
-    flex-direction: column;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-sm);
-  }
-  
-  .table-search {
-    max-width: 100%;
-    width: 100%;
-  }
-  
-  .table-filters {
-    margin-left: 0;
-    width: 100%;
-    justify-content: stretch;
-  }
-  
-  .table-filters .form-select {
-    flex: 1;
-  }
-  
-  /* ボタン */
-  .btn-group {
-    flex-direction: column;
-    width: 100%;
-  }
-  
-  .btn-group .btn {
-    border-radius: var(--border-radius) !important;
-    margin-bottom: var(--spacing-xs);
-  }
-  
-  /* アラート */
-  .alert-custom {
-    padding: var(--spacing-sm);
-  }
-  
-  .alert-custom .alert-icon {
-    font-size: var(--font-size-base);
-  }
-  
-  /* 空状態 */
-  .empty-state {
-    padding: var(--spacing-xl) var(--spacing-sm);
-  }
-  
-  .empty-state-icon {
-    font-size: 3rem;
-  }
-  
-  .empty-state-title {
-    font-size: var(--font-size-lg);
-  }
-  
-  /* プログレス */
-  .progress-label {
-    font-size: var(--font-size-xs);
-  }
-  
-  /* チャート */
-  .chart-container,
-  .radar-chart-container {
-    height: 200px;
-    padding: var(--spacing-sm);
-  }
-  
-  .chart-legend {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-xs);
-  }
-  
-  /* タブ */
-  .nav-tabs {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .nav-tabs .nav-link {
-    white-space: nowrap;
-    padding: var(--spacing-sm);
-    font-size: var(--font-size-sm);
-  }
-  
-  /* ドロップダウン */
-  .dropdown-menu {
-    min-width: 200px;
-    max-width: 300px;
-  }
-  
-  /* ユーティリティ */
-  .d-md-none {
-    display: none !important;
-  }
-  
-  .d-md-block {
-    display: block !important;
-  }
+    
+    /* ヘッダー調整 */
+    .header-content {
+        flex-direction: column;
+        height: auto;
+        padding: var(--spacing-sm) 0;
+        gap: var(--spacing-sm);
+    }
+    
+    .nav-menu {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: var(--spacing-xs);
+    }
+    
+    .nav-link {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: var(--font-size-sm);
+    }
+    
+    .user-menu {
+        width: 100%;
+        justify-content: center;
+        flex-direction: row;
+        gap: var(--spacing-md);
+    }
+    
+    /* メインコンテンツ調整 */
+    .main-content {
+        padding: var(--spacing-md) var(--spacing-sm);
+    }
+    
+    .page-header {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        align-items: flex-start;
+        padding: var(--spacing-md);
+    }
+    
+    .page-content {
+        padding: var(--spacing-md);
+    }
+    
+    .page-title {
+        font-size: var(--font-size-xl);
+    }
+    
+    /* ログインページ調整 */
+    .login-container {
+        margin: var(--spacing-lg);
+        padding: var(--spacing-xl);
+    }
+    
+    /* 統計グリッド調整 */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-md);
+    }
+    
+    /* 評価詳細調整 */
+    .evaluation-summary {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+    }
+    
+    /* 評価入力調整 */
+    .rating-input-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+    
+    .rating-input-label {
+        margin-right: 0;
+        margin-bottom: var(--spacing-xs);
+    }
+    
+    .rating-input-controls {
+        justify-content: space-between;
+        width: 100%;
+    }
+    
+    .rating-input {
+        flex: 1;
+        max-width: 120px;
+    }
+    
+    .rating-display {
+        min-width: 100px;
+        text-align: center;
+    }
+    
+    /* チャート調整 */
+    .pentagon-chart {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .chart-container {
+        max-width: 300px;
+    }
+    
+    /* テーブル調整 */
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .table {
+        min-width: 600px;
+    }
+    
+    .table th,
+    .table td {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-xs);
+    }
+    
+    /* フォーム調整 */
+    .form-section {
+        padding: var(--spacing-md);
+    }
+    
+    /* ボタン調整 */
+    .btn {
+        font-size: var(--font-size-sm);
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    /* モーダル調整 */
+    .modal-content {
+        width: 95%;
+        margin: var(--spacing-md);
+    }
+    
+    .modal-header {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .modal-body {
+        padding: var(--spacing-md);
+    }
+    
+    .modal-footer {
+        padding: var(--spacing-sm) var(--spacing-md);
+        flex-direction: column-reverse;
+        gap: var(--spacing-sm);
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* 通知調整 */
+    .notification {
+        right: var(--spacing-sm);
+        left: var(--spacing-sm);
+        transform: translateY(-100%);
+        width: auto;
+        min-width: auto;
+    }
+    
+    .notification.show {
+        transform: translateY(0);
+    }
 }
 
-/* === 小さなモバイル対応 (≤ 576px) === */
-@media (max-width: 576px) {
-  /* ベースフォント */
-  html {
-    font-size: 14px;
-  }
-  
-  /* レイアウト */
-  .container,
-  .container-fluid {
-    padding: 0 var(--spacing-xs);
-  }
-  
-  /* ページ */
-  .page {
-    padding: var(--spacing-sm) 0;
-  }
-  
-  .page-header {
-    margin-bottom: var(--spacing-md);
-    padding-bottom: var(--spacing-sm);
-  }
-  
-  .page-title {
-    font-size: var(--font-size-xl);
-    line-height: var(--line-height-tight);
-  }
-  
-  /* ナビゲーション */
-  .navbar {
-    padding: var(--spacing-xs);
-  }
-  
-  .navbar-brand {
-    font-size: var(--font-size-base);
-  }
-  
-  .navbar-brand i {
-    display: none;
-  }
-  
-  /* カード */
-  .card {
-    border-radius: var(--border-radius);
-    margin-bottom: var(--spacing-sm);
-  }
-  
-  .card-body {
-    padding: var(--spacing-xs);
-  }
-  
-  .card-header {
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-  
-  .card-title {
-    font-size: var(--font-size-sm);
-  }
-  
-  .info-card .card-body {
-    padding: var(--spacing-xs);
-  }
-  
-  /* 統計 */
-  .stat-card {
-    padding: var(--spacing-sm);
-  }
-  
-  .stat-value {
-    font-size: var(--font-size-2xl);
-  }
-  
-  .stat-label {
-    font-size: var(--font-size-xs);
-  }
-  
-  /* モーダル */
-  .modal-dialog {
-    margin: var(--spacing-xs);
-    width: calc(100% - var(--spacing-sm));
-  }
-  
-  .modal-body {
-    padding: var(--spacing-sm);
-    max-height: 50vh;
-  }
-  
-  .modal-footer {
-    padding: var(--spacing-xs);
-  }
-  
-  /* フォーム */
-  .form-section {
-    padding: var(--spacing-sm);
-    margin-bottom: var(--spacing-sm);
-  }
-  
-  .form-control,
-  .form-select {
-    font-size: var(--font-size-sm);
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-  
-  .category-header {
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-  
-  .category-item {
-    padding: var(--spacing-sm);
-  }
-  
-  /* ボタン */
-  .btn {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    font-size: var(--font-size-sm);
-  }
-  
-  .btn-sm {
-    padding: 2px var(--spacing-xs);
-    font-size: var(--font-size-xs);
-  }
-  
-  /* テーブル */
-  .table {
-    font-size: var(--font-size-xs);
-  }
-  
-  .table td,
-  .table th {
-    padding: 2px var(--spacing-xs);
-    font-size: var(--font-size-xs);
-  }
-  
-  /* 隠すコンテンツ */
-  .table th:nth-child(n+4),
-  .table td:nth-child(n+4) {
-    display: none;
-  }
-  
-  .table.table-mobile-full th,
-  .table.table-mobile-full td {
-    display: table-cell;
-  }
-  
-  /* アクションボタン */
-  .action-buttons .btn {
-    padding: var(--spacing-xs);
-    min-width: 32px;
-  }
-  
-  .action-buttons .btn span {
-    display: none;
-  }
-  
-  /* アラート */
-  .alert-custom {
-    padding: var(--spacing-xs);
-    font-size: var(--font-size-sm);
-  }
-  
-  .alert-title {
-    font-size: var(--font-size-sm);
-  }
-  
-  .alert-message {
-    font-size: var(--font-size-xs);
-  }
-  
-  /* 空状態 */
-  .empty-state {
-    padding: var(--spacing-lg) var(--spacing-xs);
-  }
-  
-  .empty-state-icon {
-    font-size: 2rem;
-    margin-bottom: var(--spacing-sm);
-  }
-  
-  .empty-state-title {
-    font-size: var(--font-size-base);
-  }
-  
-  .empty-state-description {
-    font-size: var(--font-size-sm);
-  }
-  
-  /* トースト */
-  .toast {
-    min-width: 250px;
-    max-width: 300px;
-    font-size: var(--font-size-sm);
-  }
-  
-  /* チャート */
-  .chart-container,
-  .radar-chart-container {
-    height: 150px;
-    padding: var(--spacing-xs);
-  }
-  
-  /* タブ */
-  .nav-tabs .nav-link {
-    padding: var(--spacing-xs);
-    font-size: var(--font-size-xs);
-  }
-  
-  /* ユーティリティ */
-  .d-sm-none {
-    display: none !important;
-  }
-  
-  .d-sm-block {
-    display: block !important;
-  }
-  
-  .d-sm-flex {
-    display: flex !important;
-  }
+/* === スマートフォン対応 (480px以下) === */
+@media (max-width: 480px) {
+    
+    /* ヘッダー調整 */
+    .header-content {
+        padding: var(--spacing-xs) 0;
+    }
+    
+    .logo h1 {
+        font-size: var(--font-size-lg);
+    }
+    
+    .nav-menu {
+        gap: 0;
+    }
+    
+    .nav-link {
+        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: var(--font-size-xs);
+    }
+    
+    .user-menu {
+        flex-direction: column;
+        gap: var(--spacing-xs);
+    }
+    
+    .user-info {
+        flex-direction: column;
+        text-align: center;
+        gap: var(--spacing-xs);
+    }
+    
+    /* メインコンテンツ */
+    .main-content {
+        padding: var(--spacing-sm);
+    }
+    
+    .page-header {
+        padding: var(--spacing-sm);
+    }
+    
+    .page-content {
+        padding: var(--spacing-sm);
+    }
+    
+    .page-title {
+        font-size: var(--font-size-lg);
+    }
+    
+    /* ログインページ */
+    .login-container {
+        margin: var(--spacing-sm);
+        padding: var(--spacing-lg);
+    }
+    
+    .login-header h1 {
+        font-size: var(--font-size-xl);
+    }
+    
+    /* フォーム要素 */
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: var(--font-size-md); /* iOSズーム防止 */
+    }
+    
+    .rating-input {
+        font-size: var(--font-size-md);
+        max-width: 100px;
+    }
+    
+    /* チャート */
+    .pentagon-chart {
+        width: 200px;
+        height: 200px;
+    }
+    
+    .pentagon-label {
+        font-size: 10px;
+    }
+    
+    /* ボタン */
+    .btn {
+        padding: var(--spacing-sm);
+        font-size: var(--font-size-sm);
+    }
+    
+    /* 統計カード */
+    .stat-card {
+        padding: var(--spacing-md);
+    }
+    
+    .stat-number {
+        font-size: var(--font-size-xl);
+    }
+    
+    /* 評価レベル表示 */
+    .evaluation-level {
+        font-size: var(--font-size-xs);
+        padding: 4px 8px;
+    }
+    
+    /* ツールチップ無効化（タッチデバイス） */
+    .tooltip:hover .tooltip-content {
+        opacity: 0;
+        visibility: hidden;
+    }
 }
 
-/* === 横向きモバイル対応 === */
-@media (max-width: 896px) and (orientation: landscape) {
-  .modal-body {
-    max-height: 40vh;
-  }
-  
-  .navbar {
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-  
-  .page-header {
-    margin-bottom: var(--spacing-sm);
-    padding-bottom: var(--spacing-xs);
-  }
+/* === 大画面対応 (1200px以上) === */
+@media (min-width: 1200px) {
+    
+    /* コンテナ拡張 */
+    .main-content {
+        padding: var(--spacing-xxl) var(--spacing-xl);
+    }
+    
+    /* ページヘッダー */
+    .page-header {
+        padding: var(--spacing-xxl) 2.5rem;
+    }
+    
+    .page-content {
+        padding: 2.5rem;
+    }
+    
+    /* チャート拡大 */
+    .pentagon-chart {
+        width: 350px;
+        height: 350px;
+    }
+    
+    .chart-container {
+        max-width: 450px;
+    }
+    
+    /* 統計グリッド */
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--spacing-xl);
+    }
+    
+    /* 評価詳細 */
+    .evaluation-summary {
+        grid-template-columns: 1fr 450px;
+        gap: 2.5rem;
+    }
+    
+    /* フォームセクション */
+    .form-section {
+        padding: var(--spacing-xxl);
+    }
+    
+    /* テーブル */
+    .table th,
+    .table td {
+        padding: var(--spacing-lg) var(--spacing-md);
+    }
+}
+
+/* === 横向き対応 === */
+@media (orientation: landscape) and (max-height: 600px) {
+    
+    /* ヘッダー縮小 */
+    .header-content {
+        height: 50px;
+        padding: var(--spacing-xs) 0;
+    }
+    
+    .nav-link {
+        padding: var(--spacing-xs) var(--spacing-md);
+    }
+    
+    /* メインコンテンツ調整 */
+    .main-content {
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+    
+    /* ログインページ */
+    .login-container {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    /* チャート縮小 */
+    .pentagon-chart {
+        width: 200px;
+        height: 200px;
+    }
+}
+
+/* === 印刷対応 === */
+@media print {
+    
+    /* ヘッダー・ナビゲーション非表示 */
+    .app-header,
+    .breadcrumbs,
+    .app-footer {
+        display: none !important;
+    }
+    
+    /* レイアウト調整 */
+    .main-content {
+        padding: 0;
+        max-width: none;
+    }
+    
+    .page {
+        box-shadow: none;
+        border: 1px solid var(--color-gray-400);
+    }
+    
+    /* ボタン非表示 */
+    .btn,
+    .user-menu,
+    .language-selector {
+        display: none !important;
+    }
+    
+    /* チャート調整 */
+    .pentagon-chart {
+        width: 300px;
+        height: 300px;
+    }
+    
+    /* ページ分割 */
+    .page,
+    .form-section,
+    .evaluation-chart {
+        break-inside: avoid;
+    }
+    
+    /* 色調整 */
+    .page-title {
+        color: var(--color-black) !important;
+    }
+    
+    .form-section h3 {
+        color: var(--color-black) !important;
+    }
+    
+    /* 背景色リセット */
+    body,
+    .page,
+    .form-section,
+    .evaluation-details {
+        background: white !important;
+    }
 }
 
 /* === 高DPI対応 === */
 @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  /* アイコンやボーダーの調整 */
-  .border {
-    border-width: 0.5px !important;
-  }
-  
-  /* より鮮明なフォント */
-  body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
+    
+    /* シャープなボーダー */
+    .page,
+    .form-section,
+    .table,
+    .btn {
+        border-width: 0.5px;
+    }
+    
+    /* シャープなシャドウ */
+    .page,
+    .stat-card,
+    .evaluation-chart {
+        box-shadow: 0 1px 2px rgba(36, 78, 255, 0.08);
+    }
 }
 
-/* === タッチデバイス用の調整 === */
-@media (hover: none) and (pointer: coarse) {
-  /* タッチターゲットサイズの確保 */
-  .btn,
-  .nav-link,
-  .dropdown-item,
-  .form-control,
-  .form-select {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  /* ホバー効果を無効化 */
-  .btn:hover,
-  .nav-link:hover,
-  .dropdown-item:hover,
-  .card:hover {
-    transform: none;
-  }
-  
-  /* タッチフィードバック */
-  .btn:active,
-  .nav-link:active,
-  .dropdown-item:active {
-    background-color: var(--color-primary-100);
-    transform: scale(0.98);
-  }
-}
-
-/* === ダークモード対応（将来用） === */
+/* === ダークモード対応 === */
 @media (prefers-color-scheme: dark) {
-  :root {
-    /* ダークモード用の色設定は variables.css で定義 */
-  }
-  
-  /* 画像の調整 */
-  img {
-    opacity: 0.9;
-  }
-  
-  /* テキストの可読性向上 */
-  .text-muted {
-    color: var(--color-gray-400) !important;
-  }
-}
-
-/* === 低解像度対応 === */
-@media (max-width: 320px) {
-  html {
-    font-size: 13px;
-  }
-  
-  .container,
-  .container-fluid {
-    padding: 0 var(--spacing-xs);
-  }
-  
-  .page-title {
-    font-size: var(--font-size-lg);
-  }
-  
-  .btn {
-    padding: 2px var(--spacing-xs);
-    font-size: var(--font-size-xs);
-  }
-  
-  .card-body {
-    padding: var(--spacing-xs);
-  }
-  
-  .modal-dialog {
-    margin: 2px;
-    width: calc(100% - 4px);
-  }
-}
-
-/* === プリント用の調整 === */
-@media print {
-  /* モバイルレイアウトでも印刷時は横幅を活用 */
-  .container,
-  .container-fluid {
-    max-width: 100% !important;
-    padding: 0 !important;
-  }
-  
-  .row {
-    display: flex !important;
-    flex-wrap: wrap !important;
-  }
-  
-  .col-md-6,
-  .col-lg-4,
-  .col-lg-8 {
-    flex: 0 0 50% !important;
-    max-width: 50% !important;
-  }
-  
-  /* フォントサイズの調整 */
-  body {
-    font-size: 12pt;
-    line-height: 1.4;
-  }
-  
-  .page-title {
-    font-size: 18pt;
-  }
-  
-  .card-title {
-    font-size: 14pt;
-  }
-  
-  /* 不要な要素を非表示 */
-  .page-actions,
-  .action-buttons,
-  .btn,
-  .dropdown,
-  .navbar-toggler {
-    display: none !important;
-  }
-  
-  /* テーブルの調整 */
-  .table {
-    font-size: 10pt;
-  }
-  
-  .table th,
-  .table td {
-    padding: 4pt 6pt;
-  }
-  
-  /* 改ページの制御 */
-  .card,
-  .info-card {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-  
-  .page-header {
-    break-after: avoid;
-    page-break-after: avoid;
-  }
-}
-
-/* === アクセシビリティ対応 === */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-  
-  .spinner-border {
-    animation: none;
-  }
-  
-  .loading-spinner::before {
-    content: '読み込み中...';
-  }
-  
-  .loading-spinner .spinner-border {
-    display: none;
-  }
+    
+    /* 背景調整 */
+    .login-page {
+        background: linear-gradient(135deg, var(--color-secondary-dark), var(--color-primary-dark));
+    }
+    
+    /* チャート調整 */
+    .pentagon-grid {
+        stroke: var(--color-gray-600);
+    }
+    
+    .pentagon-label {
+        fill: var(--color-text-primary);
+    }
+    
+    /* 通知調整 */
+    .notification {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
 }
 
 /* === 高コントラストモード === */
 @media (prefers-contrast: high) {
-  .btn,
-  .card,
-  .form-control,
-  .form-select {
-    border-width: 2px !important;
-  }
-  
-  .text-muted {
-    color: var(--color-gray-700) !important;
-  }
-  
-  .badge {
-    border: 2px solid currentColor;
-  }
+    
+    /* ボーダー強化 */
+    .page,
+    .form-section,
+    .rating-input-item,
+    .table {
+        border-width: 2px;
+        border-color: var(--color-secondary);
+    }
+    
+    /* チャート強化 */
+    .pentagon-data {
+        stroke-width: 3px;
+    }
+    
+    .pentagon-point {
+        stroke-width: 3px;
+    }
+    
+    /* ボタン強化 */
+    .btn {
+        border: 2px solid currentColor;
+    }
+    
+    /* フォーカス強化 */
+    .rating-input:focus,
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        box-shadow: 0 0 0 3px var(--color-primary-200);
+    }
 }
 
-/* === 横向きタブレット用の特別対応 === */
-@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
-  .navbar-nav .nav-text {
-    display: inline;
-  }
-  
-  .sidebar {
-    width: 200px;
-  }
-  
-  .main-content {
-    margin-left: 200px;
-  }
-}
-
-/* === iPhone X 以降のノッチ対応 === */
-@supports (padding: max(0px)) {
-  .navbar {
-    padding-left: max(var(--navbar-padding-x), env(safe-area-inset-left));
-    padding-right: max(var(--navbar-padding-x), env(safe-area-inset-right));
-  }
-  
-  .container,
-  .container-fluid {
-    padding-left: max(var(--spacing-sm), env(safe-area-inset-left));
-    padding-right: max(var(--spacing-sm), env(safe-area-inset-right));
-  }
-  
-  .modal-dialog {
-    margin-left: max(var(--spacing-sm), env(safe-area-inset-left));
-    margin-right: max(var(--spacing-sm), env(safe-area-inset-right));
-  }
+/* === 動きを減らす設定 === */
+@media (prefers-reduced-motion: reduce) {
+    
+    /* アニメーション無効化 */
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    /* スピナー簡素化 */
+    .spinner {
+        animation: none;
+        border: 4px solid var(--spinner-color);
+        border-radius: 50%;
+    }
+    
+    /* プログレスバー簡素化 */
+    .progress-bar::after {
+        animation: none;
+    }
 }
