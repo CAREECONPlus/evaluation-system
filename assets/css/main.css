@@ -1,6 +1,6 @@
 /**
  * main.css - 建設業評価システム基本スタイル
- * 新トンマナ適用版
+ * 新トンマナ適用版（レイアウト修正）
  */
 
 /* === リセット & 基本設定 === */
@@ -41,16 +41,6 @@ body.login-mode .main-content {
     align-items: center;
     justify-content: center;
     padding: 0;
-}
-
-/* ログイン状態でのレイアウト調整 */
-body.authenticated .app-container {
-    min-height: 100vh;
-}
-
-body.login-mode .app-container {
-    min-height: 100vh;
-    justify-content: space-between;
 }
 
 /* ログイン状態でのログインページ非表示 */
@@ -355,13 +345,15 @@ nav {
     box-shadow: var(--shadow-success);
 }
 
-/* === ログインページ === */
+/* === ログインページ（修正版） === */
 .login-page {
     min-height: 100vh;
+    width: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     background: var(--gradient-primary); /* 青グラデーション */
+    padding: var(--spacing-lg);
 }
 
 .login-container {
@@ -370,7 +362,8 @@ nav {
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-xl);
     width: 100%;
-    max-width: 400px;
+    max-width: 500px; /* デスクトップで適切な幅 */
+    min-width: 320px; /* 最小幅確保 */
 }
 
 .login-header {
@@ -518,7 +511,7 @@ nav {
     color: var(--color-text-primary);
 }
 
-/* === フッター === */
+/* === フッター（修正版） === */
 .app-footer {
     background: var(--color-background-secondary);
     text-align: center;
@@ -526,18 +519,14 @@ nav {
     border-top: 1px solid var(--border-color);
     color: var(--color-text-secondary);
     font-size: var(--font-size-sm);
-    margin-top: auto; /* フッターを下に押し下げ */
+    flex-shrink: 0; /* フッターの縮小を防ぐ */
+    margin-top: auto; /* 下部に配置 */
 }
 
 /* ログイン状態でのフッター調整 */
 body:not(.login-mode) .app-footer {
     position: relative;
     margin-top: var(--spacing-xl);
-}
-
-/* ログインページでのフッター */
-.login-page + .app-footer {
-    margin-top: 0;
 }
 
 /* === ユーティリティ === */
