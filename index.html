@@ -110,18 +110,13 @@
     <!-- 2. Components系（コンポーネント） -->
     <script src="assets/js/components/pentagon-chart.js"></script>
     <script src="assets/js/components/notification.js"></script>
-    <script src="assets/js/components/evaluation-form.js"></script>
-    <script src="assets/js/components/modal.js"></script>
     
-    <!-- 3. Pages系（ページ） -->
+    <!-- 3. Utils系（ユーティリティ） -->
+    <script src="assets/js/utils/helpers.js"></script>
+    
+    <!-- 4. Pages系（ページ） -->
     <script src="assets/js/pages/dashboard.js"></script>
     <script src="assets/js/pages/evaluations.js"></script>
-    <script src="assets/js/pages/users.js"></script>
-    
-    <!-- 4. Utils系（ユーティリティ） -->
-    <script src="assets/js/utils/constants.js"></script>
-    <script src="assets/js/utils/helpers.js"></script>
-    <script src="assets/js/utils/validation.js"></script>
     
     <!-- 5. Main App（最後に読み込み） -->
     <script src="assets/js/core/app.js"></script>
@@ -132,16 +127,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Building evaluation system started');
             
-            // i18n初期化
-            if (typeof i18n !== 'undefined') {
-                i18n.init();
-            }
-            
-            // アプリケーション初期化
-            if (typeof app !== 'undefined' && app.init) {
+            try {
+                // アプリケーション初期化
                 app.init();
-            } else {
-                console.warn('⚠️ App initialization failed - some JS files may not be loaded');
+            } catch (error) {
+                console.error('⚠️ App initialization failed:', error);
+                
                 // フォールバック：基本的なイベントリスナーを設定
                 setupBasicEventListeners();
             }
@@ -152,23 +143,65 @@
         // 基本イベントリスナー設定（フォールバック）
         function setupBasicEventListeners() {
             const loginForm = document.getElementById('login-form');
-            if (loginForm && typeof handleLogin !== 'undefined') {
-                loginForm.addEventListener('submit', handleLogin);
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (typeof authHelpers !== 'undefined') {
+                        authHelpers.handleLogin(e);
+                    }
+                });
             }
             
             // 言語切り替え
             const loginLangSelect = document.getElementById('login-language-select');
             const headerLangSelect = document.getElementById('header-language-select');
             
-            if (loginLangSelect && typeof changeLanguage !== 'undefined') {
+            if (loginLangSelect) {
                 loginLangSelect.addEventListener('change', function() {
-                    changeLanguage(this.value);
+                    if (typeof i18n !== 'undefined') {
+                        i18n.setLanguage(this.value);
+                    }
                 });
             }
             
-            if (headerLangSelect && typeof changeLanguage !== 'undefined') {
+            if (headerLangSelect) {
                 headerLangSelect.addEventListener('change', function() {
-                    changeLanguage(this.value);
+                    if (typeof i18n !== 'undefined') {
+                        i18n.setLanguage(this.value);
+                    }
+                });
+            }
+        }
+    </script>getElementById('login-form');
+        // 基本イベントリスナー設定（フォールバック）
+        function setupBasicEventListeners() {
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (typeof authHelpers !== 'undefined') {
+                        authHelpers.handleLogin(e);
+                    }
+                });
+            }
+            
+            // 言語切り替え
+            const loginLangSelect = document.getElementById('login-language-select');
+            const headerLangSelect = document.getElementById('header-language-select');
+            
+            if (loginLangSelect) {
+                loginLangSelect.addEventListener('change', function() {
+                    if (typeof i18n !== 'undefined') {
+                        i18n.setLanguage(this.value);
+                    }
+                });
+            }
+            
+            if (headerLangSelect) {
+                headerLangSelect.addEventListener('change', function() {
+                    if (typeof i18n !== 'undefined') {
+                        i18n.setLanguage(this.value);
+                    }
                 });
             }
         }
