@@ -82,6 +82,14 @@ class AuthManager {
         this.currentUser = null;
         this.clearSession();
         
+        // UI状態をリセット
+        document.body.classList.remove('authenticated');
+        document.body.classList.add('login-mode');
+        
+        // ヘッダーとブレッドクラムを隠す
+        document.getElementById('app-header').style.display = 'none';
+        document.getElementById('breadcrumbs').style.display = 'none';
+        
         // ページリロード
         if (typeof window !== 'undefined') {
             window.location.reload();
