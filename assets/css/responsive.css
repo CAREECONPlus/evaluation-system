@@ -60,6 +60,21 @@
         padding: var(--spacing-xl);
     }
     
+    /* ログインページでのフッター調整 */
+    body.login-mode .app-container {
+        min-height: 100vh;
+    }
+    
+    body.login-mode .main-content {
+        flex: 1;
+        padding: var(--spacing-md);
+    }
+    
+    .login-page {
+        min-height: calc(100vh - 140px); /* モバイルでのフッター調整 */
+        padding: var(--spacing-md) 0;
+    }
+    
     /* 統計グリッド調整 */
     .stats-grid {
         grid-template-columns: 1fr;
