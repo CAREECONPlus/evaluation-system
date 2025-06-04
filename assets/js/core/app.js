@@ -267,9 +267,13 @@ class ConstructionEvaluationApp {
     showInitialPage() {
         if (this.auth && this.auth.isAuthenticated()) {
             // 認証済みの場合はダッシュボードへ
+            document.body.classList.remove('login-mode');
+            document.body.classList.add('authenticated');
             this.router.navigate('/dashboard', false);
         } else {
             // 未認証の場合はログインページ
+            document.body.classList.add('login-mode');
+            document.body.classList.remove('authenticated');
             this.router.navigate('/', false);
         }
     }
@@ -314,6 +318,10 @@ class ConstructionEvaluationApp {
             if (this.auth && this.auth.isAuthenticated()) {
                 this.currentUser = this.auth.getCurrentUser();
                 this.recordActivity('login', { userId: this.currentUser.id });
+                
+                // ログイン状態のボディクラス更新
+                document.body.classList.remove('login-mode');
+                document.body.classList.add('authenticated');
             }
         }
     }
