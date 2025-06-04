@@ -24,6 +24,16 @@ body {
     flex-direction: column;
 }
 
+/* ログイン状態でのレイアウト調整 */
+body.authenticated .app-container {
+    min-height: 100vh;
+}
+
+body.login-mode .app-container {
+    min-height: 100vh;
+    justify-content: space-between;
+}
+
 /* === ヘッダー === */
 .app-header {
     background: var(--color-secondary); /* 濃紺 */
