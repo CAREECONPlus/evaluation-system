@@ -173,39 +173,6 @@
                 });
             }
         }
-    </script>getElementById('login-form');
-        // 基本イベントリスナー設定（フォールバック）
-        function setupBasicEventListeners() {
-            const loginForm = document.getElementById('login-form');
-            if (loginForm) {
-                loginForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    if (typeof authHelpers !== 'undefined') {
-                        authHelpers.handleLogin(e);
-                    }
-                });
-            }
-            
-            // 言語切り替え
-            const loginLangSelect = document.getElementById('login-language-select');
-            const headerLangSelect = document.getElementById('header-language-select');
-            
-            if (loginLangSelect) {
-                loginLangSelect.addEventListener('change', function() {
-                    if (typeof i18n !== 'undefined') {
-                        i18n.setLanguage(this.value);
-                    }
-                });
-            }
-            
-            if (headerLangSelect) {
-                headerLangSelect.addEventListener('change', function() {
-                    if (typeof i18n !== 'undefined') {
-                        i18n.setLanguage(this.value);
-                    }
-                });
-            }
-        }
     </script>
 </body>
 </html>
