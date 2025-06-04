@@ -727,11 +727,11 @@ class ConstructionEvaluationApp {
      * @returns {any} 設定値
      */
     getConfig(key) {
-        // 環境変数、設定ファイル、デフォルト値の順で取得
+        // ブラウザ環境用の設定管理
         const configs = {
-            'GAS_TRANSLATION_API_URL': process?.env?.GAS_TRANSLATION_API_URL || null,
-            'FIREBASE_CONFIG': process?.env?.FIREBASE_CONFIG || null,
-            'DEBUG_MODE': process?.env?.NODE_ENV === 'development'
+            'GAS_TRANSLATION_API_URL': window.APP_CONFIG?.GAS_TRANSLATION_API_URL || null,
+            'FIREBASE_CONFIG': window.APP_CONFIG?.FIREBASE_CONFIG || null,
+            'DEBUG_MODE': window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         };
         
         return configs[key];
