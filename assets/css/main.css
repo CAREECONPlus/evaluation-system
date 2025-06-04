@@ -460,6 +460,18 @@ body {
     border-top: 1px solid var(--border-color);
     color: var(--color-text-secondary);
     font-size: var(--font-size-sm);
+    margin-top: auto; /* フッターを下に押し下げ */
+}
+
+/* ログイン状態でのフッター調整 */
+body:not(.login-mode) .app-footer {
+    position: relative;
+    margin-top: var(--spacing-xl);
+}
+
+/* ログインページでのフッター */
+.login-page + .app-footer {
+    margin-top: 0;
 }
 
 /* === ユーティリティ === */
